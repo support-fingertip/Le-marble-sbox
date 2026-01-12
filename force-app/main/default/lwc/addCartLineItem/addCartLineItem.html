@@ -1,0 +1,177 @@
+<template>
+    <div class="slds-m-bottom_medium">
+        <button class="custom-add-btn" onclick={openModal}>+ Add Cart Line Item</button>
+    </div>
+    <template if:true={showModal}>
+        <div class="modal-backdrop">
+            <div class="modal-container">
+                <div class="modal-header">
+                    <h2>Add Cart Line Item</h2>
+                    <button class="close-button" onclick={closeModal}>×</button>
+                </div>
+                <div class="cart-content">
+                    <!-- Category and Search -->
+                    <div class="category-header">
+                        <select class="category-dropdown" onchange={handleCategorySelect} value={selectedCategory}>
+                            <template for:each={categories} for:item="category">
+                                <option key={category.value} value={category.value}>{category.label}</option>
+                            </template>
+                        </select>
+                        <div class="search-container">
+                            <input type="text" placeholder="Search by product name or code..." value={searchQuery} onkeyup={handleSearchInput} />
+                            <div if:true={showSearchDropdown} class="search-results">
+                                <template for:each={searchResults} for:item="product">
+                                    <div key={product.Id} class="search-result-item" onclick={handleSearchResultClick} data-product-id={product.Id}>
+                                        <div class="search-result-details">
+                                            <div class="search-result-name">{product.Name}</div>
+                                            <div class="search-result-code">Code: {product.Product_Code__c}</div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Product Fields -->
+                    <div class="add-cart-container">
+                        <div class="product-section">
+                            <template if:true={selectedProduct}>
+                                <div class="product-header">
+                                    <h3 class="product-name">{selectedProduct.Name}</h3>
+                                    <span class="product-code">Code: {selectedProduct.Product_Code__c}</span>
+                                    <span class="stock-status">
+                                        <template if:true={selectedProduct.stockCount}>
+                                            In Stock ({selectedProduct.stockCount})
+                                        </template>
+                                        <template if:false={selectedProduct.stockCount}>
+                                            Out of Stock
+                                        </template>
+                                    </span>
+                                </div>
+                                <div class="inputs-row">
+                                    <template if:true={isNaturalStone}>
+                                        <div class="input-field">
+                                            <label>Unit Price (₹)</label>
+                                            <input type="number" value={unitPrice} onchange={handleUnitPriceChange} />
+                                        </div>
+                                        <div class="input-field">
+                                            <label>Required Sqft</label>
+                                            <input type="number" value={requiredSqft} onchange={handleRequiredSqftChange} />
+                                        </div>
+                                        <div class="input-field">
+                                            <label>Description</label>
+                                            <input type="text" value={description} onchange={handleDescriptionChange} placeholder="Enter description"/>
+                                        </div>
+                                        <div class="input-field">
+                                            <label>Area <span class="required-indicator">*</span></label>
+                                            <input type="text" value={roomType} onchange={handleRoomTypeChange} placeholder="Enter area" required />
+                                        </div>
+                                        <div class="input-field">
+                                            <label>Disc Type</label>
+                                            <select value={discType} onchange={handleDiscTypeChange}>
+                                                <option value="Percentage">Percentage</option>
+                                                <option value="Amount">Amount</option>
+                                            </select>
+                                        </div>
+                                        <div class="input-field">
+                                            <label>Disc Value</label>
+                                            <input type="number" value={discValue} onchange={handleDiscValueChange} />
+                                        </div>
+                                        <div class="input-field">
+                                            <label>After Disc (₹/Sqft)</label>
+                                            <div class="readonly-field">{afterDiscPricePiece}</div>
+                                        </div>
+                                        <div class="input-field">
+                                            <label>Total Price (₹)</label>
+                                            <div class="readonly-field">{totalPrice}</div>
+                                        </div>
+                                    </template>
+                                    <template if:true={selectedProduct.isTile}>
+                                        <div class="input-field">
+                                            <label>Required Sqft</label>
+                                            <input type="number" value={requiredSqft} onchange={handleRequiredSqftChange} />
+                                        </div>
+                                        <div class="input-field">
+                                            <label>Final Sqft</label>
+                                            <div class="readonly-field">{sqft}</div>
+                                        </div>
+                                        <div class="input-field">
+                                            <label>Quantity</label>
+                                            <input type="number" value={quantity} onchange={handleQuantityChange} />
+                                        </div>
+                                        <div class="input-field">
+                                            <label>Area <span class="required-indicator">*</span></label>
+                                            <input type="text" value={roomType} onchange={handleRoomTypeChange} placeholder="Enter area/room type" required />
+                                        </div>
+                                        <div class="input-field">
+                                            <label>Unit Price (After Tax)</label>
+                                            <div class="readonly-field">{unitPriceAfterTax}</div>
+                                        </div>
+                                        <div class="input-field">
+                                            <label>Price/Sqft (After Tax)</label>
+                                            <div class="readonly-field">{pricePerSqft}</div>
+                                        </div>
+                                        <div class="input-field">
+                                            <label>Disc Type</label>
+                                            <select value={discType} onchange={handleDiscTypeChange}>
+                                                <option value="Percentage">Percentage</option>
+                                                <option value="Amount">Amount</option>
+                                            </select>
+                                        </div>
+                                        <div class="input-field">
+                                            <label>Disc Value</label>
+                                            <input type="number" value={discValue} onchange={handleDiscValueChange} />
+                                        </div>
+                                        <div class="input-field">
+                                            <label>After Disc/Sqft (₹)</label>
+                                            <div class="readonly-field">{afterDiscPriceSqft}</div>
+                                        </div>
+                                        <div class="input-field">
+                                            <label>Total Price (₹)</label>
+                                            <div class="readonly-field">{totalPrice}</div>
+                                        </div>
+                                    </template>
+                                    <template if:true={isOtherProduct}>
+                                        <div class="input-field">
+                                            <label>Quantity</label>
+                                            <input type="number" value={quantity} onchange={handleQuantityChange} />
+                                        </div>
+                                        <div class="input-field">
+                                            <label>Area <span class="required-indicator">*</span></label>
+                                            <input type="text" value={roomType} onchange={handleRoomTypeChange} placeholder="Enter area/room type" required />
+                                        </div>
+                                        <div class="input-field">
+                                            <label>Unit Price (After Tax)</label>
+                                            <div class="readonly-field">{unitPriceAfterTax}</div>
+                                        </div>
+                                        <div class="input-field">
+                                            <label>Disc Type</label>
+                                            <select value={discType} onchange={handleDiscTypeChange}>
+                                                <option value="Percentage">Percentage</option>
+                                                <option value="Amount">Amount</option>
+                                            </select>
+                                        </div>
+                                        <div class="input-field">
+                                            <label>Disc Value</label>
+                                            <input type="number" value={discValue} onchange={handleDiscValueChange} />
+                                        </div>
+                                        <div class="input-field">
+                                            <label>After Disc/Piece (₹)</label>
+                                            <div class="readonly-field">{afterDiscPricePiece}</div>
+                                        </div>
+                                        <div class="input-field">
+                                            <label>Total Price (₹)</label>
+                                            <div class="readonly-field">{totalPrice}</div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+                        </div>
+                        <div class="cart-summary">
+                            <button class="checkout-button" onclick={handleAdd}>Add</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+</template>

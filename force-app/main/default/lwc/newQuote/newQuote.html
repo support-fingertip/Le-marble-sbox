@@ -1,0 +1,241 @@
+<template>
+  <div class="cart-container">
+    <!-- Loading Spinner -->
+    <div class={spinnerClass}>
+      <div class="spinner"></div>
+    </div>
+
+    <!-- Content Wrapper -->  
+    <div class="content-wrapper">
+      <!-- Header with Category, Search and Cart -->
+      <div class="category-header">
+      <!--  <h2 class="section-title">Choose Your Product</h2>-->
+        <div class="search-controls">
+        <div class="category-select">
+          <select class="category-dropdown" onchange={handlePBSelect} value={selectedPB}>
+            <template for:each={priceNames} for:item="priceName">
+              <option key={priceName.value} value={priceName.value}>{priceName.label}</option>
+            </template>
+          </select>
+        </div>
+        
+          <div class="category-select">
+            <select class="category-dropdown" onchange={handleCategorySelect} value={selectedCategory} disabled={isCategoryDisabled}> 
+              <template for:each={categories} for:item="category">
+                <option key={category.value} value={category.value}>{category.label}</option>
+              </template>
+            </select>
+          </div>
+          <div class="search-container">
+            <div class="search-input">
+              <input type="text" placeholder="Search by product name or code..." value={searchQuery}
+                onkeyup={handleSearchInput} />
+              <!-- Search Results Dropdown -->
+              <div if:true={showSearchDropdown} class="search-results">
+                <template for:each={searchResults} for:item="product">
+                  <div key={product.Id} class="search-result-item" onclick={handleSearchResultClick}
+                    data-product-id={product.Id}>
+                    <div class="search-result-details">
+                      <div class="search-result-name">{product.Name}</div>
+                      <div class="search-result-code">Code: {product.ProductCode}</div>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="cartBtn" onclick={handleViewCart}>
+          <svg class="cart" fill="white" viewBox="0 0 576 512" height="1em" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M0 24C0 10.7 10.7 0 24 0H69.5c22 0 41.5 12.8 50.6 32h411c26.3 0 45.5 25 38.6 50.4l-41 152.3c-8.5 31.4-37 53.3-69.5 53.3H170.7l5.4 28.5c2.2 11.3 12.1 19.5 23.6 19.5H488c13.3 0 24 10.7 24 24s-10.7 24-24 24H199.7c-34.6 0-64.3-24.6-70.7-58.5L77.4 54.5c-.7-3.8-4-6.5-7.9-6.5H24C10.7 48 0 37.3 0 24zM128 464a48 48 0 1 1 96 0 48 48 0 1 1 -96 0zm336-48a48 48 0 1 1 0 96 48 48 0 1 1 0-96z">
+            </path>
+          </svg>
+          VIEW CART
+        </button>
+      </div>
+
+      <!-- Products List -->
+      <div if:true={showProducts} class="products-list">
+        <template for:each={filteredProducts} for:item="product">
+          <div key={product.Id} class="product-row">
+            <div class="product-header">
+              <h3 class="product-name">{product.Name}</h3>
+              <span class="product-code">Code: {product.ProductCode}</span>
+              <span class="stock-status" class:in-stock={product.inStock}>
+                <template if:true={product.inStock}>
+                  In Stock ({product.stockCount})
+                </template>
+                <template if:false={product.inStock}>
+                  Out of Stock
+                </template>
+              </span>
+            </div>
+
+            <!-- First Row - 5 fields -->
+            <div class="inputs-row">
+              <template if:true={product.isNaturalStone}>
+                <div class="input-field">
+                  <label>Unit Price (₹)</label>
+                  <input type="number" value={product.unitPrice} onchange={handleNaturalStoneUnitPriceChange}
+                    data-product-id={product.Id} />
+                </div>
+                <div class="input-field">
+                  <label>Required Sqft</label>
+                  <input type="number" value={product.requiredSqft} onchange={handleNaturalStoneRequiredSqftChange}
+                    data-product-id={product.Id} />
+                </div>
+                <div class="input-field full-width">
+                  <label>Description</label>
+                  <input type="text" value={product.description} onchange={handleNaturalStoneDescriptionChange}
+                    data-product-id={product.Id} />
+                </div>
+                <div class="input-field">
+                  <label>Total Price (₹)</label>
+                  <div class="readonly-field">{product.totalPrice}</div>
+                </div>
+              </template>
+              <template if:false={product.isNaturalStone}>
+              <div class="input-field">
+                <label>Quantity</label>
+                <input type="number" value={product.quantity} onchange={handleQuantityChange}
+                  data-product-id={product.Id} />
+              </div>
+              <div class="input-field">
+                <label>Area <span class="required-indicator">*</span></label>
+                <input type="text" value={product.roomType} data-product-id={product.Id} onchange={handleRoomTypeChange} required />
+              </div>
+              <template if:true={product.isTile}>
+                <div class="input-field">
+                  <label>Final Sqft</label>
+                  <input type="number" value={product.requiredSqft} onchange={handleRequiredSqftChange}
+                    data-product-id={product.Id} />
+                </div>
+                <div class="input-field">
+                  <label>Unit Price (After Tax)</label>
+                  <div class="readonly-field">{product.unitPriceAfterTax}</div>
+                </div>
+                <div class="input-field">
+                  <label>Price/Sqft (After Tax)</label>
+                  <div class="readonly-field">{product.pricePerSqft}</div>
+                </div>
+                <div class="input-field">
+                  <label>Required Sqft</label>
+                  <input type="number" value={product.sqft} onchange={handleSqftChange} data-product-id={product.Id} />
+                </div>
+              </template>
+              <template if:false={product.isTile}>
+                <!-- Removed Unit Price (₹) or Unit Price (After Tax) field from here for other products -->
+              </template>
+              </template>
+            </div>
+
+            <!-- Second Row - 5 fields -->
+            <div class="inputs-row">
+              <template if:true={product.isNaturalStone}>
+                <div class="input-field">
+                  <label>Area <span class="required-indicator">*</span></label>
+                  <input type="text" value={product.roomType} data-product-id={product.Id} onchange={handleRoomTypeChange} required />
+                </div>
+                <div class="input-field">
+                  <label>Disc Type</label>
+                  <select class="disc-type-select" value={product.discType} onchange={handleDiscTypeChange}
+                    data-product-id={product.Id}>
+                    <template for:each={discountTypeOptions} for:item="option">
+                      <option key={option.value} value={option.value}>{option.label}</option>
+                    </template>
+                  </select>
+                </div>
+                <div class="input-field">
+                  <label>Disc Value</label>
+                  <input type="number" value={product.discValue} onchange={handleDiscValueChange}
+                    data-product-id={product.Id} />
+                </div>
+                <div class="input-field">
+                  <label>After Disc (₹)</label>
+                  <div class="readonly-field">{product.afterDiscPrice}</div>
+                </div>
+              </template>
+              <template if:false={product.isNaturalStone}>
+                <template if:true={product.isTile}>
+                  <div class="input-field">
+                    <label>Sqm</label>
+                    <div class="readonly-field">{product.sqm}</div>
+                  </div>
+                  <div class="input-field">
+                    <label>Disc Type</label>
+                    <select class="disc-type-select" value={product.discType} onchange={handleDiscTypeChange}
+                      data-product-id={product.Id}>
+                      <template for:each={discountTypeOptions} for:item="option">
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      </template>
+                    </select>
+                  </div>
+                  <div class="input-field">
+                    <label>Disc Value</label>
+                    <input type="number" value={product.discValue} onchange={handleDiscValueChange}
+                      data-product-id={product.Id} />
+                  </div>
+                  <div class="input-field">
+                    <label>After Disc/Sqft (₹)</label>
+                    <div class="readonly-field">{product.afterDiscPriceSqft}</div>
+                  </div>
+                </template>
+                <template if:false={product.isTile}>
+                  <div class="input-field">
+                    <label>Disc Type</label>
+                    <select class="disc-type-select" value={product.discType} onchange={handleDiscTypeChange}
+                      data-product-id={product.Id}>
+                      <template for:each={discountTypeOptions} for:item="option">
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      </template>
+                    </select>
+                  </div>
+                  <div class="input-field">
+                    <label>Disc Value</label>
+                    <input type="number" value={product.discValue} onchange={handleDiscValueChange}
+                      data-product-id={product.Id} />
+                  </div>
+                  <div class="input-field">
+                    <label>Unit Price (After Tax)</label>
+                    <div class="readonly-field">{product.unitPriceAfterTax}</div>
+                  </div>
+                  <div class="input-field">
+                    <label>After Disc/Piece (₹)</label>
+                    <div class="readonly-field">{product.afterDiscPricePiece}</div>
+                  </div>
+                </template>
+              </template>
+            </div>
+
+            <!-- Last Row - Line Total and Add to Cart -->
+            <div class="footer-row">
+              <div class="footer-actions">
+             <!--   <c-wishlist-item product-id={product.Id} opportunity-id={opportunityId}
+                  lead-id={leadId}></c-wishlist-item> -->
+                <button class="add-to-cart-button" onclick={handleAddToCart} data-product-id={product.Id}>
+                  <div class="button-content">
+                    <svg class="cart-icon" fill="white" viewBox="0 0 576 512" height="1em"
+                      xmlns="http://www.w3.org/2000/svg">
+                      <path
+                        d="M0 24C0 10.7 10.7 0 24 0H69.5c22 0 41.5 12.8 50.6 32h411c26.3 0 45.5 25 38.6 50.4l-41 152.3c-8.5 31.4-37 53.3-69.5 53.3H170.7l5.4 28.5c2.2 11.3 12.1 19.5 23.6 19.5H488c13.3 0 24 10.7 24 24s-10.7 24-24 24H199.7c-34.6 0-64.3-24.6-70.7-58.5L77.4 54.5c-.7-3.8-4-6.5-7.9-6.5H24C10.7 48 0 37.3 0 24zM128 464a48 48 0 1 1 96 0 48 48 0 1 1 -96 0zm336-48a48 48 0 1 1 0 96 48 48 0 1 1 0-96z">
+                      </path>
+                    </svg>
+                    <span class="button-text">Add to Cart</span>
+                    <span class="line-total-amount">₹{product.totalPrice}</span>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+    <!-- Cart Modal -->
+    <template if:true={showCartModal}>
+      <c-cart-modal cart-items={selectedProducts} record-id={recordId} onclose={handleCloseModal}
+        onconfirm={handleConfirm} onquantitychange={handleCartQuantityChange} onremoveitem={handleRemoveFromCart}>
+      </c-cart-modal>
+    </template>
+  </div>
+</template>

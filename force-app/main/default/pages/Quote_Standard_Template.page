@@ -1,0 +1,274 @@
+<apex:page renderAs="pdf" applyHtmlTag="false" applyBodyTag="false" showHeader="false" sidebar="false" standardStylesheets="false">
+
+<head>
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 15mm 12mm 15mm 12mm;
+        }
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 11pt;
+            color: #000;
+            line-height: 1.4;
+        }
+        .company-name {
+            text-align: right;
+            font-size: 11pt;
+            color: #555;
+            margin-bottom: 8px;
+        }
+        .logo {
+            font-size: 58pt;
+            font-weight: bold;
+            color: #000080;
+            margin: 0;
+        }
+        .tagline {
+            font-size: 10pt;
+            margin-left: 4px;
+            margin-top: -8px;
+        }
+        .title {
+            text-align: center;
+            font-size: 26pt;
+            font-weight: bold;
+            margin: 25px 0 20px 0;
+        }
+        table { border-collapse: collapse; width: 100%; }
+        td, th { padding: 7px 9px; vertical-align: top; }
+        .info-table td { 
+            font-size: 10.5pt; 
+            border: 1px solid #000;
+        }
+        .info-table .header-bg {
+            background-color: #f0f0f0; 
+            font-weight: bold; 
+            text-align: center;
+        }
+        .greeting {
+            border: 2px solid #000;
+            padding: 15px;
+            background-color: #f9f9f9;
+            margin: 25px 0;
+            font-size: 11pt;
+        }
+        .items-table th {
+            border: 1px solid #000;
+            background-color: #f0f0f0;
+            font-weight: bold;
+            font-size: 10pt;
+            text-align: center;
+        }
+        .items-table td {
+            border: 1px solid #000;
+            font-size: 10pt;
+            text-align: center;
+        }
+        .items-table td:nth-child(2) { text-align: left; }
+
+        .totals {
+            width: 100%;
+            border: 1px solid #000;
+            margin-top: 20px;
+            font-size: 11pt;
+        }
+        .totals td {
+            border: 1px solid #000;
+            padding: 6px 12px;
+        }
+        .totals .label {
+            background-color: #f0f0f0;
+            font-weight: bold;
+            text-align: left;
+            width: 70%;
+        }
+        .totals .grand {
+            background-color: #e0e0e0;
+            font-weight: bold;
+            font-size: 12pt;
+        }
+
+        /* PAGE 2 */
+        .page2 { 
+            page-break-before: always; 
+            margin-top: 30px; 
+        }
+        .terms-title {
+            font-size: 14pt;
+            font-weight: bold;
+            border-bottom: 2px solid #000;
+            padding-bottom: 6px;
+            margin-bottom: 15px;
+        }
+        .terms-text { 
+            font-size: 10.5pt; 
+            text-align: justify; 
+            margin-bottom: 20px; 
+        }
+        .signature {
+            width: 300px;
+            height: 50px;
+            border: 1px solid #000;
+            border-top: 3px solid #000;
+            margin: 40px auto 30px auto;
+            text-align: center;
+            padding-top: 15px;
+            font-size: 11pt;
+        }
+        .footer {
+            text-align: center;
+            font-size: 10.5pt;
+            border-top: 1px solid #000;
+            padding-top: 8px;
+            margin-top: 50px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ==================== PAGE 1 ==================== -->
+    <div class="company-name">LE MARBLE GALLERY PVT. LTD.</div>
+
+    <table>
+        <tr>
+            <td>
+                <div class="logo">MG.</div>
+                <div class="tagline">No.1 Building Material Company</div>
+            </td>
+            <td></td>
+        </tr>
+    </table>
+
+    <div class="title">ESTIMATE</div>
+
+    <!-- TOP INFO TABLE -->
+    <table class="info-table">
+        <tr>
+            <td class="header-bg" colspan="3">Estimate No: CT - 04298</td>
+            <td class="header-bg">Date: 08-12-2025</td>
+            <td class="header-bg">Quotation Validity: 20-12-2025</td>
+        </tr>
+
+        <tr>
+            <td class="header-bg" colspan="3">Customer Details</td>
+            <td class="header-bg" colspan="2">Executive Details</td>
+        </tr>
+
+        <tr>
+            <td colspan="3">
+                CU-72330<br/>
+                Mr. SW<br/>
+                Street 1<br/>
+                City1, AS, IN<br/>
+                +91 9922812839
+            </td>
+            <td colspan="2">
+                SYSTEM ADMIN<br/>
+                8113027000
+            </td>
+        </tr>
+    </table>
+
+    <!-- GREETING BOX -->
+    <div class="greeting">
+        Dear Sir/Madam,<br/><br/>
+        Thank you for choosing Le Marble Gallery. In response to your enquiry, we take pleasure in furnishing our lowest rate for your kind consideration.
+    </div>
+
+    <!-- ITEMS TABLE -->
+    <table class="items-table">
+        <tr>
+            <th>NO.</th>
+            <th>DESCRIPTION</th>
+            <th>AREAS</th>
+            <th>QNTY / SQFT</th>
+            <th>QNTY / NO</th>
+            <th>MRP / (SQFT/NO)</th>
+            <th>DISC / (SQFT/NO)</th>
+            <th>TOTAL</th>
+            <th>IMAGE</th>
+        </tr>
+
+        <tr>
+            <td>1</td>
+            <td>ABC Prod</td>
+            <td>22</td>
+            <td>6.00</td>
+            <td>2</td>
+            <td>69.67</td>
+            <td>69.67</td>
+            <td>418.02</td>
+            <td>No Image</td>
+        </tr>
+
+        <tr>
+            <td>2</td>
+            <td>ABC Prod</td>
+            <td>22</td>
+            <td>36.00</td>
+            <td>12</td>
+            <td>69.67</td>
+            <td>68.67</td>
+            <td>2472.12</td>
+            <td>No Image</td>
+        </tr>
+
+        <tr>
+            <td>3</td>
+            <td>ABC Prod</td>
+            <td>Test</td>
+            <td>12.00</td>
+            <td>4</td>
+            <td>69.67</td>
+            <td>69.67</td>
+            <td>836.04</td>
+            <td>No Image</td>
+        </tr>
+    </table>
+
+    <!-- TOTALS TABLE -->
+    <table class="totals">
+        <tr><td class="label">MRP Total</td><td>3,762.18</td></tr>
+        <tr><td class="label">Discount</td><td>36.00</td></tr>
+        <tr><td class="label">Sub Total</td><td>3,726.18</td></tr>
+        <tr><td class="label">Freight Charges</td><td>0.00</td></tr>
+        <tr><td class="label">Loading Charges</td><td>0.00</td></tr>
+        <tr><td class="label">Unloading Charges</td><td>0.00</td></tr>
+        <tr class="grand"><td class="label">Grand Total</td><td>3,726.18</td></tr>
+    </table>
+
+    <!-- ==================== PAGE 2 ==================== -->
+    <div class="page2">
+
+        <div class="terms-title">Terms &amp; Conditions</div>
+
+        <div class="terms-text">
+            <strong>Return &amp; Replacement Policy :</strong><br/><br/>
+            Materials delivered will have to be checked on site for damage while delivering and Sanitary &amp; Fitting mandatorily will need to be open delivery. Any discrepancy other than sanitary &amp; fittings must be reported within 5 days. Replacement will be provided subject to availability. Returned goods must be in “Saleable” condition with original packaging.
+        </div>
+
+        <ul style="font-size:10.5pt; margin-left:20px;">
+            <li>Validity of the quotation is up to --.</li>
+            <li>100% advance payment is mandatory; no credit facility available.</li>
+            <li>Delivery will be made within 15 days from the date of confirmation except against order.</li>
+            <li>Freight &amp; Unloading to be borne by customer.</li>
+            <li>Items received against order cannot be taken back.</li>
+            <li>Please verify quantities before placing the order.</li>
+            <li>Transit damages up to 2–3% to be borne by the client.</li>
+            <li>All delivery must be verified before driver leaves. No complaints accepted later.</li>
+            <li>PI terms are applicable.</li>
+        </ul>
+
+        <div class="signature">Customer Signature</div>
+
+        <div class="footer">
+            Le Marble Gallery | Opposite Civil Station | Eranhipalam | Calicut-20<br/>
+            e:hello@mggroupin.com | t: +914952373512 | www.mggroupin.com
+        </div>
+
+    </div>
+
+</body>
+</apex:page>

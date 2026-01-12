@@ -1,0 +1,231 @@
+.dashboard-container {
+    padding: 1.5rem;
+    background-color: #f3f3f3;
+    min-height: 100vh;
+}
+
+/* Header Section */
+.header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.header-section h1 {
+    font-size: 1.8rem;
+    color: #16325c;
+    margin: 0;
+    font-weight: 600;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+/* Metrics Grid */
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.metric-card {
+    background: white;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.metric-icon {
+    background: #f0f7ff;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    color: #0070d2;
+}
+
+.metric-content h3 {
+    font-size: 0.875rem;
+    color: #54698d;
+    margin: 0 0 0.5rem 0;
+    font-weight: 500;
+}
+
+.metric-value {
+    font-size: 1.5rem;
+    color: #16325c;
+    margin: 0;
+    font-weight: 600;
+}
+
+/* Content Grid */
+.content-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+}
+
+.content-section {
+    background: white;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.section-header h2 {
+    font-size: 1.25rem;
+    color: #16325c;
+    margin: 0;
+    font-weight: 600;
+}
+
+/* Table Styles */
+.table-container {
+    overflow-x: auto;
+}
+
+.slds-table {
+    width: 100%;
+}
+
+.slds-table th {
+    background: #f8f9fb;
+    padding: 0.75rem;
+    font-weight: 600;
+    color: #54698d;
+}
+
+.slds-table td {
+    padding: 0.75rem;
+    vertical-align: middle;
+}
+
+/* Calendar Styles */
+.calendar-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.calendar-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    border: 1px solid #e5e5e5;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.calendar-item:hover {
+    background-color: #f8f9fb;
+}
+
+.visit-date {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 60px;
+    padding: 0.5rem;
+    background: #f0f7ff;
+    border-radius: 0.5rem;
+    color: #0070d2;
+}
+
+.visit-date .day {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.visit-date .month {
+    font-size: 0.875rem;
+    text-transform: uppercase;
+}
+
+.visit-details {
+    flex: 1;
+}
+
+.visit-details h4 {
+    margin: 0 0 0.25rem 0;
+    color: #16325c;
+    font-size: 1rem;
+}
+
+.visit-details p {
+    margin: 0 0 0.25rem 0;
+    color: #54698d;
+    font-size: 0.875rem;
+}
+
+.visit-time {
+    color: #0070d2;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* Status Badges */
+.status-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.status-pending {
+    background: #fff3e0;
+    color: #ff9800;
+}
+
+.status-completed {
+    background: #e8f5e9;
+    color: #4caf50;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .content-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .header-section {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+    .metrics-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .dashboard-container {
+        padding: 1rem;
+    }
+}

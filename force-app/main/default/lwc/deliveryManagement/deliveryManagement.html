@@ -1,0 +1,197 @@
+<!-- deliveryManagement.html -->
+<template>
+  <div class="delivery-management custom-bg">
+    <!-- Header Section with Gradient -->
+    <div class="header-section slds-m-bottom_large custom-header">
+      <div class="slds-box custom-header-box">
+        <div class="slds-grid slds-grid_vertical-align-center">
+          <div class="slds-col slds-size_1-of-1 slds-text-align_center">
+            <h1 class="slds-text-heading_large custom-title">Schedule Delivery</h1>
+            <p class="slds-text-body_regular slds-m-top_small">Schedule and manage your deliveries efficiently</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search Section with Enhanced Styling -->
+    <div class="search-section slds-m-bottom_large compact-search">
+      <div class="slds-box slds-theme_default custom-card compact-search-box">
+        <div class="compact-search-row">
+          <lightning-icon icon-name="utility:search" size="x-small" class="search-icon-compact"></lightning-icon>
+          <input type="search" class="slds-input slds-input_bare compact-search-input" placeholder="Search sales confirmations..." value={searchTerm} oninput={handleSearchChange} />
+        </div>
+
+        <!-- Enhanced Search Results Dropdown -->
+        <template if:true={salesConfirmations.length}>
+          <div class="slds-dropdown slds-dropdown_length-with-icon-7 slds-dropdown_fluid slds-m-top_small">
+            <ul class="slds-dropdown__list" role="menu">
+              <template for:each={salesConfirmations} for:item="sc">
+                <li key={sc.value} class="slds-dropdown__item slds-is-hoverable" role="presentation" onclick={handleSalesConfirmationSelect}
+                  data-id={sc.value}>
+                  <div class="slds-media slds-media_center">
+                    <div class="slds-media__figure">
+                      <lightning-icon icon-name="standard:orders" size="small"></lightning-icon>
+                    </div>
+                    <div class="slds-media__body">
+                      <p class="slds-truncate" title={sc.label}>{sc.label}</p>
+                    </div>
+                  </div>
+                </li>
+              </template>
+            </ul>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <!-- Sales Confirmation Info Card -->
+    <template if:true={selectedSalesConfirmationInfo}>
+      <div class="slds-box slds-theme_default slds-m-bottom_large custom-card">
+        <div class="info-row">
+          <div class="slds-box slds-box_small custom-info-card">
+            <p class="slds-text-title">Sales Confirmation</p>
+            <p class="slds-text-heading_small">{selectedSalesConfirmationInfo.name}</p>
+          </div>
+          <div class="slds-box slds-box_small custom-info-card">
+            <p class="slds-text-title">Opportunity</p>
+            <p class="slds-text-heading_small">{selectedSalesConfirmationInfo.opportunityName}</p>
+          </div>
+          <div class="slds-box slds-box_small custom-info-card">
+            <p class="slds-text-title">Opp Owner</p>
+            <p class="slds-text-heading_small">{selectedSalesConfirmationInfo.oppOwner}</p>
+          </div>
+          <div class="slds-box slds-box_small custom-info-card">
+            <p class="slds-text-title">Opportunity Address</p>
+            <p class="slds-text-heading_small">{selectedSalesConfirmationInfo.address}</p>
+          </div>
+          <div class="slds-box slds-box_small custom-info-card">
+            <p class="slds-text-title">Preferred Delivery Date</p>
+            <p class="slds-text-heading_small">
+              <template if:true={selectedSalesConfirmationInfo.preferredDeliveryDate}>
+                {selectedSalesConfirmationInfo.preferredDeliveryDate}
+              </template>
+              <template if:false={selectedSalesConfirmationInfo.preferredDeliveryDate}>
+                N/A
+              </template>
+            </p>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <!-- Main Content with Enhanced Tabs -->
+    <template if:true={selectedSalesConfirmationId}>
+      <div class="slds-tabs_default">
+        <ul class="slds-tabs_default__nav" role="tablist">
+          <li class={availableTabClass} role="presentation">
+            <a class="slds-tabs_default__link" role="tab" tabindex="0" aria-selected="true" aria-controls="tab-available"
+              id="tab-available__item" onclick={handleTabClick} data-tab="available">
+              <lightning-icon icon-name="standard:product" size="small" class="slds-m-right_x-small"></lightning-icon>
+              Available Products
+            </a>
+          </li>
+        </ul>
+
+        <!-- Available Products Tab Content -->
+        <template if:true={isAvailableTabActive}>
+          <div class="slds-grid slds-gutters slds-m-top_medium">
+            <!-- Products List -->
+            <div class="slds-col slds-size_1-of-2">
+              <div class="slds-box slds-theme_default custom-card compact-card">
+                <div class="compact-section-header">
+                  <lightning-icon icon-name="standard:product" size="small" class="compact-section-icon"></lightning-icon>
+                  <span class="compact-section-title">Available for Delivery</span>
+                </div>
+                <template if:true={availableProducts.length}>
+                  <ul class="slds-has-dividers_bottom-space compact-product-list">
+                    <template for:each={availableProducts} for:item="product">
+                      <li key={product.Id} class="compact-product-item">
+                        <lightning-input 
+                            type="checkbox" 
+                            checked={product.selected} 
+                            onchange={handleProductSelection} 
+                            data-id={product.Id} 
+                            class="compact-checkbox">
+                        </lightning-input>
+                        <span class="compact-product-name slds-truncate" title={product.displayName} style="max-width: 300px;">
+                            {product.displayName}
+                        </span>
+                        <span class="available-qty">Available: {product.Quantity__c}</span>
+                        <template if:true={product.selected}>
+                            <lightning-input 
+                                type="number"
+                                value={product.deliveryQuantity}
+                                min="1"
+                                max={product.Quantity__c}
+                                onchange={handleDeliveryQuantityChange}
+                                onblur={handleDeliveryQuantityBlur}
+                                data-id={product.Id}
+                                class="delivery-quantity-input"
+                                variant="label-hidden"
+                                placeholder="Qty">
+                            </lightning-input>
+                        </template>
+                      </li>
+                    </template>
+                  </ul>
+                </template>
+                <template if:false={availableProducts.length}>
+                  <div class="slds-illustration slds-illustration_small">
+                    <p class="slds-text-align_center slds-p-around_medium">No products available for delivery.</p>
+                  </div>
+                </template>
+              </div>
+            </div>
+
+            <!-- Delivery Details Form -->
+            <div class="slds-col slds-size_1-of-2">
+              <div class="slds-box slds-theme_default custom-card delivery-details-card">
+                <h3 class="slds-text-heading_small slds-m-bottom_medium">
+                  <lightning-icon icon-name="standard:delivery" size="small" class="slds-m-right_x-small"></lightning-icon>
+                  Delivery Details
+                </h3>
+                <div class="slds-form">
+                  <div class="slds-form-element">
+                    <lightning-input type="date" label="Delivery Date" value={deliveryDate} onchange={handleDateChange} class="custom-input"></lightning-input>
+                  </div>
+                  <div class="slds-form-element">
+                    <lightning-input type="time" label="Delivery Time" value={deliveryTime} onchange={handleDeliveryTimeChange} class="custom-input"></lightning-input>
+                  </div>
+                  <div class="slds-form-element">
+                    <lightning-combobox name="vehicle" label="Vehicle Type" value={selectedVehicle}
+                      placeholder="Select Vehicle Type" options={vehicleOptions} onchange={handleVehicleChange} class="custom-input">
+                    </lightning-combobox>
+                  </div>
+                  <div class="slds-form-element">
+                    <lightning-combobox name="vehicleNumber" label="Vehicle Number" value={vehicleNumber}
+                      placeholder="Select Vehicle Number" options={vehicleNumberOptions} onchange={handleVehicleNumberChange} class="custom-input">
+                    </lightning-combobox>
+                  </div>
+                  <div class="slds-form-element">
+                    <lightning-combobox name="driver" label="Driver" value={selectedDriver}
+                      placeholder="Select Driver" options={driverOptions} onchange={handleDriverChange} class="custom-input">
+                    </lightning-combobox>
+                  </div>
+                  <div class="slds-form-element">
+                    <lightning-input type="number" label="Freight Amount" value={freightAmount} onchange={handleFreightAmountChange} class="custom-input"></lightning-input>
+                  </div>
+                  <div class="slds-form-element">
+                    <lightning-textarea label="Remarks" value={remarks} onchange={handleRemarksChange} placeholder="Enter remarks" class="custom-input">
+                    </lightning-textarea>
+                  </div>
+                  <div class="slds-form-element slds-m-top_medium">
+                    <div class="slds-form-element__control">
+                      <lightning-button label="Create Delivery Group" variant="brand" onclick={handleCreateDeliveryGroup}
+                        disabled={isCreateButtonDisabled} class="slds-m-right_x-small custom-btn">
+                      </lightning-button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+    </template>
+  </div>
+</template>

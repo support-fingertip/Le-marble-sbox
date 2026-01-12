@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Require_Warehouse_And_Manager_Before_App</fullName>
+    <active>true</active>
+    <errorConditionFormula>AND(
+  ISPICKVAL(Approval_Status__c, &quot;Submitted&quot;),
+  OR(
+    ISBLANK(Warehouse__c),
+    ISBLANK(Warehouse_Manager__c)
+  )
+)</errorConditionFormula>
+    <errorDisplayField>Warehouse_Manager__c</errorDisplayField>
+    <errorMessage>Please select Warehouse and Warehouse Manager before submitting for approval.</errorMessage>
+</ValidationRule>

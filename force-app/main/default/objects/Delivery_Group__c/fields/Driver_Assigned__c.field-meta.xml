@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Driver_Assigned__c</fullName>
+    <externalId>false</externalId>
+    <label>Driver Assigned</label>
+    <required>false</required>
+    <trackHistory>false</trackHistory>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>ASHRAF</fullName>
+                <default>false</default>
+                <label>ASHRAF</label>
+            </value>
+            <value>
+                <fullName>BASHEER K</fullName>
+                <default>false</default>
+                <label>BASHEER K</label>
+            </value>
+            <value>
+                <fullName>BASHEER N</fullName>
+                <default>false</default>
+                <label>BASHEER N</label>
+            </value>
+            <value>
+                <fullName>RAJEESH</fullName>
+                <default>false</default>
+                <label>RAJEESH</label>
+            </value>
+            <value>
+                <fullName>RAJEES P</fullName>
+                <default>false</default>
+                <label>RAJEES P</label>
+            </value>
+            <value>
+                <fullName>GIREESH</fullName>
+                <default>false</default>
+                <label>GIREESH</label>
+            </value>
+            <value>
+                <fullName>VICTOR</fullName>
+                <default>false</default>
+                <label>VICTOR</label>
+            </value>
+            <value>
+                <fullName>MK BASHEER</fullName>
+                <default>false</default>
+                <label>MK BASHEER</label>
+            </value>
+            <value>
+                <fullName>SHABEER</fullName>
+                <default>false</default>
+                <label>SHABEER</label>
+            </value>
+            <value>
+                <fullName>ANAS</fullName>
+                <default>false</default>
+                <label>ANAS</label>
+            </value>
+            <value>
+                <fullName>SUDHEER</fullName>
+                <default>false</default>
+                <label>SUDHEER</label>
+            </value>
+            <value>
+                <fullName>PRADEEP</fullName>
+                <default>false</default>
+                <label>PRADEEP</label>
+            </value>
+            <value>
+                <fullName>BINU</fullName>
+                <default>false</default>
+                <label>BINU</label>
+            </value>
+            <value>
+                <fullName>SHIBU</fullName>
+                <default>false</default>
+                <label>SHIBU</label>
+            </value>
+            <value>
+                <fullName>JIDESH</fullName>
+                <default>false</default>
+                <label>JIDESH</label>
+            </value>
+            <value>
+                <fullName>RATHEESH</fullName>
+                <default>false</default>
+                <label>RATHEESH</label>
+            </value>
+            <value>
+                <fullName>SIVADAS</fullName>
+                <default>false</default>
+                <label>SIVADAS</label>
+            </value>
+            <value>
+                <fullName>NO DRIVER</fullName>
+                <default>false</default>
+                <label>NO DRIVER</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

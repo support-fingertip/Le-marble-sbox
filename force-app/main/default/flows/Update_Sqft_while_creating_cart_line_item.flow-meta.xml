@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>64.0</apiVersion>
+    <decisions>
+        <name>If_Tiles</name>
+        <label>If Tiles</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <defaultConnectorLabel>Default Outcome</defaultConnectorLabel>
+        <rules>
+            <name>Qty_changed</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>$Record.Product__r.Product_Category__c</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue>
+                    <stringValue>TILES</stringValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Update_Sqft</targetReference>
+            </connector>
+            <label>Qty changed</label>
+        </rules>
+    </decisions>
+    <environments>Default</environments>
+    <formulas>
+        <name>pricecalculate</name>
+        <dataType>Number</dataType>
+        <expression>{!$Record.After_Disc_Price_Sqft__c}*{!$Record.Sqft__c}</expression>
+        <scale>2</scale>
+    </formulas>
+    <formulas>
+        <name>Updatesqft</name>
+        <dataType>Number</dataType>
+        <expression>ROUND($Record.Quantity__c * VALUE($Record.Product__r.Sqft_Piece__c), 2)</expression>
+        <scale>2</scale>
+    </formulas>
+    <interviewLabel>Update Sqft while creating cart line item {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>Update Sqft while creating cart line item</label>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>CanvasMode</name>
+        <value>
+            <stringValue>AUTO_LAYOUT_CANVAS</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>OriginBuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <recordUpdates>
+        <name>Calculate_total_Price</name>
+        <label>Calculate total Price</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <inputAssignments>
+            <field>Calculated_Total_Price__c</field>
+            <value>
+                <elementReference>pricecalculate</elementReference>
+            </value>
+        </inputAssignments>
+        <inputReference>$Record</inputReference>
+    </recordUpdates>
+    <recordUpdates>
+        <name>Update_Sqft</name>
+        <label>Update Sqft</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Calculate_total_Price</targetReference>
+        </connector>
+        <inputAssignments>
+            <field>Sqft__c</field>
+            <value>
+                <elementReference>Updatesqft</elementReference>
+            </value>
+        </inputAssignments>
+        <inputReference>$Record</inputReference>
+    </recordUpdates>
+    <start>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>If_Tiles</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Quantity__c</field>
+            <operator>IsNull</operator>
+            <value>
+                <booleanValue>false</booleanValue>
+            </value>
+        </filters>
+        <object>Cart_Line_Item__c</object>
+        <recordTriggerType>Create</recordTriggerType>
+        <triggerType>RecordAfterSave</triggerType>
+    </start>
+    <status>Active</status>
+</Flow>

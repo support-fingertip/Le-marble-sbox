@@ -1,0 +1,109 @@
+<!-- Engagement Modal Component -->
+<template>
+  <div class="form-container">
+    <div class="form-header">
+      <h2>New Engagement</h2>
+    </div>
+
+    <!-- Information Section -->
+    <div class="form-section">
+      <h3>Information</h3>
+      <div class="field-group">
+        <!-- Engagement Id -->
+        <div class="field">
+          <label>Engagement Id</label>
+          <div class="value">{engagementId}</div>
+        </div>
+
+        <!-- Owner -->
+        <div class="field">
+          <label>Owner</label>
+          <div class="value">{ownerName}</div>
+        </div>
+
+        <!-- Architect Search -->
+        <div class="field">
+          <label for="architect">Architect</label>
+          <div class="search-container">
+            <input type="text" id="architect" placeholder="Search by phone number" onkeyup={handleArchitectSearch}
+              value={architectSearchTerm} />
+            <template if:true={showArchitectResults}>
+              <div class="search-results">
+                <template for:each={architectSearchResults} for:item="architect">
+                  <div key={architect.Id} class="search-result-item" onclick={selectArchitect} data-id={architect.Id}>
+                    <div class="result-name">{architect.Name}</div>
+                    <div class="result-phone">{architect.Phone_Number__c}</div>
+                  </div>
+                </template>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- Date and Time -->
+        <div class="field">
+          <label>Date and time</label>
+          <div class="datetime-group">
+            <input type="date" class="date-input" value={selectedDate} onchange={handleDateChange} />
+            <input type="time" class="time-input" value={selectedTime} onchange={handleTimeChange} />
+          </div>
+        </div>
+
+        <!-- Influencer Type -->
+        <div class="field">
+          <label for="influencerType">Influencer Type</label>
+          <div class="select-container">
+            <select id="influencerType" onchange={handleInfluencerTypeChange}>
+              <option value="">--None--</option>
+              <template for:each={influencerTypeOptions} for:item="option">
+                <option key={option.value} value={option.value}>{option.label}</option>
+              </template>
+            </select>
+          </div>
+        </div>
+
+        <!-- Engagements Type -->
+        <div class="field">
+          <label for="engagementType">Engagements Type</label>
+          <div class="select-container">
+            <select id="engagementType" onchange={handleEngagementTypeChange}>
+              <option value="">--None--</option>
+              <template for:each={engagementTypeOptions} for:item="option">
+                <option key={option.value} value={option.value}>{option.label}</option>
+              </template>
+            </select>
+          </div>
+        </div>
+
+        <!-- Notes/Discussion Summary -->
+        <div class="field full-width">
+          <label for="notes">Notes /Discussion Summary</label>
+          <textarea id="notes" rows="4" onchange={handleNotesChange}
+            placeholder="Enter notes or discussion summary"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- System Information Section -->
+    <div class="form-section">
+      <h3>System Information</h3>
+      <div class="field-group">
+        <div class="field">
+          <label>Created By</label>
+          <div class="value">{createdByName}</div>
+        </div>
+        <div class="field">
+          <label>Last Modified By</label>
+          <div class="value">{lastModifiedByName}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Buttons -->
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick={handleCancel}>Cancel</button>
+      <button class="btn-save" onclick={handleSave}>Save</button>
+      <button class="btn-save-new" onclick={handleSaveAndNew}>Save & New</button>
+    </div>
+  </div>
+</template>

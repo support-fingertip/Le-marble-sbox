@@ -1,0 +1,31 @@
+.custom-button {
+    background-color: #0070d2;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.custom-button:hover {
+    background-color: #005fb2;
+}
+
+.custom-button:disabled {
+    background-color: #c9c7c5;
+    cursor: not-allowed;
+}
+
+.button-icon {
+    display: flex;
+    align-items: center;
+}
+
+.spinner-container {
+    position: relative;
+    height: 100px;
+}

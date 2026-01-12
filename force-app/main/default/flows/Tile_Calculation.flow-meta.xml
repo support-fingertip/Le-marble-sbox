@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>64.0</apiVersion>
+    <decisions>
+        <name>Identify_which_is_Changed</name>
+        <label>Identify which is Changed</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <defaultConnectorLabel>Default Outcome</defaultConnectorLabel>
+        <rules>
+            <name>Sqft_Changed</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>$Record.Sqft__c</leftValueReference>
+                <operator>IsChanged</operator>
+                <rightValue>
+                    <booleanValue>true</booleanValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Update_Quantity</targetReference>
+            </connector>
+            <label>Sqft Changed</label>
+        </rules>
+        <rules>
+            <name>Qty_Changed</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>$Record.Quantity__c</leftValueReference>
+                <operator>IsChanged</operator>
+                <rightValue>
+                    <booleanValue>true</booleanValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Update_Sqft</targetReference>
+            </connector>
+            <label>Qty Changed</label>
+        </rules>
+    </decisions>
+    <environments>Default</environments>
+    <formulas>
+        <name>updateqty</name>
+        <dataType>Number</dataType>
+        <expression>ROUND($Record.Sqft__c / VALUE($Record.Product__r.Sqft_Piece__c), 2)</expression>
+        <scale>2</scale>
+    </formulas>
+    <formulas>
+        <name>Updatesqft</name>
+        <dataType>Number</dataType>
+        <expression>ROUND($Record.Quantity__c * VALUE($Record.Product__r.Sqft_Piece__c), 2)</expression>
+        <scale>2</scale>
+    </formulas>
+    <interviewLabel>Tile Calculation {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>Tile Calculation</label>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>CanvasMode</name>
+        <value>
+            <stringValue>AUTO_LAYOUT_CANVAS</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>OriginBuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <recordUpdates>
+        <name>Copy_1_of_Update_Sqft</name>
+        <label>Copy 1 of Update Sqft</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <inputAssignments>
+            <field>Sqft__c</field>
+            <value>
+                <elementReference>Updatesqft</elementReference>
+            </value>
+        </inputAssignments>
+        <inputReference>$Record</inputReference>
+    </recordUpdates>
+    <recordUpdates>
+        <name>Update_Quantity</name>
+        <label>Update Quantity</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Copy_1_of_Update_Sqft</targetReference>
+        </connector>
+        <inputAssignments>
+            <field>Quantity__c</field>
+            <value>
+                <elementReference>updateqty</elementReference>
+            </value>
+        </inputAssignments>
+        <inputReference>$Record</inputReference>
+    </recordUpdates>
+    <recordUpdates>
+        <name>Update_Sqft</name>
+        <label>Update Sqft</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <inputAssignments>
+            <field>Sqft__c</field>
+            <value>
+                <elementReference>Updatesqft</elementReference>
+            </value>
+        </inputAssignments>
+        <inputReference>$Record</inputReference>
+    </recordUpdates>
+    <start>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Identify_which_is_Changed</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Product_Category__c</field>
+            <operator>EqualTo</operator>
+            <value>
+                <stringValue>TILES</stringValue>
+            </value>
+        </filters>
+        <object>Cart_Line_Item__c</object>
+        <recordTriggerType>Update</recordTriggerType>
+        <triggerType>RecordAfterSave</triggerType>
+    </start>
+    <status>Active</status>
+</Flow>

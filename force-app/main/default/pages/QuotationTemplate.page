@@ -1,0 +1,570 @@
+<apex:page standardController="Cart__c" extensions="QuotationController" renderAs="pdf" applyHtmlTag="false" showHeader="false"
+           action="{!previewQuotation}">
+    <html>
+        <head>
+            <style type="text/css">
+                @page {
+                    size: A3;
+                    margin: 1cm;
+                }
+                body {
+                    font-family: Arial, sans-serif;
+                    font-size: 14px;
+                    line-height: 1.4;
+                    color: #333333;
+                    font-weight: bold;
+                }
+                .header {
+                    margin-bottom: 30px;
+                }
+                .company-title {
+                    text-align: center;
+                    color: #000000;
+                    letter-spacing: 5px;
+                    font-size: 20px;
+                    margin-bottom: 15px;
+                    font-weight: 500;
+                }
+                .main-header {
+                    display: grid;
+                    grid-template-columns: 200px auto 200px;
+                    align-items: start;
+                    margin-bottom: 40px;
+                }
+                .logo-section {
+                    grid-column: 1;
+                }
+                .logo {
+                    width: 180px;
+                    height: auto;
+                }
+                .company-tagline {
+                    font-size: 11px;
+                    color: #333;
+                    margin-top: 2px;
+                }
+                .estimate-title {
+                    font-size: 40px;
+                    font-weight: bold;
+                    color: #000000;
+                    text-align: center;
+                }
+                .estimate-details-container {
+                    border: 1px solid #000000;
+                    border-radius: 4px;
+                    padding: 15px;
+                    margin: 20px 0;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                }
+                .estimate-header {
+                    display: flex;
+                    justify-content: space-between;
+                    font-size: 18px;
+                    font-weight: bold;
+                    margin-bottom: 5px;
+                }
+                .quotation-validity {
+                    text-align: right;
+                    font-size: 18px;
+                    font-weight: bold;
+                }
+                .estimate-header strong, .quotation-validity strong {
+                    font-weight: bold;
+                    margin-right: 5px;
+                }
+                .customer-section {
+                    display: flex;
+                    justify-content: space-between;
+                    margin: 20px 0;
+                }
+                .customer-details, .executive-details {
+                    width: 48%;
+                    border: 1px solid #ddd;
+                    padding: 15px;
+                }
+                .section-title {
+                    background-color: #000000;
+                    color: white;
+                    padding: 8px;
+                    margin: -15px -15px 15px -15px;
+                    border-radius: 4px 4px 0 0;
+                }
+                .items-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                }
+                .items-table th, .items-table td {
+                    border: 1px solid #dee2e6;
+                    padding: 10px 3px;
+                    text-align: left;
+                    font-size: 15px;
+                    page-break-inside: avoid;
+                    white-space: nowrap;
+                    min-height: 32px;
+                }
+                .items-table th {
+                    font-size: 15px;
+                    white-space: normal;
+                    word-break: break-word;
+                    max-width: 70px;
+                }
+                .items-table th.image-col, .items-table td.image-col {
+                    padding-left: 12px;
+                }
+                .totals-section {
+                    width: 350px;
+                    margin-left: auto;
+                    page-break-inside: avoid;
+                    margin-bottom: 30px;
+                }
+                .totals-row {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 5px 0;
+                    border-bottom: 1px solid #e0e0e0;
+                }
+                .totals-row span:first-child {
+                    color: #000000;
+                    font-weight: 500;
+                    padding-right: 20px;
+                }
+                .totals-row span:last-child {
+                    text-align: right;
+                    min-width: 120px;
+                }
+                .grand-total {
+                    background-color: #000000;
+                    color: white;
+                    padding: 10px 15px;
+                    margin-top: 10px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+                .terms {
+                    background-color: #f8f9fa;
+                    padding: 20px;
+                    border-radius: 4px;
+                    margin-top: 30px;
+                }
+                .terms-title {
+                    color: #000000;
+                    border-bottom: 2px solid #000000;
+                    padding-bottom: 5px;
+                }
+                .terms-list {
+                    padding-left: 20px;
+                }
+                .terms-points {
+                    padding-left: 20px;
+                }
+                .signature-section {
+                    margin-top: 30px;
+                    margin-bottom: 20px;
+                    display: flex;
+                    justify-content: flex-end;
+                }
+                .signature-box {
+                    width: 300px;
+                    border: 2px solid #000000;
+                    padding: 15px;
+                    text-align: center;
+                }
+                .signature-box p {
+                    color: #000000;
+                    font-size: 16px;
+                    margin: 0 0 25px 0;
+                }
+                .signature-line {
+                    border-bottom: 1px solid #000000;
+                    margin-bottom: 8px;
+                }
+                .company-name {
+                    color: #666;
+                    font-size: 14px;
+                    text-align: center;
+                }
+                .footer {
+                    color: #000000;
+                    font-size: 13px;
+                    border-top: 2px solid #000000;
+                    padding-top: 15px;
+                }
+                .deal-info {
+                    margin: 20px 0;
+                    padding: 10px;
+                    background-color: #f8f8f8;
+                }
+                
+                .customer-info {
+                    width: 100%;
+                }
+                .details-table {
+                    border-collapse: collapse;
+                    margin: 20px 0;
+                }
+                
+                .details-cell {
+                    padding: 0 10px;
+                    vertical-align: top;
+                }
+                
+                .details-box {
+                    border: 1px solid #000000;
+                    border-radius: 4px;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                    padding: 15px;
+                    height: 100%;
+                }
+                
+                .info-table {
+                    width: 100%;
+                    margin-top: 10px;
+                }
+                
+                .info-table td {
+                    padding: 3px 0;
+                }
+                
+                .info-table .label {
+                    font-weight: bold;
+                    width: 130px;
+                }
+                
+                .estimate-info {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+                }
+                
+                .left-info {
+                    text-align: left;
+                }
+                
+                .right-info {
+                    text-align: right;
+                }
+                
+                .info-text {
+                    font-size: 16px;
+                    line-height: 1.5;
+                }
+                
+                .info-text strong {
+                    font-weight: bold;
+                    margin-right: 5px;
+                }
+                /* Table Styles */
+                .items-table tr:nth-child(even) {
+                    background-color: #f8f9fa;
+                }
+                /* Dear Content */
+                .dear-content {
+                    background-color: #f8f9fa;
+                    padding: 15px;
+                    border-left: 4px solid #000000;
+                    margin-bottom: 20px;
+                }
+                @media (max-width: 1000px) {
+                    .items-table {
+                        font-size: 14px;
+                        min-width: 700px;
+                    }
+                }
+                .items-table thead {
+                    display: table-header-group;
+                }
+                .items-table tfoot {
+                    display: table-footer-group;
+                }
+                .items-table tr {
+                    page-break-inside: auto;
+                }
+                
+                /* Table page break handling */
+                .items-table {
+                    page-break-inside: auto;
+                    border-collapse: collapse;
+                }
+                
+                /* Table headers repeat on each page */
+                .items-table thead {
+                    display: table-header-group;
+                    page-break-inside: avoid;
+                }
+                
+                /* Table body can break across pages */
+                .items-table tbody {
+                    display: table-row-group;
+                    page-break-inside: auto;
+                }
+                
+                /* Individual rows can break if needed */
+                .items-table tr {
+                    page-break-inside: auto;
+                    page-break-after: auto;
+                }
+                
+                /* Keep totals section together */
+                .totals-section {
+                    page-break-inside: avoid;
+                    page-break-before: auto;
+                    margin-top: 20px;
+                }
+                
+                /* Keep terms section together */
+                .terms {
+                    page-break-inside: avoid;
+                    page-break-before: auto;
+                    margin-top: 40px;
+                }
+                
+                /* Keep signature section together */
+                .signature-section {
+                    page-break-inside: avoid;
+                    page-break-before: auto;
+                    margin-top: 30px;
+                }
+                
+                /* Ensure clean page breaks */
+                .page-break {
+                    page-break-before: always;
+                }
+                
+                /* Remove any unwanted borders or separators */
+                .items-table td, .items-table th {
+                    border: 1px solid #000;
+                    page-break-inside: avoid;
+                }
+                
+                /* Ensure table flows naturally across pages */
+                .items-table {
+                    break-inside: auto;
+                }
+                
+                /* Remove any default page break styling */
+                * {
+                    box-sizing: border-box;
+                }
+                
+                /* Ensure clean table rendering */
+                .items-table tr {
+                    break-inside: avoid;
+                    page-break-inside: avoid;
+                }
+            </style>
+        </head>
+        <body>
+            <div style="display: flex; flex-direction: column; align-items: stretch; margin-bottom: 20px;">
+                <div style="text-align: center; color: #bbb; letter-spacing: 0.4em; font-size: 24px; font-weight: normal; font-family: Arial, Helvetica, sans-serif; margin-bottom: 2px;">
+                    L E &nbsp; M A R B L E &nbsp; G A L L E R Y &nbsp; P V T. &nbsp; L T D.
+                </div>
+                <div style="display: flex; align-items: center; justify-content: flex-start;">
+                    <div style="display: flex; flex-direction: column; align-items: flex-start; width: 250px;">
+                        <apex:image url="{!URLFOR($Resource.companyLogo)}" style="width: 170px; height: auto; margin-bottom: 0;" alt="Company Logo"/>
+                    </div>
+                    <div style="flex: 1; text-align: center;">
+                        <span style="font-size: 36px; font-weight: bold; letter-spacing: 2px;">ESTIMATE</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="border: 2px solid #888; padding: 0; margin-bottom: 20px;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="padding: 18px 18px 8px 18px; font-weight: bold; font-size: 20px; border-bottom: 2px solid #888; width: 50%; vertical-align: top;">
+                            Estimate No:{!Cart__c.Name}
+                        </td>
+                        <td style="padding: 18px 18px 8px 18px; font-weight: bold; font-size: 20px; border-bottom: 2px solid #888; width: 50%; vertical-align: top; text-align: right;">
+                            Date:{!TEXT(DAY(TODAY()))}-{!TEXT(MONTH(TODAY()))}-{!TEXT(YEAR(TODAY()))}<br/>
+                            Quotation Validity:{!TEXT(DAY(Cart__c.Validity_Date__c))}-{!TEXT(MONTH(Cart__c.Validity_Date__c))}-{!TEXT(YEAR(Cart__c.Validity_Date__c))}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 18px; width: 50%; vertical-align: top; border-right: 2px solid #888;">
+                            <div style="font-weight: bold; font-size: 16px; margin-bottom: 8px;">Customer Details</div>
+                            <div style="font-size: 16px; font-weight: bold; margin-bottom: 3px;">{!Cart__c.Deals__r.Customer__r.Customer_ID__c}</div>
+                            <div style="font-size: 16px; font-weight: bold; margin-bottom: 3px;">{!Cart__c.Deals__r.Customer__r.Name}</div>
+                            <div style="font-size: 16px; font-weight: bold; margin-top: 12px;">
+                                <apex:outputText value="{!Cart__c.Deals__r.Billing_Address__Street__s}" rendered="{!NOT(ISBLANK(Cart__c.Deals__r.Billing_Address__Street__s))}"/><br/>
+                                <apex:outputText value="{!Cart__c.Deals__r.Billing_Address__City__s}" rendered="{!NOT(ISBLANK(Cart__c.Deals__r.Billing_Address__City__s))}"/>
+                                <apex:outputText value=", {!Cart__c.Deals__r.Billing_Address__StateCode__s}" rendered="{!NOT(ISBLANK(Cart__c.Deals__r.Billing_Address__StateCode__s))}"/>
+                                <apex:outputText value=", {!Cart__c.Deals__r.Billing_Address__CountryCode__s}" rendered="{!NOT(ISBLANK(Cart__c.Deals__r.Billing_Address__CountryCode__s))}"/>
+                            </div>
+                            <div style="font-size: 16px; font-weight: bold; margin-bottom: 3px;">{!Cart__c.Deals__r.Phone__c}</div>
+                        </td>
+                        <td style="padding: 18px; width: 50%; vertical-align: top;">
+                            <div style="font-weight: bold; font-size: 16px; margin-bottom: 8px;">Executive Details</div>
+                            <div style="font-size: 16px; font-weight: bold; margin-bottom: 3px;">{!Cart__c.Deals__r.Owner.Name}</div>
+                            <div style="font-size: 16px; font-weight: bold; margin-bottom: 3px;">{!Cart__c.Deals__r.Owner.Phone}</div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div style="margin-bottom: 15px; font-size: 18px;" class="dear-content">
+                <p style="margin: 0;">Dear Sir/Madam,</p>
+                <p style="margin: 10px 0 0 0;">Thank you for choosing Le Marble Gallery. In response to your enquiry, we take pleasure in furnishing our lowest rate for your kind consideration.</p>
+            </div>
+
+            <div style="overflow-x:auto; width:100%;">
+                <table class="items-table" style="width:100%; border-collapse:collapse;">
+                    <thead>
+                        <tr>
+                            <th style="border: 1px solid #000; padding: 8px; text-align: center; color: #000; font-size: 15px; font-weight: bold; width: 5%; max-width: 50px;">NO.</th>
+                            <th style="border: 1px solid #000; padding: 8px; text-align: center; color: #000; font-size: 15px; font-weight: bold; width: 25%; max-width: 350px; word-break: break-word; white-space: normal;">DESCRIPTION</th>
+                            <th style="border: 1px solid #000; padding: 8px; text-align: center; color: #000; font-size: 15px; font-weight: bold; width: 10%; max-width: 100px;">AREAS</th>
+                            <th style="border: 1px solid #000; padding: 8px; text-align: center; color: #000; font-size: 15px; font-weight: bold; width: 10%; max-width: 100px;">QNTY / SQFT</th>
+                            <th style="border: 1px solid #000; padding: 8px; text-align: center; color: #000; font-size: 15px; font-weight: bold; width: 10%; max-width: 100px;">QNTY / NO</th>
+                            <th style="border: 1px solid #000; padding: 8px; text-align: center; color: #000; font-size: 15px; font-weight: bold; width: 10%; max-width: 100px;">MRP / (SQFT/NO)</th>
+                            <th style="border: 1px solid #000; padding: 8px; text-align: center; color: #000; font-size: 15px; font-weight: bold; width: 10%; max-width: 100px;">DISC / (SQFT/NO)</th>
+                            <th style="border: 1px solid #000; padding: 8px; text-align: center; color: #000; font-size: 15px; font-weight: bold; width: 8%; max-width: 80px;">TOTAL</th>
+                            <th class="image-col" style="border: 1px solid #000; padding: 8px; text-align: center; color: #000; font-size: 15px; font-weight: bold; width: 12%; max-width: 120px;">IMAGE</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <apex:variable var="counter" value="{!1}"/>
+                        <apex:repeat value="{!products}" var="item">
+                            <tr>
+                                <td style="border: 1px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 15px;">{!counter}</td>
+                                <td style="border: 1px solid #000; padding: 8px; text-align: left; font-weight: bold; font-size: 15px; word-break: break-word; white-space: normal;">
+                                    {!item.description}
+                                    <apex:outputText rendered="{!item.category = 'NATURAL STONE' && NOT(ISBLANK(item.descriptionField))}" 
+                                                     value=" - {!item.descriptionField}"/>
+                                </td>
+                                <td style="border: 1px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 15px;">{!item.roomType}</td>
+                                <td style="border: 1px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 15px;">{!item.sqft}</td>
+                                <td style="border: 1px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 15px;">{!item.quantity}</td>
+                                <td style="border: 1px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 15px;">
+                                    <apex:outputText value="{!item.priceSqft}" rendered="{!item.category = 'TILES'}"/>
+                                    <apex:outputText value="{!item.unitPrice}" rendered="{!item.category != 'TILES'}"/>
+                                </td>
+                                <td style="border: 1px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 15px;">{!item.afterDiscPrice}</td>
+                                <td style="border: 1px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 15px;">{!item.total}</td>
+                                <td class="image-col" style="border: 1px solid #000; padding: 8px; text-align: center;">
+                                    <apex:outputPanel rendered="{!NOT(ISBLANK(item.imageUrl))}">
+                                        <apex:image url="{!item.imageUrl}" style="width: 60px; height: 60px; object-fit: contain;"/>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel rendered="{!ISBLANK(item.imageUrl)}">
+                                        <div style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background-color: #f5f5f5;">
+                                            <span style="font-size: 15px; color: #999;">No Image</span>
+                                        </div>
+                                    </apex:outputPanel>
+                                </td>
+                            </tr>
+                            <apex:variable var="counter" value="{!counter + 1}"/>
+                        </apex:repeat>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="totals-section" style="margin-top: 0; width: 100%;">
+                <table width="100%" cellspacing="0" cellpadding="0" style="border-collapse: collapse; margin-top: 0;">
+                    <tr>
+                        <td style="border: 1px solid #000; padding: 10px 15px; width: 59%;"></td>
+                        <td style="border: 1px solid #000; padding: 10px 15px; font-size: 15px; font-weight: bold; width: 16%;">MRP Total</td>
+                        <td style="border: 1px solid #000; padding: 10px 15px; text-align: right; font-size: 15px; font-weight: bold; width: 20%;">
+                            <apex:outputText value="{0, number, ###,##0.00}">
+                                <apex:param value="{!mrpTotal}"/>
+                            </apex:outputText>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #000; padding: 10px 15px;"></td>
+                        <td style="border: 1px solid #000; padding: 10px 15px; font-size: 15px; font-weight: bold;">Discount</td>
+                        <td style="border: 1px solid #000; padding: 10px 15px; text-align: right; font-size: 15px; font-weight: bold;">
+                            <apex:outputText value="{0, number, ###,##0.00}">
+                                <apex:param value="{!IF(ISNULL(totalDiscount), 0, totalDiscount)}"/>
+                            </apex:outputText>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #000; padding: 10px 15px;"></td>
+                        <td style="border: 1px solid #000; padding: 10px 15px; font-size: 15px; font-weight: bold;">Sub Total</td>
+                        <td style="border: 1px solid #000; padding: 10px 15px; text-align: right; font-size: 15px; font-weight: bold;">
+                            <apex:outputText value="{0, number, ###,##0.00}">
+                                <apex:param value="{!selectedTotalAmount}"/>
+                            </apex:outputText>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #000; padding: 10px 15px;"></td>
+                        <td style="border: 1px solid #000; padding: 10px 15px; font-size: 15px; font-weight: bold;">Freight Charges</td>
+                        <td style="border: 1px solid #000; padding: 10px 15px; text-align: right; font-size: 15px; font-weight: bold;">
+                            <apex:outputText value="{0, number, ###,##0.00}">
+                                <apex:param value="{!IF(ISNULL(Cart__c.Freight_Charge__c), 0, Cart__c.Freight_Charge__c)}"/>
+                            </apex:outputText>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #000; padding: 10px 15px;"></td>
+                        <td style="border: 1px solid #000; padding: 10px 15px; font-size: 15px; font-weight: bold;">Loading Charges</td>
+                        <td style="border: 1px solid #000; padding: 10px 15px; text-align: right; font-size: 15px; font-weight: bold;">
+                            <apex:outputText value="{0, number, ###,##0.00}">
+                                <apex:param value="{!IF(ISNULL(Cart__c.Loading_Charge__c), 0, Cart__c.Loading_Charge__c)}"/>
+                            </apex:outputText>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #000; padding: 10px 15px;"></td>
+                        <td style="border: 1px solid #000; padding: 10px 15px; font-size: 15px; font-weight: bold;">Unloading Charges</td>
+                        <td style="border: 1px solid #000; padding: 10px 15px; text-align: right; font-size: 15px; font-weight: bold;">
+                            <apex:outputText value="{0, number, ###,##0.00}">
+                                <apex:param value="{!IF(ISNULL(Cart__c.Unloading_Charge__c), 0, Cart__c.Unloading_Charge__c)}"/>
+                            </apex:outputText>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #000; padding: 10px 15px;"></td>
+                        <td style="border: 1px solid #000; padding: 10px 15px; font-size: 18px; font-weight: bold; width: 20%;">Grand Total</td>
+                        <td style="border: 1px solid #000; padding: 10px 15px; text-align: right; font-size: 18px; font-weight: bold;">
+                            <apex:outputText value="{0, number, ###,##0.00}">
+                                <apex:param value="{!
+                                    selectedTotalAmount 
+                                    + IF(ISNULL(Cart__c.Freight_Charge__c), 0, Cart__c.Freight_Charge__c)
+                                    + IF(ISNULL(Cart__c.Loading_Charge__c), 0, Cart__c.Loading_Charge__c)
+                                    + IF(ISNULL(Cart__c.Unloading_Charge__c), 0, Cart__c.Unloading_Charge__c)
+                                }"/>
+                            </apex:outputText>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div class="terms" style="margin-top: 40px; font-family: Arial, Helvetica, sans-serif;">
+                <div style="font-size: 20px; font-weight: bold; margin-bottom: 8px; text-align: left;">Terms &amp; Conditions</div>
+                <hr style="border: none; border-top: 2px solid #444; margin-bottom: 18px; margin-top: 0;"/>
+                <div style="margin-bottom: 18px;">
+                    <div style="font-weight: bold; font-size: 16px; margin-bottom: 6px;">Return &amp; Replacement Policy :</div>
+                    <div style="font-size: 15px; margin-bottom: 10px;">
+                        Materials delivered will have to be checked on site for damage while delivering and Sanitary &amp; Fitting mandatorily will need to be open delivery, any other discrepancy other than sanitary &amp; Fittings to be reported back in 5 days. Immediate Replacement against damaged goods will be done on availability or arrangements will be done after communicating a tentative date of delivery. All Return or replacement material should be immaculate &amp; &quot;Saleable&quot; condition with original packaging.
+                    </div>
+                    <ul style="margin-left: 20px; font-size: 15px;">
+                        <li style="font-weight: bold; margin-bottom: 0px;">Validity of the quotation is up to {!TEXT(DAY(Cart__c.Validity_Date__c))}-{!TEXT(MONTH(Cart__c.Validity_Date__c))}-{!TEXT(YEAR(Cart__c.Validity_Date__c))}.</li>
+                        <li style="font-weight: bold; margin-bottom: 0px;">100% of the amount has to be paid in advance and no credit facility is available.</li>
+                        <li style="font-weight: bold; margin-bottom: 0px;">Delivery of the items will be made within 15 days from the date of confirmation except against order</li>
+                        <li style="font-weight: bold; margin-bottom: 0px;">Freight &amp; Unloading will have to be borne by the customer and communicated before invoicing.</li>
+                        <li style="font-weight: bold; margin-bottom: 0px;">All items received against order, strictly cannot be taken back</li>
+                        <li style="font-weight: bold; margin-bottom: 0px;">Please check and verify the quantity before placing the order.</li>
+                        <li style="font-weight: bold; margin-bottom: 0px;">Up to 2-3 % of transit damages has to be borne by the client, any damages more than that will be replaced.</li>
+                        <li style="font-weight: bold; margin-bottom: 0px;">All delivery needs to be cross verified with invoice before driver leaves, and sign off to be done on invoice strictly by the person receiving the consignment. Delivery materials to be checked by customer or his representatives and no complaints will be accepted post this.</li>
+                        <li style="font-weight: bold; margin-bottom: 0px;">Any terms mentioned in PI will be applicable</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="signature-section" style="margin-top: 30px; margin-bottom: 20px; text-align: right;">
+                <div style="width: 300px; border: 2px solid #000000; padding: 15px; display: inline-block;">
+                    <p style="color: #999; font-size: 22px; margin: 0 0 25px 0; text-align: center;">Customer Signature</p>
+                    <div style="border-bottom: 1px solid #000000; margin-bottom: 8px;"></div>
+                </div>
+            </div>
+
+            <div class="footer">
+                <p style="font-size: 18px;">Le Marble Gallery | Opposite Civil Station | Eranhipalam | Calicut-20</p>
+                <p style="font-size: 18px;">e:hello@mggroupin.com | t: +914952373512 | www.mggroupin.com</p>
+            </div>
+        </body>
+    </html>
+</apex:page>

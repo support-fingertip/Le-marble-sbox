@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Purpose__c</fullName>
+    <externalId>false</externalId>
+    <label>Purpose</label>
+    <required>false</required>
+    <trackHistory>false</trackHistory>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Tile</fullName>
+                <default>false</default>
+                <label>Tile</label>
+            </value>
+            <value>
+                <fullName>Marble</fullName>
+                <default>false</default>
+                <label>Marble</label>
+            </value>
+            <value>
+                <fullName>Granite</fullName>
+                <default>false</default>
+                <label>Granite</label>
+            </value>
+            <value>
+                <fullName>Sanitary</fullName>
+                <default>false</default>
+                <label>Sanitary</label>
+            </value>
+            <value>
+                <fullName>Fittings</fullName>
+                <default>false</default>
+                <label>Fittings</label>
+            </value>
+            <value>
+                <fullName>Roof tiles</fullName>
+                <default>false</default>
+                <label>Roof tiles</label>
+            </value>
+            <value>
+                <fullName>Kitchen sink</fullName>
+                <default>false</default>
+                <label>Kitchen sink</label>
+            </value>
+            <value>
+                <fullName>Modular kitchen</fullName>
+                <default>false</default>
+                <label>Modular kitchen</label>
+            </value>
+            <value>
+                <fullName>Pressure Pump</fullName>
+                <default>false</default>
+                <label>Pressure Pump</label>
+            </value>
+            <value>
+                <fullName>Accessories</fullName>
+                <default>false</default>
+                <label>Accessories</label>
+            </value>
+            <value>
+                <fullName>Adhesives</fullName>
+                <default>false</default>
+                <label>Adhesives</label>
+            </value>
+            <value>
+                <fullName>Surface solutions</fullName>
+                <default>false</default>
+                <label>Surface solutions</label>
+            </value>
+            <value>
+                <fullName>Wellness</fullName>
+                <default>false</default>
+                <label>Wellness</label>
+            </value>
+            <value>
+                <fullName>Lights</fullName>
+                <default>false</default>
+                <label>Lights</label>
+            </value>
+            <value>
+                <fullName>Neotra</fullName>
+                <default>false</default>
+                <label>Neotra</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>
