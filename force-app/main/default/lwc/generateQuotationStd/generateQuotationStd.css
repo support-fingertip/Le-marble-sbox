@@ -1,0 +1,125 @@
+.button-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    min-height: 100px;
+    /* Invisible box styling */
+    background: transparent;
+    border-radius: 8px;
+    margin: 1rem 0;
+}
+
+.gradient-button {
+    background: linear-gradient(to right, #0070d2, #005fb2);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: opacity 0.2s;
+}
+
+.gradient-button:hover {
+    opacity: 0.9;
+}
+
+.gradient-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Modal Styles */
+.spinner-container {
+    position: relative;
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* PDF Viewer Styles */
+.pdf-container {
+    width: 100%;
+    height: 500px;
+    background: #f3f2f2;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.pdf-viewer {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.slds-modal__container {
+    max-width: 90%;
+    width: 90%;
+    margin: 0 auto;
+}
+
+.slds-modal__content {
+    background-color: #f7f9fd;
+    border-radius: 0 0 8px 8px;
+}
+
+.slds-modal__footer {
+    border-top: 1px solid #e5e5e5;
+    padding: 1rem;
+    background-color: #f7f9fd;
+    border-radius: 0 0 8px 8px;
+}
+
+.slds-modal__header {
+    background-color: #1a237e;
+    color: white;
+    border-radius: 8px 8px 0 0;
+}
+
+.slds-modal__title {
+    color: white;
+}
+
+.slds-button_icon-inverse {
+    color: white;
+}
+
+.slds-backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Mobile PDF View Styles */
+.slds-box.slds-theme_default {
+    background: #f3f2f2;
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.slds-box .lightning-icon {
+    --sds-c-icon-color-foreground-default: #0070d2;
+}
+
+.slds-box p {
+    color: #514f4f;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+@media (min-width: 48em) {
+    .slds-modal__container {
+        max-width: 80%;
+        width: 80%;
+    }
+}
+
+@media (min-width: 64em) {
+    .slds-modal__container {
+        max-width: 70%;
+        width: 70%;
+    }
+}

@@ -1,0 +1,271 @@
+<template>
+
+    
+    <!-- ================= CREATE SALES ORDER BUTTON ================= -->
+   
+    <template if:true={showCreateSOButton}>
+         <div class="slds-text-align_center slds-m-top_medium">
+        <lightning-button
+            variant="brand"
+            label="Create Sales Order"
+            onclick={handleOpenModal}>
+        </lightning-button>
+        </div>
+    </template>
+    
+
+    <!-- ================= MODAL ================= -->
+    <template if:true={isModalOpen}>
+        <section role="dialog" tabindex="-1"
+            class="slds-modal slds-fade-in-open slds-modal_large">
+            <div class="slds-modal__container">
+
+                <!-- Modal Header -->
+                <header class="slds-modal__header gradient-header">
+                    <h2 class="slds-text-heading_medium slds-hyphenate slds-text-color_inverse">
+                        Sales Confirmation
+                    </h2>
+                    <lightning-button-icon
+                        icon-name="utility:close"
+                        alternative-text="Close"
+                        size="large"
+                        variant="inverse"
+                        onclick={handleCloseModal}
+                        class="slds-modal__close">
+                    </lightning-button-icon>
+                </header>
+
+                <!-- Modal Body -->
+                <div class="slds-modal__content slds-p-around_medium modal-body">
+
+                    <!-- Customer Information -->
+                    <div class="customer-card slds-m-bottom_medium">
+                        <div class="customer-card-header slds-p-around_small">
+                            <div class="slds-grid slds-grid_vertical-align-center">
+                                <lightning-icon
+                                    icon-name="standard:customer"
+                                    size="small"
+                                    class="slds-m-right_small">
+                                </lightning-icon>
+                                <div class="slds-col">
+                                    <div class="slds-text-heading_small">
+                                        Customer Information
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                     
+
+
+                        <div class="customer-card-body slds-p-around_small">
+                            <div class="slds-grid slds-wrap">
+
+                                <div class="slds-col slds-size_1-of-2 slds-p-around_x-small">
+                                    <div class="slds-text-title">Customer Name</div>
+                                    <div>{customerInfo.name}</div>
+                                </div>
+
+                                <div class="slds-col slds-size_1-of-2 slds-p-around_x-small">
+                                    <div class="slds-text-title">Email</div>
+                                    <div>{customerInfo.email}</div>
+                                </div>
+
+                                <div class="slds-col slds-size_1-of-2 slds-p-around_x-small">
+                                    <div class="slds-text-title">Phone</div>
+                                    <div>{customerInfo.phone}</div>
+                                </div>
+
+                                <div class="slds-col slds-size_1-of-2 slds-p-around_x-small">
+                                    <div class="slds-text-title">Company</div>
+                                    <div>{customerInfo.company}</div>
+                                </div>
+
+                                <div class="slds-col slds-size_1-of-2 slds-p-around_x-small">
+                                    <div class="slds-text-title">Executive Assigned</div>
+                                    <div>{customerInfo.executive}</div>
+                                </div>
+
+                                <div class="slds-col slds-size_1-of-2 slds-p-around_x-small">
+                                    <div class="slds-text-title">Address</div>
+                                    <div>{customerInfo.address}</div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+
+                       <!-- ================= WAREHOUSE SELECTION ================= -->
+                    <div class="slds-m-bottom_medium">
+                        <lightning-combobox
+                            label="Warehouse"
+                            placeholder="Select Warehouse"
+                            value={selectedWarehouse}
+                            options={warehouseOptions}
+                            onchange={handleWarehouseChange}
+                            required>
+                        </lightning-combobox>
+                    </div>
+
+                    <!-- ================= PAYMENT SECTION (COMMENTED SAFELY) ================= -->
+                    <!--
+                    <div class="payment-section slds-m-bottom_medium">
+                      <div class="payment-header slds-p-around_small">
+                        <div class="slds-grid slds-grid_vertical-align-center">
+                          <lightning-icon
+                            icon-name="standard:payment_gateway"
+                            size="small"
+                            class="slds-m-right_small">
+                          </lightning-icon>
+                          <div class="slds-col">
+                            <div class="slds-text-heading_small">
+                              Payment Information
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="payment-body slds-p-around_small">
+                        <div class="slds-grid slds-wrap">
+                          <div class="slds-col slds-size_1-of-2 slds-p-right_small">
+                            <lightning-combobox
+                              label="Payment Type"
+                              value={selectedPaymentType}
+                              options={paymentTypeOptions}
+                              onchange={handlePaymentTypeChange}
+                              required>
+                            </lightning-combobox>
+                          </div>
+
+                          <template if:true={showCreditAmount}>
+                            <div class="slds-col slds-size_1-of-2 slds-p-left_small">
+                              <lightning-input
+                                type="number"
+                                label="Credit Amount"
+                                value={creditAmount}
+                                onchange={handleCreditAmountChange}
+                                step="0.01"
+                                min="0"
+                                formatter="currency"
+                                required>
+                              </lightning-input>
+                            </div>
+                          </template>
+                        </div>
+
+                        <template if:true={showCreditDueDate}>
+                          <div class="slds-grid slds-wrap slds-m-top_small">
+                            <div class="slds-col slds-size_1-of-2 slds-p-right_small">
+                              <lightning-input
+                                type="date"
+                                label="Credit Due Date"
+                                value={creditDueDate}
+                                onchange={handleCreditDueDateChange}
+                                required>
+                              </lightning-input>
+                            </div>
+                          </div>
+                        </template>
+                      </div>
+                    </div>
+                    -->
+                    <!-- ================= END PAYMENT SECTION ================= -->
+
+                    <!-- Quote Items -->
+                    <template if:true={hasQuoteItems}>
+                        <div class="slds-m-top_medium">
+                            <div class="slds-text-heading_small slds-m-bottom_small">
+                                Quote Items
+                            </div>
+
+                            <div class="table-scroll-wrapper">
+                                 <table class="slds-table slds-table_bordered slds-table_cell-buffer slds-table_fixed-layout">
+                                    <colgroup>
+                                    <col style="width: 30%;">
+                                    <col style="width: 10%;">
+                                    <col style="width: 15%;">
+                                    <col style="width: 15%;">
+                                    <col style="width: 15%;">
+                                    <col style="width: 15%;">
+                                </colgroup>
+                                    <thead>
+                                    <tr>
+                                        <th style="width:5%"></th> 
+                                        <th>Product</th>
+                                        <th>Quantity</th>
+                                        <th>Unit Price</th>
+                                        <th>Total Price</th>
+                                        <th>Tax</th>
+                                        <th>Category</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template for:each={quoteLineItems} for:item="item">
+                                        <tr key={item.Id}>
+                                        <td>
+                                        <lightning-input
+                                            type="checkbox"
+                                            data-id={item.Id}
+                                            checked={item.isSelected}
+                                            onchange={handleProductSelection}>
+                                        </lightning-input>
+                                    </td>
+                                            <td class="product-cell">{item.Product2.Name}</td>
+                                            <td>{item.Quantity}</td>
+                                            <td>{item.UnitPrice}</td>
+                                            <td>{item.totalPrice}</td>
+                                            <td><lightning-formatted-number value={item.tax} minimum-fraction-digits="2" maximum-fraction-digits="2"> </lightning-formatted-number></td>
+                                            <td>{item.category}</td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                            </div>  
+                        </div>
+                    </template>
+
+                    <!-- No Items -->
+                    <template if:false={hasQuoteItems}>
+                        <template if:true={isQuoteItemsLoaded}>
+                            <div class="slds-text-align_center slds-p-around_medium">
+                                <lightning-icon icon-name="utility:info" size="medium"></lightning-icon>
+                                <p>No items found for this quote.</p>
+                            </div>
+                        </template>
+                    </template>
+
+                </div>
+
+                <!-- Modal Footer -->
+                <footer class="slds-modal__footer gradient-footer">
+                <button class="cancel-button" onclick={handleCloseModal}>
+                    Cancel
+                </button>
+
+                <button
+                    class="confirm-button"
+                    onclick={handleConfirmSale}
+                    disabled={isConfirmDisabled}>
+                    <lightning-icon
+                        icon-name="utility:check"
+                        size="x-small"
+                        class="slds-m-right_x-small">
+                    </lightning-icon>
+                    Confirm Sale
+                </button>
+                </footer>
+
+
+            </div>
+        </section>
+
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+
+    <!-- ================= LOADING SPINNER ================= -->
+    <template if:true={isLoading}>
+        <lightning-spinner alternative-text="Loading" size="medium"></lightning-spinner>
+    </template>
+
+</template>

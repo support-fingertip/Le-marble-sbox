@@ -1,0 +1,228 @@
+<!-- financeTransactionList.html -->
+<template>
+  <!-- Top Filters for Year/Month/Date -->
+  <div class="date-filter-row slds-grid slds-grid_align-end slds-p-horizontal_medium slds-p-top_small">
+    <div class="slds-col">
+      <lightning-combobox label="Year" value={filterYear} options={yearOptions} onchange={handleYearChange} class="custom-filter" style="min-width: 110px;"></lightning-combobox>
+    </div>
+    <div class="slds-col">
+      <lightning-combobox label="Month" value={filterMonth} options={monthOptions} onchange={handleMonthChange} class="custom-filter" style="min-width: 110px;"></lightning-combobox>
+    </div>
+    <div class="slds-col">
+      <lightning-combobox label="Date" value={filterDay} options={dayOptions} onchange={handleDayChange} class="custom-filter" style="min-width: 110px;"></lightning-combobox>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="slds-grid slds-gutters slds-p-around_medium">
+    <div class="slds-col">
+      <div class="summary-card pending-card">
+        <div class="slds-media">
+          <div class="slds-media__figure">
+            <lightning-icon icon-name="utility:money" size="small" variant="inverse"></lightning-icon>
+          </div>
+          <div class="slds-media__body">
+            <p class="card-label">Total Received</p>
+            <p class="card-amount">₹{totalReceived}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slds-col">
+      <div class="summary-card overdue-card">
+        <div class="slds-media">
+          <div class="slds-media__figure">
+            <lightning-icon icon-name="utility:warning" size="small" variant="inverse"></lightning-icon>
+          </div>
+          <div class="slds-media__body">
+            <p class="card-label">Overdue</p>
+            <p class="card-amount">₹{overdueAmount}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slds-col">
+      <div class="summary-card paid-card">
+        <div class="slds-media">
+          <div class="slds-media__figure">
+            <lightning-icon icon-name="utility:check" size="small" variant="inverse"></lightning-icon>
+          </div>
+          <div class="slds-media__body">
+            <p class="card-label">Applied</p>
+            <p class="card-amount">₹{appliedToday}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slds-col">
+      <div class="summary-card not-received-card">
+        <div class="slds-media">
+          <div class="slds-media__figure">
+            <lightning-icon icon-name="utility:ban" size="small" variant="inverse"></lightning-icon>
+          </div>
+          <div class="slds-media__body">
+            <p class="card-label">Not Received</p>
+            <p class="card-amount">₹{notReceivedAmount}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters Section -->
+  <div class="filters-container slds-p-horizontal_medium slds-p-bottom_medium">
+    <div class="slds-grid slds-gutters">
+      <div class="slds-col">
+        <lightning-combobox name="paymentType" label="Payment Type" value={selectedPaymentType} options={paymentTypeOptions}
+          onchange={handlePaymentTypeChange} class="custom-filter">
+        </lightning-combobox>
+      </div>
+      <div class="slds-col">
+        <lightning-combobox name="paymentStatus" label="Payment Status" value={selectedPaymentStatus}
+          options={paymentStatusOptions} onchange={handlePaymentStatusChange} class="custom-filter">
+        </lightning-combobox>
+      </div>
+      <div class="slds-col">
+        <lightning-input type="date" label="Due Date From" value={dueDateFrom} onchange={handleDueDateFromChange}
+          class="custom-filter">
+        </lightning-input>
+      </div>
+      <div class="slds-col">
+        <lightning-input type="date" label="Due Date To" value={dueDateTo} onchange={handleDueDateToChange}
+          class="custom-filter">
+        </lightning-input>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table Section -->
+  <div class="table-container slds-p-horizontal_medium" style="overflow-x: auto; max-height: 500px; overflow-y: auto;">
+    <div class="slds-card__body">
+      <div class="slds-table_container">
+        <table class="slds-table slds-table_cell-buffer slds-table_bordered custom-table">
+          <thead>
+            <tr class="slds-line-height_reset">
+              <th scope="col">
+                <div class="slds-truncate">Payment ID</div>
+              </th>
+              <th scope="col">
+                <div class="slds-truncate">Customer</div>
+              </th>
+              <th scope="col">
+                <div class="slds-truncate">Amount</div>
+              </th>
+              <th scope="col">
+                <div class="slds-truncate">Payment Type</div>
+              </th>
+              <th scope="col">
+                <div class="slds-truncate">Payment Status</div>
+              </th>
+              <th scope="col">
+                <div class="slds-truncate">Due Date</div>
+              </th>
+              <th scope="col">
+                <div class="slds-truncate">Payment Date</div>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <template for:each={transactionsWithFormattedDates} for:item="transaction">
+              <tr key={transaction.Id}>
+                <td>
+                  <div class="slds-truncate">
+                    <a href="javascript:void(0);" data-id={transaction.Id} onclick={handleTransactionClick} style="color: #19206e; text-decoration: underline; cursor: pointer;">{transaction.Name}</a>
+                  </div>
+                </td>
+                <td>
+                  <div class="slds-truncate">
+                    <template if:true={transaction.Opportunity__r}>
+                      <template if:true={transaction.Opportunity__r.Customer__r}>
+                        <template if:true={transaction.Opportunity__r.Customer__r.Name}>
+                          {transaction.Opportunity__r.Customer__r.Name}
+                        </template>
+                        <template if:false={transaction.Opportunity__r.Customer__r.Name}>
+                          -
+                        </template>
+                      </template>
+                      <template if:false={transaction.Opportunity__r.Customer__r}>
+                        -
+                      </template>
+                    </template>
+                    <template if:false={transaction.Opportunity__r}>
+                      -
+                    </template>
+                  </div>
+                </td>
+                <td>
+                  <div class="slds-truncate">
+                    <template if:true={transaction.Amount__c}>
+                      ₹{transaction.Amount__c}
+                    </template>
+                    <template if:false={transaction.Amount__c}>
+                      -
+                    </template>
+                  </div>
+                </td>
+                <td>
+                  <div class="slds-truncate">{transaction.Payment_Type__c}</div>
+                </td>
+                <td>
+                  <div class="slds-truncate">{transaction.Payment_Status__c}</div>
+                </td>
+                <td>
+                  <div class="slds-truncate">
+                    <template if:true={transaction.Due_Date__c}>
+                      {transaction.formattedDueDate}
+                    </template>
+                    <template if:false={transaction.Due_Date__c}>
+                      -
+                    </template>
+                  </div>
+                </td>
+                <td>
+                  <div class="slds-truncate">
+                    <template if:true={transaction.Payment_Date__c}>
+                      {transaction.formattedPaymentDate}
+                    </template>
+                    <template if:false={transaction.Payment_Date__c}>
+                      -
+                    </template>
+                  </div>
+                </td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <template if:true={showEditModal}>
+    <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open slds-modal_small">
+      <div class="slds-modal__container">
+        <header class="slds-modal__header">
+          <h2 class="slds-text-heading_medium">Update Payment Details</h2>
+        </header>
+        <div class="slds-modal__content slds-p-around_medium">
+          <lightning-input type="text" label="Document Entry" value={newReference}
+            onchange={handleReferenceChange}>
+          </lightning-input>
+          <lightning-input type="date" label="Due Date" value={newDueDate} onchange={handleDueDateChange}>
+          </lightning-input>
+        </div>
+        <footer class="slds-modal__footer">
+          <button class="slds-button slds-button_neutral" onclick={handleCloseEditModal}>Cancel</button>
+          <button class="slds-button slds-button_brand" onclick={handleUpdateReference}>Update Document Entry</button>
+          <button class="slds-button slds-button_brand" onclick={handleUpdateDueDate}>Update Due Date</button>
+        </footer>
+      </div>
+    </section>
+    <div class="slds-backdrop slds-backdrop_open"></div>
+  </template>
+
+  <!-- Loading Spinner -->
+  <template if:true={isLoading}>
+    <lightning-spinner alternative-text="Loading" size="medium"></lightning-spinner>
+  </template>
+</template>

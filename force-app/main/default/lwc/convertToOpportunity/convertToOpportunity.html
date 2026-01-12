@@ -1,0 +1,16 @@
+<template>
+  <lightning-card title="Convert Lead" icon-name="standard:opportunity">
+    <div class="slds-p-around_medium">
+      <div class="button-container">
+        <lightning-button label="Convert to Opportunity" variant="brand" onclick={handleConvert} disabled={isLoading}
+          class="convert-button">
+        </lightning-button>
+      </div>
+      <template if:true={isLoading}>
+        <div class="slds-p-top_small spinner-container">
+          <lightning-spinner alternative-text="Converting..." size="small"></lightning-spinner>
+        </div>
+      </template>
+    </div>
+  </lightning-card>
+</template>

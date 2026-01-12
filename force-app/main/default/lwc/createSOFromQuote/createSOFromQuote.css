@@ -1,0 +1,405 @@
+.button-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+}
+
+.slds-button_brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 24px;
+    width: 250px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
+    background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.slds-button_brand:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    background: linear-gradient(135deg, #1557b0 0%, #0a3276 100%);
+}
+
+.slds-button_brand:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.slds-button_brand:disabled {
+    background: #c9c9c9;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Make the icon white */
+.slds-button_brand lightning-icon {
+    --sds-c-icon-color-foreground-default: white;
+}
+
+/* Add ripple effect */
+.slds-button_brand::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.3s ease-out, height 0.3s ease-out;
+}
+
+.slds-button_brand:active::after {
+    width: 200%;
+    height: 200%;
+    opacity: 0;
+}
+
+.gradient-header {
+    background: linear-gradient(45deg, #1589ee, #0070d2);
+    border-radius: 4px 4px 0 0;
+}
+
+.gradient-footer {
+    background: linear-gradient(45deg, #f2f2f2, #ffffff);
+    border-top: 1px solid #dddbda;
+    border-radius: 0 0 4px 4px;
+}
+
+/* Custom Button Styles */
+.custom-button-container {
+    padding: 0.75rem;
+}
+
+.custom-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 24px;
+    width: 250px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
+    background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+    max-width: fit-content;
+}
+
+.custom-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    background: linear-gradient(135deg, #1557b0 0%, #0a3276 100%);
+}
+
+.custom-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.custom-button:disabled {
+    background: #c9c9c9;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.custom-icon {
+    --sds-c-icon-color-foreground-default: white;
+    margin-right: 0.5rem;
+}
+
+.button-label {
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+/* Add ripple effect */
+.custom-button::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.3s ease-out, height 0.3s ease-out;
+}
+
+.custom-button:active::after {
+    width: 200%;
+    height: 200%;
+    opacity: 0;
+}
+
+/* Customer Card Styles */
+.customer-card, .payment-section {
+    border: 1px solid #dddbda;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    background-color: white;
+    overflow: hidden;
+}
+
+.customer-card-header, .payment-header, .section-title {
+    background: linear-gradient(to right, #f7f7f7, #ffffff);
+    padding: 0.75rem;
+    border-bottom: 1px solid #f2f2f2;
+}
+.table-scroll-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.slds-table_fixed-layout {
+    min-width: 900px; /* forces horizontal scroll */
+
+}
+
+.customer-card-body, .payment-body {
+    padding: 0.75rem;
+}
+
+.customer-value {
+    font-weight: 600;
+    color: #032d60;
+    margin-top: 0.25rem;
+}
+
+/* Custom Footer Buttons */
+.cancel-button, .confirm-button {
+    border-radius: 4px;
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: none;
+    outline: none;
+}
+
+.cancel-button {
+    background-color: #f3f3f3;
+    color: #444444;
+    margin-right: 0.75rem;
+}
+
+.cancel-button:hover {
+    background-color: #e8e8e8;
+}
+
+.confirm-button {
+    background: linear-gradient(45deg, #0070d2, #1589ee);
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.confirm-button:hover {
+    background: linear-gradient(45deg, #0057a3, #0070d2);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.confirm-button:disabled {
+    background: #c9c9c9;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.modal-body {
+    max-height: 60vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.cart-accordion {
+    border: 1px solid #dddbda;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease-in-out;
+    background-color: white;
+}
+
+.cart-accordion:hover {
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.1);
+}
+
+.cart-header {
+    background: linear-gradient(to right, #f3f3f3, #ffffff);
+    border-radius: 8px 8px 0 0;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.cart-header:hover {
+    background: linear-gradient(to right, #e8e8e8, #f3f3f3);
+}
+
+.cart-item-card {
+    background: #ffffff;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+.cart-item-card:hover {
+    box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+/* Table Styles */
+.slds-table {
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.slds-table thead th {
+    background-color: #f7f7f7;
+    color: #444444;
+    font-weight: 600;
+    padding: 0.75rem;
+}
+
+/* Mobile optimizations */
+
+.product-cell {
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    line-height: 1.4;
+}
+
+@media (max-width: 48em) {
+    .slds-modal__container {
+        margin: 0;
+        padding: 0;
+        max-width: 100%;
+        height: 100%;
+    }
+
+    
+    
+    .slds-modal__content {
+        padding: 1rem;
+    }
+    
+    .modal-body {
+        max-height: calc(100vh - 120px);
+    }
+    
+    .custom-button {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    lightning-combobox {
+        width: 100% !important;
+        min-width: 0;
+    }
+    
+    /* Payment section mobile styling */
+    .payment-body .slds-grid .slds-col {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0.25rem 0 !important;
+    }
+    
+    .payment-body .slds-col.slds-p-right_small {
+        padding-right: 0 !important;
+    }
+    
+    .payment-body .slds-col.slds-p-left_small {
+        padding-left: 0 !important;
+    }
+    
+    /* Ensure all grids and columns in cart-item-card stack vertically */
+    .cart-item-card .slds-grid,
+    .cart-item-card .slds-wrap,
+    .cart-item-card .slds-grid .slds-grid {
+        display: block !important;
+        flex-wrap: unset !important;
+    }
+
+    /* Ensure all columns take full width */
+    .cart-item-card .slds-col,
+    .cart-item-card .slds-col.slds-size_1-of-2,
+    .cart-item-card .slds-col.slds-size_2-of-12,
+    .cart-item-card .slds-col.slds-size_7-of-12,
+    .cart-item-card .slds-col.slds-size_1-of-1 {
+        width: 100% !important;
+        max-width: 100% !important;
+        display: block !important;
+        padding: 0.25rem 0 !important;
+        flex: none !important;
+    }
+
+    /* Adjust text styles for readability */
+    .cart-item-card .slds-text-title {
+        font-size: 0.85rem;
+        color: #888;
+        margin-bottom: 0.25rem;
+    }
+
+    .cart-item-card .slds-text-heading_small {
+        font-size: 1rem;
+        margin-bottom: 0.25rem;
+    }
+
+    /* Ensure combobox and other inputs are full-width */
+    .cart-item-card lightning-combobox,
+    .cart-item-card lightning-input {
+        width: 100% !important;
+        min-width: 0 !important;
+        margin: 0.25rem 0 !important;
+    }
+
+    /* Add spacing between elements */
+    .cart-item-card .slds-p-top_x-small {
+        margin-bottom: 0.5rem;
+    }
+
+    /* Ensure checkbox and product name are stacked */
+    .cart-item-card .slds-grid_vertical-align-center {
+        align-items: flex-start !important;
+    }
+
+    .cart-item-fields {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    .cart-item-field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+        padding: 0.25rem 0;
+    }
+    .cart-item-label {
+        font-size: 0.85rem;
+        color: #888;
+        font-weight: 600;
+    }
+    
+}

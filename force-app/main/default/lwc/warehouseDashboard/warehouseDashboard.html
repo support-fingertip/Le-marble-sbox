@@ -1,0 +1,239 @@
+<template>
+  <div class="dashboard-container">
+    <!-- Header -->
+    <div class="dashboard-header">
+      <div class="dashboard-title">
+        <h1>Warehouse Operations Dashboard</h1>
+        <p class="subtitle">Main Warehouse</p>
+      </div>
+      <div class="dashboard-actions">
+        <button class="btn btn-primary" onclick={updateStock}>Refresh Data</button>
+      </div>
+    </div>
+
+    <!-- Loading indicator -->
+    <div if:true={isLoading} class="loading-overlay">
+      <div class="spinner"></div>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div class="dashboard-content">
+      <!-- Stats Cards Row -->
+      <div class="stats-container">
+        <div class="stat-card gradient-blue">
+          <div class="stat-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4Z"
+                fill="white" fill-opacity="0.8" />
+              <path d="M12 10L8 14H16L12 10Z" fill="white" />
+            </svg>
+          </div>
+          <div class="stat-info">
+            <h3>Total Capacity</h3>
+            <p class="stat-value">{warehouseData.capacity}</p>
+            <p class="stat-label">units</p>
+          </div>
+        </div>
+        <div class="stat-card gradient-green">
+          <div class="stat-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3Z"
+                fill="white" fill-opacity="0.8" />
+              <path d="M9 17L5 13L6.41 11.59L9 14.17L17.59 5.58L19 7L9 17Z" fill="white" />
+            </svg>
+          </div>
+          <div class="stat-info">
+            <h3>Current Stock</h3>
+            <p class="stat-value">{warehouseData.currentStock}</p>
+            <p class="stat-label">units</p>
+          </div>
+        </div>
+        <div class="stat-card gradient-orange">
+          <div class="stat-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L4 5V11.09C4 16.14 7.41 20.85 12 22C16.59 20.85 20 16.14 20 11.09V5L12 2Z" fill="white"
+                fill-opacity="0.8" />
+              <path d="M12 17L13.59 13.41L17 12L13.41 10.41L12 7L10.59 10.41L7 12L10.41 13.59L12 17Z" fill="white" />
+            </svg>
+          </div>
+          <div class="stat-info">
+            <h3>Reserved Stock</h3>
+            <p class="stat-value">{warehouseData.reservedStock}</p>
+            <p class="stat-label">units</p>
+          </div>
+        </div>
+        <div class="stat-card gradient-purple">
+          <div class="stat-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M19 3H14.82C14.4 1.84 13.3 1 12 1C10.7 1 9.6 1.84 9.18 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3Z"
+                fill="white" fill-opacity="0.8" />
+              <path d="M12 3C12.55 3 13 3.45 13 4C13 4.55 12.55 5 12 5C11.45 5 11 4.55 11 4C11 3.45 11.45 3 12 3Z"
+                fill="white" />
+              <path d="M16 14H8V16H16V14Z" fill="white" />
+              <path d="M16 10H8V12H16V10Z" fill="white" />
+            </svg>
+          </div>
+          <div class="stat-info">
+            <h3>Pending Orders</h3>
+            <p class="stat-value">{warehouseData.pendingOrders}</p>
+            <p class="stat-label">orders</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Dashboard Panels -->
+      <div class="panels-container">
+        <!-- Stock Availability Panel -->
+        <div class="panel">
+          <div class="panel-header">
+            <h2>Stock Availability</h2>
+            <button class="btn btn-small">Export</button>
+          </div>
+          <div class="panel-content">
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Product</th>
+                    <th>Available</th>
+                    <th>Reserved</th>
+                    <th>Incoming</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Marble Set - Premium</td>
+                    <td>245</td>
+                    <td>120</td>
+                    <td>50</td>
+                    <td><button class="btn btn-small btn-outline" data-productid="P001"
+                        data-productname="Marble Set - Premium" onclick={openStockUpdateModal}>Update</button></td>
+                  </tr>
+                  <tr>
+                    <td>Marble Set - Standard</td>
+                    <td>532</td>
+                    <td>85</td>
+                    <td>100</td>
+                    <td><button class="btn btn-small btn-outline" data-productid="P002"
+                        data-productname="Marble Set - Standard" onclick={openStockUpdateModal}>Update</button></td>
+                  </tr>
+                  <tr>
+                    <td>Marble Bag - Large</td>
+                    <td>178</td>
+                    <td>42</td>
+                    <td>0</td>
+                    <td><button class="btn btn-small btn-outline" data-productid="P003"
+                        data-productname="Marble Bag - Large" onclick={openStockUpdateModal}>Update</button></td>
+                  </tr>
+                  <tr>
+                    <td>Marble Bag - Small</td>
+                    <td>320</td>
+                    <td>65</td>
+                    <td>150</td>
+                    <td><button class="btn btn-small btn-outline" data-productid="P004"
+                        data-productname="Marble Bag - Small" onclick={openStockUpdateModal}>Update</button></td>
+                  </tr>
+                  <tr>
+                    <td>Collector's Edition Box</td>
+                    <td>42</td>
+                    <td>28</td>
+                    <td>25</td>
+                    <td><button class="btn btn-small btn-outline" data-productid="P005"
+                        data-productname="Collector's Edition Box" onclick={openStockUpdateModal}>Update</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pending Orders Panel -->
+        <div class="panel">
+          <div class="panel-header">
+            <h2>Pending Sales Orders</h2>
+            <button class="btn btn-small">Export</button>
+          </div>
+          <div class="panel-content">
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Quantity</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>ORD-2023-001</td>
+                    <td>Acme Corp</td>
+                    <td>120</td>
+                    <td><span class="status-badge status-available">Available</span></td>
+                    <td><button class="btn btn-small btn-primary" data-orderid="ORD-2023-001" onclick={blockStock}>Block
+                        Stock</button></td>
+                  </tr>
+                  <tr>
+                    <td>ORD-2023-002</td>
+                    <td>Global Industries</td>
+                    <td>85</td>
+                    <td><span class="status-badge status-available">Available</span></td>
+                    <td><button class="btn btn-small btn-primary" data-orderid="ORD-2023-002" onclick={blockStock}>Block
+                        Stock</button></td>
+                  </tr>
+                  <tr>
+                    <td>ORD-2023-003</td>
+                    <td>Marble Enthusiasts</td>
+                    <td>250</td>
+                    <td><span class="status-badge status-unavailable">Unavailable</span></td>
+                    <td><button class="btn btn-small btn-danger" data-orderid="ORD-2023-003"
+                        onclick={createPurchaseOrder}>Create PO</button></td>
+                  </tr>
+                  <tr>
+                    <td>ORD-2023-004</td>
+                    <td>Toys & More</td>
+                    <td>75</td>
+                    <td><span class="status-badge status-available">Available</span></td>
+                    <td><button class="btn btn-small btn-primary" data-orderid="ORD-2023-004" onclick={blockStock}>Block
+                        Stock</button></td>
+                  </tr>
+                  <tr>
+                    <td>ORD-2023-005</td>
+                    <td>Game Store Inc.</td>
+                    <td>180</td>
+                    <td><span class="status-badge status-unavailable">Unavailable</span></td>
+                    <td><button class="btn btn-small btn-danger" data-orderid="ORD-2023-005"
+                        onclick={createPurchaseOrder}>Create PO</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stock Update Modal -->
+    <div if:true={showStockModal} class="modal-overlay">
+      <div class="modal-container">
+        <div class="modal-header">
+          <h2>Update Stock: {stockUpdateData.productName}</h2>
+          <button class="modal-close" onclick={closeStockModal}>×</button>
+        </div>
+        <div class="modal-content">
+          <div class="form-group">
+            <label for="quantity">Quantity</label>
+            <input type="number" id="quantity" value={stockUpdateData.quantity} onchange={handleQuantityChange} />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick={closeStockModal}>Cancel</button>
+          <button class="btn btn-primary" onclick={updateStock}>Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>

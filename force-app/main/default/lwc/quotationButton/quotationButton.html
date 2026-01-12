@@ -1,0 +1,98 @@
+<template>
+  <div class="button-container">
+    <button class="gradient-button" onclick={handleOpenQuotation}>
+      Generate Quotation
+    </button>
+  </div>
+
+  <!-- Item Selection Modal -->
+  <template if:true={showSelectionModal}>
+    <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
+      aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open slds-modal_large">
+      <div class="slds-modal__container">
+        <header class="slds-modal__header">
+          <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close"
+            onclick={handleSelectionClose}>
+            <lightning-icon icon-name="utility:close" alternative-text="Close" size="small"></lightning-icon>
+            <span class="slds-assistive-text">Close</span>
+          </button>
+          <h2 id="modal-heading-01" class="slds-modal__title slds-hyphenate">Select Items for Quotation</h2>
+        </header>
+        <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+          <lightning-datatable
+            key-field="id"
+            data={cartLineItems}
+            columns={columns}
+            selected-rows={selectedItems}
+            onrowselection={handleRowSelection}>
+          </lightning-datatable>
+        </div>
+        <footer class="slds-modal__footer">
+          <lightning-button label="Cancel" onclick={handleSelectionClose} class="slds-m-right_x-small">
+          </lightning-button>
+          <lightning-button label="Proceed" variant="brand" onclick={handleProceed}>
+          </lightning-button>
+        </footer>
+      </div>
+    </section>
+    <div class="slds-backdrop slds-backdrop_open"></div>
+  </template>
+
+  <!-- PDF Modal -->
+  <template if:true={showPdfModal}>
+    <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-02" aria-modal="true"
+      aria-describedby="modal-content-id-2" class="slds-modal slds-fade-in-open slds-modal_large">
+      <div class="slds-modal__container">
+        <header class="slds-modal__header">
+          <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close"
+            onclick={handleClose}>
+            <lightning-icon icon-name="utility:close" alternative-text="Close" size="small"></lightning-icon>
+            <span class="slds-assistive-text">Close</span>
+          </button>
+          <h2 id="modal-heading-02" class="slds-modal__title slds-hyphenate">Quotation Preview</h2>
+        </header>
+        <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-2">
+          <div if:true={isLoading} class="spinner-container">
+            <lightning-spinner alternative-text="Loading PDF..." size="medium"></lightning-spinner>
+          </div>
+          <!-- Desktop: Show PDF in iframe -->
+          <template if:false={isMobile}>
+            <iframe
+              src={pdfIframeUrl}
+              width="100%"
+              height="500px"
+              style="border: none;">
+            </iframe>
+          </template>
+          <!-- Mobile: Show message, Download, and Email buttons -->
+          <template if:true={isMobile}>
+            <div class="slds-align_absolute-center slds-p-around_medium">
+              <lightning-icon icon-name="utility:pdf" size="large" class="slds-m-bottom_medium"></lightning-icon>
+              <p class="slds-text-align_center slds-m-bottom_medium">
+                PDF preview is not supported in the mobile app.<br>
+                Please use the Download or Send Email option below.
+              </p>
+              <lightning-button 
+                label="Download" 
+                onclick={handleDownload}
+                class="slds-m-top_medium">
+              </lightning-button>
+              <lightning-button 
+                label="Send Email" 
+                variant="brand"
+                onclick={handleSendEmail}
+                class="slds-m-top_medium slds-m-left_small"
+                disabled={isSendingEmail}>
+              </lightning-button>
+            </div>
+          </template>
+        </div>
+        <footer class="slds-modal__footer">
+          <lightning-button label="Send Email" variant="brand" onclick={handleSendEmail} disabled={isSendingEmail}>
+          </lightning-button>
+        </footer>
+      </div>
+    </section>
+    <div class="slds-backdrop slds-backdrop_open"></div>
+  </template>
+</template>

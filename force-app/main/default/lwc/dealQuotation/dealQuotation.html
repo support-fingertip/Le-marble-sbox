@@ -1,0 +1,86 @@
+<template>
+  <lightning-card title="Quotation Generator" icon-name="standard:quotes">
+    <div class="slds-align_absolute-center slds-p-around_large">
+      <div class="content-container">
+        <button class="custom-button" onclick={handleCreateQuotation} disabled={isLoading}>
+          <span class="button-icon">
+            <svg width="20" height="20" viewBox="0 0 52 52" class="document-icon">
+              <path fill="currentColor"
+                d="M44 2H8C5.8 2 4 3.8 4 6v36c0 2.2 1.8 4 4 4h36c2.2 0 4-1.8 4-4V6c0-2.2-1.8-4-4-4zm0 40H8V6h36v36zM38 16H14c-.6 0-1-.4-1-1v-2c0-.6.4-1 1-1h24c.6 0 1 .4 1 1v2c0 .6-.4 1-1 1zm0 8H14c-.6 0-1-.4-1-1v-2c0-.6.4-1 1-1h24c.6 0 1 .4 1 1v2c0 .6-.4 1-1 1zm0 8H14c-.6 0-1-.4-1-1v-2c0-.6.4-1 1-1h24c.6 0 1 .4 1 1v2c0 .6-.4 1-1 1z" />
+            </svg>
+          </span>
+          Generate Quotation
+        </button>
+      </div>
+
+      <div if:true={isLoading} class="spinner-container slds-p-top_small">
+        <lightning-spinner alternative-text="Generating Quotation..." size="small"></lightning-spinner>
+      </div>
+    </div>
+  </lightning-card>
+
+  <!-- Quotation Preview Modal -->
+  <template if:true={showQuotationModal}>
+    <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
+      aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open slds-modal_large">
+      <div class="slds-modal__container">
+        <header class="slds-modal__header">
+          <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close"
+            onclick={closeQuotationModal}>
+            <lightning-icon icon-name="utility:close" alternative-text="Close" size="small"></lightning-icon>
+            <span class="slds-assistive-text">Close</span>
+          </button>
+          <h2 id="modal-heading-01" class="slds-modal__title slds-hyphenate">Quotation Preview</h2>
+        </header>
+        <div class="slds-modal__content slds-p-around_medium">
+          <div if:true={isLoadingPdf} class="slds-is-relative slds-p-around_medium">
+            <lightning-spinner alternative-text="Loading PDF"></lightning-spinner>
+          </div>
+          <iframe src={quotationUrl} width="100%" height="500px" style="border: none;"></iframe>
+        </div>
+        <footer class="slds-modal__footer">
+          <lightning-button label="Close" onclick={closeQuotationModal} class="slds-m-right_x-small">
+          </lightning-button>
+          <lightning-button label="Download" variant="brand" onclick={handleDownload} class="slds-m-right_x-small">
+          </lightning-button>
+          <lightning-button label="Send Email" variant="brand" onclick={handleSendEmail} disabled={isSendingEmail}>
+          </lightning-button>
+        </footer>
+      </div>
+    </section>
+    <div class="slds-backdrop slds-backdrop_open"></div>
+  </template>
+
+  <!-- Email Modal -->
+  <template if:true={showEmailModal}>
+    <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-02" aria-modal="true"
+      aria-describedby="modal-content-id-2" class="slds-modal slds-fade-in-open">
+      <div class="slds-modal__container">
+        <header class="slds-modal__header">
+          <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close"
+            onclick={closeEmailModal}>
+            <lightning-icon icon-name="utility:close" alternative-text="Close" size="small"></lightning-icon>
+            <span class="slds-assistive-text">Close</span>
+          </button>
+          <h2 id="modal-heading-02" class="slds-modal__title slds-hyphenate">Send Quotation</h2>
+        </header>
+        <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-2">
+          <lightning-input type="email" label="To Email" value={toEmail} onchange={handleToEmailChange} required>
+          </lightning-input>
+          <lightning-input type="text" label="Subject" value={emailSubject} onchange={handleSubjectChange}
+            class="slds-m-top_small">
+          </lightning-input>
+          <lightning-textarea label="Email Body" value={emailBody} onchange={handleBodyChange} class="slds-m-top_small">
+          </lightning-textarea>
+        </div>
+        <footer class="slds-modal__footer">
+          <lightning-button label="Cancel" onclick={closeEmailModal} class="slds-m-right_x-small">
+          </lightning-button>
+          <lightning-button label="Send" variant="brand" onclick={sendEmail} disabled={sendButtonDisabled}>
+          </lightning-button>
+        </footer>
+      </div>
+    </section>
+    <div class="slds-backdrop slds-backdrop_open"></div>
+  </template>
+</template>

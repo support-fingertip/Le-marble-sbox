@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RecordType xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Delivery_Plan</fullName>
+    <active>true</active>
+    <label>Delivery Plan</label>
+    <picklistValues>
+        <picklist>Approval_Status__c</picklist>
+        <values>
+            <fullName>Approved</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Draft</fullName>
+            <default>true</default>
+        </values>
+        <values>
+            <fullName>Rejected</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Submitted</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Choose_Vehicle__c</picklist>
+        <values>
+            <fullName>BENZ</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>BOLERO</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>DHOSTH</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>NISSAN</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Delivery_Status__c</picklist>
+        <values>
+            <fullName>Delivered</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Draft</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>In Transit</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Scheduled</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Driver_Assigned__c</picklist>
+        <values>
+            <fullName>ANAS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>ASHRAF</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>BASHEER K</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>BASHEER N</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>BINU</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>GIREESH</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>JIDESH</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>MK BASHEER</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>NO DRIVER</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>PRADEEP</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>RAJEES P</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>RAJEESH</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>RATHEESH</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>SHABEER</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>SHIBU</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>SIVADAS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>SUDHEER</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>VICTOR</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Status__c</picklist>
+        <values>
+            <fullName>Cancelled</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Delayed</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Delivered</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Dispatched</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Scheduled</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Vehicle_Number__c</picklist>
+        <values>
+            <fullName>KL 11 AA 2757</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>KL 11 AA 5504</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>KL 11 AC 7775</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>KL 11 AH 5550</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>KL 11 AH 5563</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>KL 11 AM 949</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>KL 11 AQ 805</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>KL 11 AS 7257</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>KL 11 AV 5223</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>KL 11 AY 7607</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>KL 11 AY 7709</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>KL 11 BD 3166</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>KL 11 BD 3866</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>KL 11 Y 714</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>KL 11Z 9884</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>KL11 BL 5396</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>KL11 BT 6859</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>KL11CB2632</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>KL11CB2634</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+</RecordType>

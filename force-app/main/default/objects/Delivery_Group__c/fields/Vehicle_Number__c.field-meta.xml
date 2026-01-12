@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Vehicle_Number__c</fullName>
+    <externalId>false</externalId>
+    <label>Vehicle Number</label>
+    <required>false</required>
+    <trackHistory>false</trackHistory>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <controllingField>Choose_Vehicle__c</controllingField>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>KL 11 AV 5223</fullName>
+                <default>false</default>
+                <label>KL 11 AV 5223</label>
+            </value>
+            <value>
+                <fullName>KL 11 AQ 805</fullName>
+                <default>false</default>
+                <label>KL 11 AQ 805</label>
+            </value>
+            <value>
+                <fullName>KL 11 AM 949</fullName>
+                <default>false</default>
+                <label>KL 11 AM 949</label>
+            </value>
+            <value>
+                <fullName>KL 11 AS 7257</fullName>
+                <default>false</default>
+                <label>KL 11 AS 7257</label>
+            </value>
+            <value>
+                <fullName>KL 11 BD 3166</fullName>
+                <default>false</default>
+                <label>KL 11 BD 3166</label>
+            </value>
+            <value>
+                <fullName>KL 11 BD 3866</fullName>
+                <default>false</default>
+                <label>KL 11 BD 3866</label>
+            </value>
+            <value>
+                <fullName>KL 11 AC 7775</fullName>
+                <default>false</default>
+                <label>KL 11 AC 7775</label>
+            </value>
+            <value>
+                <fullName>KL 11 Y 714</fullName>
+                <default>false</default>
+                <label>KL 11 Y 714</label>
+            </value>
+            <value>
+                <fullName>KL 11Z 9884</fullName>
+                <default>false</default>
+                <label>KL 11Z 9884</label>
+            </value>
+            <value>
+                <fullName>KL 11 AA 2757</fullName>
+                <default>false</default>
+                <label>KL 11 AA 2757</label>
+            </value>
+            <value>
+                <fullName>KL 11 AA 5504</fullName>
+                <default>false</default>
+                <label>KL 11 AA 5504</label>
+            </value>
+            <value>
+                <fullName>KL 11 AH 5550</fullName>
+                <default>false</default>
+                <label>KL 11 AH 5550</label>
+            </value>
+            <value>
+                <fullName>KL 11 AH 5563</fullName>
+                <default>false</default>
+                <label>KL 11 AH 5563</label>
+            </value>
+            <value>
+                <fullName>KL 11 AY 7607</fullName>
+                <default>false</default>
+                <label>KL 11 AY 7607</label>
+            </value>
+            <value>
+                <fullName>KL 11 AY 7709</fullName>
+                <default>false</default>
+                <label>KL 11 AY 7709</label>
+            </value>
+            <value>
+                <fullName>KL11CB2632</fullName>
+                <default>false</default>
+                <label>KL11CB2632</label>
+            </value>
+            <value>
+                <fullName>KL11CB2634</fullName>
+                <default>false</default>
+                <label>KL11CB2634</label>
+            </value>
+            <value>
+                <fullName>KL11 BL 5396</fullName>
+                <default>false</default>
+                <label>KL11 BL 5396</label>
+            </value>
+            <value>
+                <fullName>KL11 BT 6859</fullName>
+                <default>false</default>
+                <label>KL11 BT 6859</label>
+            </value>
+        </valueSetDefinition>
+        <valueSettings>
+            <controllingFieldValue>BOLERO</controllingFieldValue>
+            <valueName>KL 11 AV 5223</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>BOLERO</controllingFieldValue>
+            <valueName>KL 11 AQ 805</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>BOLERO</controllingFieldValue>
+            <valueName>KL 11 AM 949</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>DHOSTH</controllingFieldValue>
+            <valueName>KL 11 AS 7257</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>DHOSTH</controllingFieldValue>
+            <valueName>KL 11 BD 3166</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>DHOSTH</controllingFieldValue>
+            <valueName>KL 11 BD 3866</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>NISSAN</controllingFieldValue>
+            <valueName>KL 11 AC 7775</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>NISSAN</controllingFieldValue>
+            <valueName>KL 11 Y 714</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>NISSAN</controllingFieldValue>
+            <valueName>KL 11Z 9884</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>NISSAN</controllingFieldValue>
+            <valueName>KL 11 AA 2757</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>NISSAN</controllingFieldValue>
+            <valueName>KL 11 AA 5504</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>NISSAN</controllingFieldValue>
+            <valueName>KL 11 AH 5550</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>NISSAN</controllingFieldValue>
+            <valueName>KL 11 AH 5563</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>NISSAN</controllingFieldValue>
+            <valueName>KL 11 AY 7607</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>NISSAN</controllingFieldValue>
+            <valueName>KL 11 AY 7709</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>NISSAN</controllingFieldValue>
+            <valueName>KL11CB2632</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>NISSAN</controllingFieldValue>
+            <valueName>KL11CB2634</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>BENZ</controllingFieldValue>
+            <valueName>KL11 BL 5396</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>BENZ</controllingFieldValue>
+            <valueName>KL11 BT 6859</valueName>
+        </valueSettings>
+    </valueSet>
+</CustomField>

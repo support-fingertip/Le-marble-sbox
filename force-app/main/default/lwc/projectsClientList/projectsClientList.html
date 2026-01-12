@@ -1,0 +1,97 @@
+<!-- Projects & Clients List -->
+<template>
+  <div class="list-container">
+    <!-- Filters Section -->
+    <div class="filters-section">
+      <div class="header-actions">
+        <lightning-button label="Back to Dashboard" icon-name="utility:back" variant="neutral"
+          onclick={handleBackToDashboard}>
+        </lightning-button>
+      </div>
+      <div class="search-box">
+        <lightning-input type="search" label="Search Clients" placeholder="Search by name, architect, or builder"
+          value={searchTerm} onchange={handleSearchChange}>
+        </lightning-input>
+      </div>
+
+      <div class="filter-group">
+        <lightning-combobox label="City" value={selectedCity} options={cityOptions} onchange={handleCityChange}>
+        </lightning-combobox>
+
+        <lightning-combobox label="Status" value={selectedStatus} options={statusOptions} onchange={handleStatusChange}>
+        </lightning-combobox>
+
+        <lightning-combobox label="Project Type" value={selectedProjectType} options={projectTypeOptions}
+          onchange={handleProjectTypeChange}>
+        </lightning-combobox>
+
+        <div class="date-range">
+          <lightning-input type="date" label="From Date" value={fromDate} onchange={handleFromDateChange}>
+          </lightning-input>
+          <lightning-input type="date" label="To Date" value={toDate} onchange={handleToDateChange}>
+          </lightning-input>
+        </div>
+      </div>
+    </div>
+
+    <!-- Clients Table -->
+    <div class="table-container">
+      <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+        <thead>
+          <tr class="slds-line-height_reset">
+            <th scope="col">
+              <div class="slds-truncate">Client Name</div>
+            </th>
+            <th scope="col">
+              <div class="slds-truncate">Client Type</div>
+            </th>
+            <th scope="col">
+              <div class="slds-truncate">Contact Person</div>
+            </th>
+            <th scope="col">
+              <div class="slds-truncate">Last Visit</div>
+            </th>
+            <th scope="col">
+              <div class="slds-truncate">Next Follow-up</div>
+            </th>
+            <th scope="col">
+              <div class="slds-truncate">Status</div>
+            </th>
+            <th scope="col">
+              <div class="slds-truncate">Actions</div>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <template for:each={filteredClients} for:item="client">
+            <tr key={client.id}>
+              <td>
+                <div class="slds-truncate">{client.name}</div>
+              </td>
+              <td>
+                <div class="slds-truncate">{client.type}</div>
+              </td>
+              <td>
+                <div class="slds-truncate">{client.contactPerson}</div>
+              </td>
+              <td>
+                <div class="slds-truncate">{client.lastVisit}</div>
+              </td>
+              <td>
+                <div class="slds-truncate">{client.nextFollowUp}</div>
+              </td>
+              <td>
+                <span class={client.statusClass}>{client.status}</span>
+              </td>
+              <td>
+                <lightning-button-icon icon-name="utility:chevronright" variant="border-filled"
+                  alternative-text="View Details" onclick={handleViewDetails} data-id={client.id}>
+                </lightning-button-icon>
+              </td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</template>

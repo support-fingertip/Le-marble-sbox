@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>UOM__c</fullName>
+    <externalId>false</externalId>
+    <label>UOM</label>
+    <required>false</required>
+    <trackHistory>false</trackHistory>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Square Feet (sq. ft)</fullName>
+                <default>false</default>
+                <label>Square Feet (sq. ft)</label>
+            </value>
+            <value>
+                <fullName>Square Meter (sq. m)</fullName>
+                <default>false</default>
+                <label>Square Meter (sq. m)</label>
+            </value>
+            <value>
+                <fullName>Square Yard (sq. yd)</fullName>
+                <default>false</default>
+                <label>Square Yard (sq. yd)</label>
+            </value>
+            <value>
+                <fullName>Cubic Feet (cu. ft)</fullName>
+                <default>false</default>
+                <label>Cubic Feet (cu. ft)</label>
+            </value>
+            <value>
+                <fullName>Cubic Meter (cu. m)</fullName>
+                <default>false</default>
+                <label>Cubic Meter (cu. m)</label>
+            </value>
+            <value>
+                <fullName>Kilogram (kg)</fullName>
+                <default>false</default>
+                <label>Kilogram (kg)</label>
+            </value>
+            <value>
+                <fullName>Metric Ton (MT)</fullName>
+                <default>false</default>
+                <label>Metric Ton (MT)</label>
+            </value>
+            <value>
+                <fullName>Pound (lb)</fullName>
+                <default>false</default>
+                <label>Pound (lb)</label>
+            </value>
+            <value>
+                <fullName>Piece (pc)</fullName>
+                <default>false</default>
+                <label>Piece (pc)</label>
+            </value>
+            <value>
+                <fullName>Slab</fullName>
+                <default>false</default>
+                <label>Slab</label>
+            </value>
+            <value>
+                <fullName>Box</fullName>
+                <default>false</default>
+                <label>Box</label>
+            </value>
+            <value>
+                <fullName>Bundle</fullName>
+                <default>false</default>
+                <label>Bundle</label>
+            </value>
+            <value>
+                <fullName>Feet (ft)</fullName>
+                <default>false</default>
+                <label>Feet (ft)</label>
+            </value>
+            <value>
+                <fullName>Meter (m)</fullName>
+                <default>false</default>
+                <label>Meter (m)</label>
+            </value>
+            <value>
+                <fullName>Inches (in)</fullName>
+                <default>false</default>
+                <label>Inches (in)</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

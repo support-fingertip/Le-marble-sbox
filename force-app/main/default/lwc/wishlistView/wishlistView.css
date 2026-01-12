@@ -1,0 +1,117 @@
+.wishlist-container {
+    padding: 1rem;
+    background: #fff;
+}
+
+.wishlist-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+    padding: 1rem 0;
+}
+
+.wishlist-card {
+    background: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    overflow: hidden;
+}
+
+.wishlist-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: #f3f3f3;
+    border-bottom: 1px solid #dddbda;
+}
+
+.card-header h3 {
+    margin: 0;
+    color: #16325c;
+}
+
+.remove-button {
+    --sds-c-button-neutral-color-background: transparent;
+    --sds-c-button-neutral-color-background-hover: #e5e5e5;
+    --sds-c-button-neutral-color-border: transparent;
+    --sds-c-button-neutral-color-border-hover: #e5e5e5;
+    --sds-c-button-neutral-text-color: #706e6b;
+    --sds-c-button-neutral-text-color-hover: #16325c;
+}
+
+.card-content {
+    padding: 1rem;
+}
+
+.card-content p {
+    margin: 0 0 1rem 0;
+    color: #54698d;
+    line-height: 1.5;
+}
+
+.card-footer {
+    padding: 0.5rem 1rem;
+    background: #f7f9fb;
+    border-top: 1px solid #dddbda;
+}
+
+.card-footer span {
+    color: #706e6b;
+    font-size: 0.875rem;
+}
+
+@media (max-width: 768px) {
+    .wishlist-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.slds-table {
+    background: white;
+}
+
+.slds-table th {
+    background: #f3f3f3;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.slds-table td {
+    vertical-align: top;
+    padding: 0.5rem;
+}
+
+.slds-checkbox_standalone {
+    margin-top: 0.25rem;
+}
+
+.slds-button-group {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.slds-illustration {
+    padding: 2rem;
+}
+
+.slds-illustration lightning-icon {
+    --sds-c-icon-color-foreground-default: #706e6b;
+}
+
+/* Modal styles - keep existing modal styles */
+.slds-modal__container {
+    max-width: 70rem !important;
+    width: 70% !important;
+}
+
+.slds-modal__content {
+    overflow: initial;
+}

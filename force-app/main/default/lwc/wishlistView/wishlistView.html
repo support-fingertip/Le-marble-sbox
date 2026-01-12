@@ -1,0 +1,266 @@
+<template>
+  <div class="wishlist-container slds-p-around_medium">
+    <template if:true={isLoading}>
+      <lightning-spinner alternative-text="Loading" size="medium"></lightning-spinner>
+    </template>
+
+    <template if:true={showError}>
+      <div class="slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_error" role="alert">
+        <span class="slds-assistive-text">error</span>
+        <h2>{error.title}</h2>
+        <p>{error.message}</p>
+      </div>
+    </template>
+
+    <template if:true={hasWishlistItems}>
+      <div class="slds-grid slds-gutters slds-m-bottom_medium">
+        <div class="slds-col">
+          <div class="slds-text-heading_medium slds-m-bottom_small">My Wishlist</div>
+        </div>
+        <div class="slds-col slds-text-align_right">
+          <lightning-button label="Add Selected to Cart" variant="brand" onclick={handleAddSelectedToCart}
+            disabled={noItemsSelected} class="slds-m-left_x-small">
+          </lightning-button>
+        </div>
+      </div>
+
+      <div class="slds-box slds-theme_default">
+        <div class="slds-table_header-fixed_container" style="height: 100%;">
+          <div class="slds-scrollable_y" style="height: 100%; max-height: 600px;">
+            <table class="slds-table slds-table_bordered slds-table_fixed-layout slds-table_resizable-cols">
+              <thead>
+                <tr class="slds-line-height_reset">
+                  <th class="slds-text-align_right" style="width: 50px;">
+                    <div class="slds-th__action">
+                      <span class="slds-assistive-text">Select Item</span>
+                    </div>
+                  </th>
+                  <th>
+                    <div class="slds-th__action">
+                      <span class="slds-truncate" title="Product">Product</span>
+                    </div>
+                  </th>
+                  <th>
+                    <div class="slds-th__action">
+                      <span class="slds-truncate" title="Product Code">Product Code</span>
+                    </div>
+                  </th>
+                  <th>
+                    <div class="slds-th__action">
+                      <span class="slds-truncate" title="Category">Category</span>
+                    </div>
+                  </th>
+                  <th>
+                    <div class="slds-th__action">
+                      <span class="slds-truncate" title="MSP">MSP</span>
+                    </div>
+                  </th>
+                  <th>
+                    <div class="slds-th__action">
+                      <span class="slds-truncate" title="MRP">MRP</span>
+                    </div>
+                  </th>
+                  <th>
+                    <div class="slds-th__action">
+                      <span class="slds-truncate" title="Price/Sqft">Price/Sqft</span>
+                    </div>
+                  </th>
+                  <th>
+                    <div class="slds-th__action">
+                      <span class="slds-truncate" title="Added On">Added On</span>
+                    </div>
+                  </th>
+                  <th style="width: 70px;">
+                    <div class="slds-th__action">
+                      <span class="slds-truncate" title="Actions">Actions</span>
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <template for:each={wishlistItems} for:item="item">
+                  <tr key={item.Id} class="slds-hint-parent">
+                    <td class="slds-text-align_right">
+                      <lightning-input type="checkbox" label="" data-id={item.Id} onchange={handleItemSelection}
+                        class="slds-checkbox_standalone">
+                      </lightning-input>
+                    </td>
+                    <td>
+                      <div class="slds-grid slds-gutters">
+                        <div class="slds-col slds-size_1-of-1">
+                          <div class="slds-text-heading_small">{item.Product__r.Name}</div>
+                          <div class="slds-text-body_small slds-text-color_weak">{item.Product__r.Description}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="slds-truncate">{item.Product__r.Product_Code__c}</div>
+                    </td>
+                    <td>
+                      <div class="slds-truncate">{item.Product__r.Product_Category__c}</div>
+                    </td>
+                    <td>
+                      <div class="slds-truncate">
+                        <lightning-formatted-number value={item.Product__r.MSP__c} format-style="currency"
+                          currency-code="INR">
+                        </lightning-formatted-number>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="slds-truncate">
+                        <lightning-formatted-number value={item.Product__r.MRP__c} format-style="currency"
+                          currency-code="INR">
+                        </lightning-formatted-number>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="slds-truncate">
+                        <lightning-formatted-number value={item.Product__r.Price_Sqft__c} format-style="currency"
+                          currency-code="INR">
+                        </lightning-formatted-number>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="slds-truncate">
+                        <lightning-formatted-date-time value={item.CreatedDate} year="numeric" month="short"
+                          day="2-digit">
+                        </lightning-formatted-date-time>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="slds-button-group" role="group">
+                        <lightning-button-icon icon-name="utility:delete" variant="border-filled"
+                          alternative-text="Remove from Wishlist" class="slds-m-left_xx-small" data-id={item.Id}
+                          onclick={handleRemoveFromWishlist}>
+                        </lightning-button-icon>
+                      </div>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <template if:false={hasWishlistItems}>
+      <div class="slds-align_absolute-center slds-p-around_large">
+        <div class="slds-text-align_center">
+          <div class="slds-illustration slds-illustration_small">
+            <lightning-icon icon-name="utility:favorite" size="large" class="slds-m-bottom_small"></lightning-icon>
+            <h3 class="slds-text-heading_medium">Your wishlist is empty</h3>
+            <p class="slds-text-body_regular slds-text-color_weak">Add products to your wishlist to see them here</p>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <!-- Add to Cart Modal -->
+    <template if:true={isModalOpen}>
+      <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open">
+        <div class="slds-modal__container">
+          <header class="slds-modal__header">
+            <h2 class="slds-text-heading_medium">Add to Cart</h2>
+            <button class="slds-button slds-button_icon slds-modal__close" onclick={closeModal}>
+              <lightning-icon icon-name="utility:close" size="small"></lightning-icon>
+            </button>
+          </header>
+          <div class="slds-modal__content slds-p-around_medium">
+            <template if:true={isProcessing}>
+              <lightning-spinner alternative-text="Processing" size="medium"></lightning-spinner>
+            </template>
+
+            <div class="slds-text-heading_small slds-m-bottom_medium">
+              Configure {selectedCount} items for your cart:
+            </div>
+
+            <div class="slds-scrollable_y" style="max-height: 400px;">
+              <template for:each={selectedWishlistItems} for:item="item">
+                <div key={item.Id} class="slds-box slds-m-bottom_medium">
+                  <div class="slds-grid slds-gutters">
+                    <div class="slds-col slds-size_1-of-1">
+                      <div class="slds-text-heading_small slds-m-bottom_x-small">{item.Product__r.Name}</div>
+                    </div>
+                  </div>
+                  <!-- First Row: Quantity, Required Sqft, Final Sqft, Unit Price, Price/Sqft -->
+                  <div class="slds-grid slds-gutters slds-m-top_small">
+                    <div class="slds-col slds-size_1-of-6">
+                      <lightning-input type="number" label="Quantity" value={item.quantity} data-id={item.Id} min="1" required onchange={handleQuantityChange}></lightning-input>
+                    </div>
+                    <template if:true={item.isTile}>
+                      <div class="slds-col slds-size_1-of-6">
+                        <lightning-input type="number" label="Required Sqft" value={item.sqft} data-id={item.Id} onchange={handleSqftChange}></lightning-input>
+                      </div>
+                      <div class="slds-col slds-size_1-of-6">
+                        <lightning-input type="number" label="Final Sqft" value={item.requiredSqft} data-id={item.Id} onchange={handleRequiredSqftChange}></lightning-input>
+                      </div>
+                    </template>
+                    <div class="slds-col slds-size_1-of-6">
+                      <lightning-input type="number" label="Unit Price (₹)" value={item.unitPrice} data-id={item.Id} formatter="currency" step="0.01" onchange={handleUnitPriceChange}></lightning-input>
+                    </div>
+                    <template if:true={item.isTile}>
+                      <div class="slds-col slds-size_1-of-6">
+                        <lightning-input type="number" label="Price/Sqft (₹)" value={item.priceSqft} data-id={item.Id} formatter="currency" step="0.01" onchange={handlePriceSqftChange}></lightning-input>
+                      </div>
+                    </template>
+                  </div>
+                  <!-- Second Row: Sqm, Disc Type, Disc Value, After Disc/Piece, After Disc/Sqft, Total Price -->
+                  <div class="slds-grid slds-gutters slds-m-top_small">
+                    <template if:true={item.isTile}>
+                      <div class="slds-col slds-size_1-of-6">
+                        <lightning-input type="number" label="Sqm" value={item.sqm} data-id={item.Id} disabled></lightning-input>
+                      </div>
+                    </template>
+                    <div class="slds-col slds-size_1-of-6">
+                      <lightning-combobox label="Disc Type" value={item.discType} options={discountTypeOptions} data-id={item.Id} onchange={handleDiscountTypeChange}></lightning-combobox>
+                    </div>
+                    <div class="slds-col slds-size_1-of-6">
+                      <lightning-input type="number" label="Disc Value" value={item.discValue} data-id={item.Id} step="0.01" onchange={handleDiscountValueChange}></lightning-input>
+                    </div>
+                    <div class="slds-col slds-size_1-of-6">
+                      <lightning-input type="number" label="After Disc/Piece (₹)" value={item.afterDiscPricePiece} data-id={item.Id} formatter="currency" step="0.01" disabled></lightning-input>
+                    </div>
+                    <template if:true={item.isTile}>
+                      <div class="slds-col slds-size_1-of-6">
+                        <lightning-input type="number" label="After Disc/Sqft (₹)" value={item.afterDiscPriceSqft} data-id={item.Id} formatter="currency" step="0.01" disabled></lightning-input>
+                      </div>
+                    </template>
+                    <div class="slds-col slds-size_1-of-6">
+                      <lightning-input type="number" label="Total Price (₹)" value={item.totalPrice} data-id={item.Id} formatter="currency" step="0.01" disabled></lightning-input>
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </div>
+
+            <div class="slds-grid slds-gutters slds-m-top_medium">
+              <div class="slds-col slds-size_1-of-3">
+                <lightning-input type="number" label="Freight Charge" value={freightCharge} formatter="currency"
+                  step="0.01" onchange={handleFreightChange}>
+                </lightning-input>
+              </div>
+              <div class="slds-col slds-size_1-of-3">
+                <lightning-input type="number" label="Loading Charge" value={loadingCharge} formatter="currency"
+                  step="0.01" onchange={handleLoadingChange}>
+                </lightning-input>
+              </div>
+              <div class="slds-col slds-size_1-of-3">
+                <lightning-input type="number" label="Unloading Charge" value={unloadingCharge} formatter="currency"
+                  step="0.01" onchange={handleUnloadingChange}>
+                </lightning-input>
+              </div>
+            </div>
+
+          </div>
+          <footer class="slds-modal__footer">
+            <button class="slds-button slds-button_neutral" onclick={closeModal}>Cancel</button>
+            <button class="slds-button slds-button_brand" onclick={confirmAddToCart} disabled={isInvalid}>Add to
+              Cart</button>
+          </footer>
+        </div>
+      </section>
+      <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+  </div>
+</template>
