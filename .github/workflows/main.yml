@@ -26,4 +26,3 @@ jobs:
       - name: Deploy to Salesforce
         run: |
           sf project deploy start --source-dir force-app --target-org deployment-org --wait 30
-		
