@@ -1,0 +1,9 @@
+# Salesforce DX & common
+.sfdx/
+*.log
+node_modules/
+.vscode/
+.DS_Store
+
+# Local IDE/scratch files
+.scratch-orgs/
