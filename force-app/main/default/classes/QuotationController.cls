@@ -143,12 +143,19 @@ public with sharing class QuotationController {
         Blob pdfBlob = page.getContentAsPDF();
 
         // Save as Salesforce File (ContentVersion)
-        ContentVersion cv = new ContentVersion();
-        Cart__c cart = [SELECT Name, Deals__c FROM Cart__c WHERE Id = :cartId LIMIT 1];
-        cv.Title = 'Quotation_' + cart.Name;
-        cv.PathOnClient = 'Quotation_' + cart.Name + '.pdf';
-        cv.VersionData = pdfBlob;
-        insert cv;
+       ContentVersion cv = new ContentVersion();
+
+Cart__c cart = [
+    SELECT Name, Deals__c
+    FROM Cart__c
+    WHERE Id = :cartId
+    LIMIT 1
+];
+
+cv.Title = 'Quotation_' + cart.Name;
+cv.PathOnClient = 'Quotation_' + cart.Name + '.pdf';
+cv.VersionData = pdfBlob;
+insert cv;
 
         // Get ContentDocumentId
         cv = [SELECT ContentDocumentId FROM ContentVersion WHERE Id = :cv.Id];
@@ -178,37 +185,89 @@ public with sharing class QuotationController {
         return cd.DistributionPublicUrl;
     }
 
-    @AuraEnabled
-    public static void sendQuotationEmail(Id cartId, List<String> selectedItemIds, String toEmail, 
-                                        String subject, String body, String quotationBlob) {
-        try {
-            Cart__c cart = [
-                SELECT Id, Deals__r.Customer__r.Name, Deals__r.Email__c 
-                FROM Cart__c 
-                WHERE Id = :cartId
-                LIMIT 1
-            ];
-            
-            if (String.isBlank(toEmail)) {
-                toEmail = cart.Deals__r.Email__c;
-            }
+   @AuraEnabled
+public static void sendQuotationEmail(
+    Id quoteId,
+    Id cartId,
+    List<String> selectedItemIds,
+    String toEmail,
+    String subject,
+    String body
+) {
+    try {
+        // 1️⃣ Fetch Cart + Customer Email
+        Cart__c cart = [
+            SELECT Id,
+                   Deals__r.Email__c,
+                   Deals__r.Customer__r.Name
+            FROM Cart__c
+            WHERE Id = :cartId
+            LIMIT 1
+        ];
 
-            Messaging.SingleEmailMessage email = new Messaging.SingleEmailMessage();
-            email.setToAddresses(new String[] { toEmail });
-            email.setSubject(subject);
-            email.setPlainTextBody(body);
-            
-            Messaging.EmailFileAttachment attachment = new Messaging.EmailFileAttachment();
-            attachment.setFileName('Quotation_' + cart.Deals__r.Customer__r.Name + '.pdf');
-            attachment.setBody(EncodingUtil.base64Decode(quotationBlob));
-            attachment.setContentType('application/pdf');
-            
-            email.setFileAttachments(new Messaging.EmailFileAttachment[] { attachment });
-            Messaging.sendEmail(new Messaging.SingleEmailMessage[] { email });
-        } catch (Exception e) {
-            throw new AuraHandledException(e.getMessage());
+        if (String.isBlank(toEmail)) {
+            toEmail = cart.Deals__r.Email__c;
         }
+
+        if (String.isBlank(toEmail)) {
+            throw new AuraHandledException('Customer email is missing.');
+        }
+
+        // 2️⃣ Generate PDF
+        PageReference pdfPage = Page.QuotationTemplate;
+        pdfPage.getParameters().put('id', cartId);
+
+        if (selectedItemIds != null && !selectedItemIds.isEmpty()) {
+            pdfPage.getParameters().put(
+                'selectedItems',
+                String.join(selectedItemIds, ',')
+            );
+        }
+
+        Blob pdfBlob = pdfPage.getContentAsPDF();
+
+        // 3️⃣ Prepare Email
+        Messaging.SingleEmailMessage email = new Messaging.SingleEmailMessage();
+        email.setToAddresses(new String[] { toEmail });
+        email.setSubject(subject);
+        email.setPlainTextBody(body);
+
+        Messaging.EmailFileAttachment attachment =
+            new Messaging.EmailFileAttachment();
+        attachment.setFileName(
+            'Quotation_' + cart.Deals__r.Customer__r.Name + '.pdf'
+        );
+        attachment.setBody(pdfBlob);
+        attachment.setContentType('application/pdf');
+
+        email.setFileAttachments(
+            new Messaging.EmailFileAttachment[] { attachment }
+        );
+
+        // 4️⃣ Send Email (ONLY ONCE)
+        Messaging.sendEmail(
+            new Messaging.SingleEmailMessage[] { email }
+        );
+
+        // 5️⃣ Update Quote AFTER successful email
+        Quote q = [
+    SELECT Id, Quotation_Sent_to_Customer__c
+    FROM Quote
+    WHERE OpportunityId = :cart.Deals__c
+    ORDER BY CreatedDate DESC
+    LIMIT 1
+];
+        
+        q.Quotation_Sent_to_Customer__c = true;
+        q.Quote_sent_date__c = system.today();
+        update q;
+        
+      
+
+    } catch (Exception e) {
+        throw new AuraHandledException(e.getMessage());
     }
+}
 
     public PageReference previewQuotation() {
         if (this.products == null) {

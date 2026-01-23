@@ -880,3 +880,68 @@
     overflow-y: auto;       /* Only body scrolls */
     padding: 10px;
 }
+.stock-popup {
+    position: absolute;
+    z-index: 1000;
+    background: #ffffff;
+    border: 1px solid #d8dde6;
+    border-radius: 6px;
+    width: 320px;
+    padding: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    margin-top: 6px;
+}
+
+/* Header */
+.stock-popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+/* Scroll container */
+.stock-table-wrapper {
+    max-height: 160px;   /* 4 rows */
+    overflow-y: auto;
+}
+
+/* Table */
+.stock-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+.stock-table th,
+.stock-table td {
+    border-bottom: 1px solid #eee;
+    padding: 6px;
+    text-align: left;
+}
+
+.stock-table th {
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    background: #ffffff;
+}
+
+/* Close button */
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+/* Optional scrollbar polish */
+.stock-table-wrapper::-webkit-scrollbar {
+    width: 6px;
+}
+
+.stock-table-wrapper::-webkit-scrollbar-thumb {
+    background: #c9c9c9;
+    border-radius: 4px;
+}

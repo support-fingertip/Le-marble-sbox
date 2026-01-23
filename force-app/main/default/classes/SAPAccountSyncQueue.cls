@@ -1,11 +1,9 @@
 public class SAPAccountSyncQueue implements Queueable, Database.AllowsCallouts {
 
     private Id accountId;
-    private boolean iscreation;
 
-    public SAPAccountSyncQueue(Id accId,boolean isNew) {
+    public SAPAccountSyncQueue(Id accId) {
         this.accountId = accId;
-        this.iscreation = isNew;
     }
 
     public void execute(QueueableContext qc) {
@@ -15,6 +13,6 @@ public class SAPAccountSyncQueue implements Queueable, Database.AllowsCallouts {
             WHERE Id = :accountId
         ];
 
-        sapIntegration.createBusinessPartner(acc.id);//iscreation
+        sapIntegration.updateBusinessPartner(acc.id);
     }
 }

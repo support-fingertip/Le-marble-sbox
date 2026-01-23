@@ -27,6 +27,9 @@ export default class CreateSOFromQuote extends NavigationMixin(LightningElement)
     @track isQuoteItemsLoaded = false;
     @track selectedWarehouse;
     @track warehouseOptions = [];
+    @track deliveryCommittedDate;
+    @track remarks = '';
+
 
     @api recordId; 
     @track isModalOpen = false;
@@ -57,6 +60,7 @@ export default class CreateSOFromQuote extends NavigationMixin(LightningElement)
     return (
         this.isLoading ||
         !this.selectedWarehouse ||
+        !this.deliveryCommittedDate ||
         !this.quoteLineItems.some(item => item.isSelected)
     );
 }
@@ -101,6 +105,7 @@ wiredQuoteInfo({ error, data }) {
                 : 'N/A',
             executive: quote.Owner?.Name || 'N/A'
         };
+        this.remarks = '';
     } else if (error) {
         console.error(error);
         this.showToast('Error', 'Failed to fetch quote information', 'error');
@@ -121,6 +126,7 @@ wiredQuoteInfo({ error, data }) {
                 isSelected: true,  
                 totalPrice: quantity * unitPrice, 
                 tax: (quantity * unitPrice) * 0.18, 
+                BlockQty:0,
                 category: item.PricebookEntry?.Product2?.Product_Category__c || 'N/A'
             };
         });
@@ -196,6 +202,11 @@ wiredQuoteInfo({ error, data }) {
         }));
         this.groupCartItems();
     }
+
+    handleRemarksChange(event) {
+    this.remarks = event.target.value;
+}
+
 
 
     handleWarehouseChange(event) {
@@ -333,6 +344,26 @@ wiredQuoteInfo({ error, data }) {
         this.creditDueDate = event.detail.value;
     }
 
+
+    handleDeliveryDateChange(event) {
+    this.deliveryCommittedDate = event.detail.value;
+}
+    handleBlockQtyChange(event) {
+        const recordId = event.target.dataset.id;
+        const value = event.target.value;
+
+        this.quoteLineItems = this.quoteLineItems.map(item => {
+            if (item.Id === recordId) {
+                return {
+                    ...item,
+                    BlockQty: value ? Number(value) : 0
+                };
+            }
+            return item;
+        });
+    }
+
+
     async handleOpenModal() {
         this.isLoading = true;
         this.isModalOpen = true;
@@ -366,10 +397,43 @@ wiredQuoteInfo({ error, data }) {
             return;
         }
 
+         if (!this.deliveryCommittedDate) {
+            this.showToast(
+                'Error',
+                'Delivery Committed Date is required',
+                'error'
+            );
+            this.isLoading = false;
+            return;
+        }
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const selectedDate = new Date(this.deliveryCommittedDate);
+
+        if (selectedDate < today) {
+            this.showToast(
+                'Error',
+                'Delivery Committed Date cannot be in the past',
+                'error'
+            );
+            this.isLoading = false;
+            return;
+        }
+
+        const blockQtyMap = {};
+            selectedItems.forEach(item => {
+            blockQtyMap[item.Id] = item.BlockQty || 0;
+        });
+
     const orderId = await createOrderFromQuote({
     quoteId: this.recordId,
     warehouseId: this.selectedWarehouse,
-    selectedQuoteLineItemIds: selectedItems.map(i => i.Id)
+    selectedQuoteLineItemIds: selectedItems.map(i => i.Id),
+    blockQtyMap: blockQtyMap,
+    deliveryCommittedDate: this.deliveryCommittedDate,
+    remarks: this.remarks 
 });
         this.showToast(
             'Success',

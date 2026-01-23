@@ -79,7 +79,7 @@
       </div>
     </template>
 
-    <!-- Main Content with Enhanced Tabs -->
+    <!-- Main Content with Enhanced Tabs -->  
     <template if:true={selectedSalesConfirmationId}>
       <div class="slds-tabs_default">
         <ul class="slds-tabs_default__nav" role="tablist">
@@ -116,13 +116,13 @@
                         <span class="compact-product-name slds-truncate" title={product.displayName} style="max-width: 300px;">
                             {product.displayName}
                         </span>
-                        <span class="available-qty">Available: {product.Quantity}</span>
+                        <span class="available-qty">Available: {product.Pending_Quantity1__c}</span>
                         <template if:true={product.selected}>
                             <lightning-input 
                                 type="number"
                                 value={product.deliveryQuantity}
                                 min="1"
-                                max={product.Quantity}
+                                max={product.Pending_Quantity1__c}
                                 onchange={handleDeliveryQuantityChange}
                                 onblur={handleDeliveryQuantityBlur}
                                 data-id={product.Id}

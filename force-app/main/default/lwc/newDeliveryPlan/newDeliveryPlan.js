@@ -6,6 +6,10 @@ import createDeliveryGroup from '@salesforce/apex/NewDeliveryPlanController.crea
 import getVehicleTypeOptions from '@salesforce/apex/NewDeliveryPlanController.getVehicleTypeOptions';
 import getDriverPicklistOptions from '@salesforce/apex/NewDeliveryPlanController.getDriverPicklistOptions';
 import getVehicleNumberOptions from '@salesforce/apex/NewDeliveryPlanController.getVehicleNumberOptions';
+import getSalesOrderFreight from '@salesforce/apex/NewDeliveryPlanController.getSalesOrderFreight';
+import getSalesOrderRemarks from '@salesforce/apex/NewDeliveryPlanController.getSalesOrderRemarks';
+
+
 
 export default class NewDeliveryPlan extends LightningElement {
     @track searchTerm = '';
@@ -25,6 +29,7 @@ export default class NewDeliveryPlan extends LightningElement {
     @track activeTab = 'available';
     @track vehicleOptions = [];
     @track freightAmount;
+    freightTouched = false;
     @track deliveryTime;
     @track vehicleNumber;
     @track vehicleNumberOptions = [];
@@ -116,7 +121,11 @@ export default class NewDeliveryPlan extends LightningElement {
             this.selectedQuoteId = selectedSC.details.QuoteId;
             this.searchTerm = selectedSC.label;
             this.salesConfirmations = [];
+            this.freightTouched = false;
+            this.freightAmount = null;
             this.loadInitialData();
+            this.loadFreightFromSalesOrder();
+            this.loadRemarksFromSalesOrder();
         }
     }
 
@@ -130,8 +139,8 @@ export default class NewDeliveryPlan extends LightningElement {
             this.availableProducts = availableProductsResult.map(product => ({
                 ...product,
                 selected: false,
-                deliveryQuantity: product.Quantity,
-                displayName: `${product.Product2.Name} - Available: ${product.Quantity}`
+                deliveryQuantity: product.Pending_Quantity1__c,
+                displayName: `${product.Product2.Name} - Available: ${product.Pending_Quantity1__c}`
             }));
             // Load driver picklist
             const driverPicklist = await getDriverPicklistOptions();
@@ -145,13 +154,52 @@ export default class NewDeliveryPlan extends LightningElement {
         }
     }
 
+
+    async loadFreightFromSalesOrder() {
+    if (!this.selectedSalesConfirmationId) {
+        return;
+    }
+
+    try {
+        const freight = await getSalesOrderFreight({
+            salesOrderId: this.selectedSalesConfirmationId
+        });
+
+        // Auto-fill ONLY if user has not typed anything
+        if (!this.freightTouched) {
+            this.freightAmount = freight;
+        }
+    } catch (error) {
+        console.error('Error loading freight from Sales Order', error);
+    }
+}
+
+async loadRemarksFromSalesOrder() {
+    if (!this.selectedSalesConfirmationId) {
+        return;
+    }
+
+    try {
+        const remarks = await getSalesOrderRemarks({
+            salesOrderId: this.selectedSalesConfirmationId
+        });
+
+        // Auto-fill only if user has not typed anything
+        if (!this.remarks) {
+            this.remarks = remarks;
+        }
+    } catch (error) {
+        console.error('Error loading remarks from Sales Order', error);
+    }
+}
+
     handleProductSelection(event) {
         const productId = event.target.dataset.id;
         const product = this.availableProducts.find(p => p.Id === productId);
         if (product) {
             product.selected = event.target.checked;
             if (product.selected) {
-                product.deliveryQuantity = product.Quantity;
+                product.deliveryQuantity = product.Pending_Quantity1__c;
             }
             this.validateForm();
         }
@@ -211,9 +259,10 @@ export default class NewDeliveryPlan extends LightningElement {
         this.remarks = event.target.value;
     }
 
-    handleFreightAmountChange(event) {
-        this.freightAmount = event.target.value;
-    }
+   handleFreightAmountChange(event) {
+    this.freightAmount = event.target.value;
+    this.freightTouched = true;
+}
 
     handleDeliveryTimeChange(event) {
         this.deliveryTime = event.target.value;

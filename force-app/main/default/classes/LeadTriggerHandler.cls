@@ -86,22 +86,30 @@ public class LeadTriggerHandler {
             }
         }
 
-        // AUTO-FILL COMPANY & COUNTRY 
-        for (Lead ls : leadList) {
+       // AUTO-FILL COMPANY, COUNTRY & COUNTRY CODE ---
+      for (Lead ls : leadList) {
 
-            // Auto-fill Company
-            if (ls.Company == null) {
-                String fullName = '';
-                if (String.isNotBlank(ls.FirstName))  fullName += ls.FirstName;
-                if (String.isNotBlank(ls.LastName))   fullName += (fullName != '' ? ' ' : '') + ls.LastName;
-                ls.Company = fullName;
-            }
+    // Auto-fill Company
+    if (ls.Company == null) {
+        String fullName = '';
+        if (String.isNotBlank(ls.FirstName))  fullName += ls.FirstName;
+        if (String.isNotBlank(ls.LastName))   fullName += (fullName != '' ? ' ' : '') + ls.LastName;
+        ls.Company = fullName;
+    }
 
-            // Auto-fill Country
-            if (ls.Country == null || ls.Country == '') {
-                ls.Country = 'India';
-            }
-        }
+    // Auto-fill Country 
+    if (ls.Country == null || ls.Country == '') {
+        ls.Country = 'India';
+    }
+
+    // Auto-fill Country Code (NEW)
+    if ((ls.Country_Code__c == null || ls.Country_Code__c == '')
+        && ls.Country != null
+        && ls.Country.toLowerCase() == 'india') {
+
+        ls.Country_Code__c = 'IN';
+    }
+}
 
 
         // SALES EXECUTIVE OWNER LOGIC (BEFORE UPDATE)
@@ -205,21 +213,27 @@ public class LeadTriggerHandler {
     }
 
 
-
-    // AFTER INSERT — SEND THANK YOU EMAIL
+    // AFTER INSERT 
     public static void afterInsert(List<Lead> leadList) {
-        List<Id> leadIds = new List<Id>();
+    List<Id> leadIds = new List<Id>();
+    for (Lead ld : leadList) {
 
-        for (Lead ld : leadList) {
-            if (ld.Email != null) {
-                leadIds.add(ld.Id);
-            }
+        if (ld.Email != null) {
+            leadIds.add(ld.Id);
         }
-
-        if (!leadIds.isEmpty()) {
-            LeadThankYouEmailHelper.sendThankYouEmail(leadIds);
+        String phone = ld.Phone != null ? ld.Phone : ld.MobilePhone;
+        if (phone != null) {
+            String phoneNumber = phone.replaceAll('[^0-9]', '');
+           if (!phoneNumber.startsWith('91') && phoneNumber.length() == 10) {
+    phoneNumber = '91' + phoneNumber;
+    }
+            WhatsAppMessageSender.sendThanksMessage(phoneNumber);
         }
     }
+  //  if (!leadIds.isEmpty()) {
+       // LeadThankYouEmailHelper.sendThankYouEmail(leadIds);
+   // }
+}
     
 // DUPLICATION CHECK (EMAIL + SECONDARY EMAIL + PHONE + SEC PHONE)
 

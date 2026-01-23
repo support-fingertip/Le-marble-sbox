@@ -1,0 +1,117 @@
+<aura:component controller="sapIntegration"
+                implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,force:lightningQuickAction" access="global" >
+    <aura:attribute name="selectedType" type="String" default=""/>
+    <aura:attribute name="fromDate" type="date" default=""/>
+    <aura:attribute name="ToDate" type="date" default=""/>
+    <aura:attribute name="customerName" type="string" default=""/>
+    <aura:attribute name="customerCode" type="string" default=""/>
+    <aura:attribute name="customerId" type="string" default=""/>
+    <aura:attribute name="searchText2" type="string" default=""/>
+    <aura:attribute name="matchacc" type="Account[]" default="[]"/>
+    <aura:handler name="change" value="{!v.searchText2}" action="{!c.searchText2}"></aura:handler>
+    <aura:attribute name="Accounts" type="Object[]" default="[]"/>
+    <aura:attribute name="WarehouseList" type="String[]"  />
+    <aura:attribute name="Warehouse" type="String"  />
+    <aura:attribute name="selectedStatus" type="String"  />
+     <aura:attribute name="userProfile" type="User"/>
+    
+    <aura:attribute name="spinner" type="boolean" default="false"/>
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <div class="slds-box">
+        <b> Get Data</b>
+        <lightning:select name="DataType" label="Select Data type" required="true" value="{!v.selectedType}" onchange="{!c.ondataTypeChange}">
+            <option value="">choose one...</option>
+            <option value="OutstandingData">Outstanding Data</option>
+            <option value="Stock">Product Stock</option>
+           
+             <aura:if isTrue="{!(v.userProfile=='System Administrator')}">
+            <option value="InvoiceData">Invoice Data</option>
+            <option value="Receipt">Receipt Data</option>
+            </aura:if>
+            
+        </lightning:select>
+        <!-- Outstanding Data -->
+        <aura:if isTrue="{!(v.selectedType=='OutstandingData')}">
+            
+            
+            <div class="slds-size_1-of-1 slds-p-horizontal_small">
+                <div class="slds-form-element slds-m-bottom--medium">
+                    <div class="slds-form-element__control">   
+                        
+                        
+                        <ul class="slds-lookup__list" role="listbox">
+                            
+                            <lightning:input value="{!v.searchText2}" aura:id="enter-search" name="enter-search" label="Customer Name" type="search"/><br/>
+                            <aura:if isTrue="{!v.matchacc}">
+                                <div class="{!if(not(empty(v.matchacc)), 'result-buttom','')}">
+                                    <aura:iteration items="{!v.matchacc}" var="item" start="0" end="8">
+                                        <li role="presentation">
+                                            <span class="slds-lookup__item-action slds-media slds-media--center" role="option">
+                                                <div class="slds-media__body">
+                                                    <div class="slds-input-has-icon slds-input-has-icon--right">
+                                                        <div class="slds-lookup__result-text" data-record="{!index}" data-id="{!item.Id}" onclick="{!c.update }">
+                                                            <a role="option" >
+                                                                <lightning:icon iconName="standard:product" size="xx-small"/>&nbsp;{!item.Name}
+                                                                <span class="slds-listbox__option-text slds-listbox__option-text_entity"> {!item.Customer_Number__c}</span>
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </span>
+                                        </li>
+                                    </aura:iteration>
+                                </div>
+                            </aura:if>
+                            
+                            
+                        </ul>
+                        
+                        
+                        
+                        
+                    </div> </div></div>
+            
+            <!--    
+            <lightning:input type="date" name="fromDate" label="From Date" value="{!v.fromDate}"/>
+            <lightning:input type="date" name="ToDate" label="To Date" value="{!v.ToDate}" autofill="false"/><br/> -->
+            <center>
+                <lightning:button variant="brand" label="Get Outstanding Data" title="Pull data" onclick="{!c.navigateToComponent}" />
+            </center>
+        </aura:if> 
+        <aura:if isTrue="{!(v.selectedType=='Stock')}">
+            <lightning:select name="todayPlan"  label="Warehouse"  value="{!v.Warehouse}">
+                <aura:iteration items="{!v.WarehouseList}" var="value">
+                    <option value="{!value}" selected="{!value == ''}">{!value}</option>
+                </aura:iteration>
+            </lightning:select>
+            
+            <center>
+                <lightning:button variant="brand" label="Get Stock Data" title="Pull data" onclick="{!c.navigateToComponent}" />
+            </center>
+        </aura:if> 
+        <aura:if isTrue="{!(v.selectedType=='InvoiceData')}">
+          <lightning:input type="date" name="SelectDate" label="Select Date" value="{!v.fromDate}"/>
+           
+            <center>
+                <lightning:button variant="brand" label="Get Invoice Data" title="Pull data" onclick="{!c.sendRequest}" />
+            </center>
+        </aura:if> 
+         <aura:if isTrue="{!(v.selectedType=='Receipt')}">
+             <lightning:input type="date" name="SelectDate" label="Select Date" value="{!v.fromDate}"/>
+            <center>
+                <lightning:button variant="brand" label="Get Receipt Data" title="Pull data" onclick="{!c.sendRecieptRequest}" />
+            </center>
+        </aura:if>  
+    </div>
+    
+      <aura:if isTrue="{!v.spinner}"> 
+          <div aura:id="spinnerId" class="slds-spinner_container">
+            <div class="slds-spinner--brand  slds-spinner slds-spinner--large slds-is-relative" role="alert">
+                <span class="slds-assistive-text">Loading...</span>
+                <div class="slds-spinner__dot-a"></div>
+                <div class="slds-spinner__dot-b"></div>
+            </div>
+        </div>
+    </aura:if>
+    
+</aura:component>

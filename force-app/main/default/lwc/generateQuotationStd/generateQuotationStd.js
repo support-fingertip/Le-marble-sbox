@@ -5,7 +5,17 @@ import sendQuotationEmail from '@salesforce/apex/QuotationController.sendQuotati
 import getCartLineItems from '@salesforce/apex/QuotationController.getCartLineItems';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
+import { getRecordNotifyChange } from 'lightning/uiRecordApi';
+
+import { getRecord } from 'lightning/uiRecordApi';
+
+const QUOTE_FIELDS = [
+    'Quote.Quotation_Sent_to_Customer__c'
+];
+
 export default class QuotationButton extends NavigationMixin(LightningElement) {
+
+
     @api recordId;
     showSelectionModal = false;
     showPdfModal = false;
@@ -26,7 +36,10 @@ export default class QuotationButton extends NavigationMixin(LightningElement) {
         return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     }
 
-    @wire(getCartLineItems, { cartId: '$recordId' })
+    @wire(getRecord, { recordId: '$recordId', fields: QUOTE_FIELDS })
+    quoteRecord;
+
+    @wire(getCartLineItems, { cartId: '$recordId'  })
     wiredCartLineItems({ error, data }) {
         if (data) {
             this.cartLineItems = data.map(item => ({
@@ -78,10 +91,11 @@ export default class QuotationButton extends NavigationMixin(LightningElement) {
     async loadQuotation() {
         try {
             this.isLoading = true;
-            this.downloadUrl = await generateAndSaveQuotationFile({
-                cartId: this.recordId,
-                selectedItemIds: this.selectedItems
-            });
+           this.downloadUrl = await generateAndSaveQuotationFile({
+    cartId: this.recordId,
+    selectedItemIds: this.selectedItems
+});
+
         } catch (error) {
             let message = error && error.body && error.body.message
                 ? error.body.message
@@ -114,20 +128,29 @@ export default class QuotationButton extends NavigationMixin(LightningElement) {
     async handleSendEmail() {
         try {
             this.isSendingEmail = true;
+
+
+
+        
+
             await sendQuotationEmail({
-                cartId: this.recordId,
+            
+                cartId: this.recordId,        
                 selectedItemIds: this.selectedItems,
                 toEmail: null,
                 subject: 'Quotation from Le Marbles',
-                body: 'Please find attached the quotation for your reference.',
-                quotationBlob: null
+                body: 'Please find attached the quotation for your reference.'
+            
             });
             this.dispatchEvent(new ShowToastEvent({
                 title: 'Success',
                 message: 'Quotation sent successfully',
                 variant: 'success'
             }));
-            this.handleClose();
+            this.showPdfModal = false;
+
+                // refresh the Quote record so checkbox updates
+            getRecordNotifyChange([{ recordId: this.recordId }]);
         } catch (error) {
             let message = error && error.body && error.body.message
                 ? error.body.message

@@ -33,4 +33,32 @@ trigger Opportunity_Trigger on Opportunity (before insert,before update) {
         opp.Name = newName;
         
     }
+    
+  Map<String, string> existingOppMap = new Map<String, string>();
+
+    for (Opportunity opp : [
+        SELECT Id, AccountId,name
+        FROM Opportunity
+        WHERE AccountId IN :accountIds
+    ]) { 
+        existingOppMap.put(opp.name, opp.Id);
+       }
+    
+    for (Opportunity opp : Trigger.new) {
+        
+        if (existingOppMap.containsKey(opp.Name)) {
+            if (Trigger.isInsert ||
+                (Trigger.isUpdate && existingOppMap.get(opp.Name) != opp.Id)) {
+                    
+                    opp.Name.addError(
+                        'An Opportunity with the same Account, Branch, and Category already exists.'
+                    );
+                }
+        }
+    }
+    
+    
+    
+    
+    
 }

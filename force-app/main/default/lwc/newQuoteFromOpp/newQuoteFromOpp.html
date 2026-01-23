@@ -43,7 +43,7 @@
             </div>
         </div>-->
 
-        <div class="header-card">
+        <div class="header-card">   
             <!-- Left -->
             <div class="header-left">
                 <h1 class="header-title">Add Quote Line Items</h1>
@@ -129,8 +129,9 @@
                                                 onkeyup={handleSearchInput}
                                                 onfocus={handleSearchFocus}
                                                 onblur={handleSearchBlur} />
-                                <span class="product-code">Code: {item.code}</span>
-                                
+                               
+                              <template if:true={item.id}>
+                                 <span class="product-code">Code: {item.code}</span>
                                 <template if:false={item.stockChecked}>
                                     <button class="slds-button slds-button_neutral check-stock-btn"
                                             data-index={index}
@@ -138,7 +139,44 @@
                                         Check Stock
                                     </button>
                                 </template>
-                                
+                              <template if:true={item.stockChecked}>
+                                    <section class="stock-popup">
+
+                                        <div class="stock-popup-header">
+                                            <span>Stock Availability</span>
+                                            <button class="close-btn"
+                                                    data-index={index}
+                                                    onclick={handleCloseStockPopup}>
+                                                ✕
+                                            </button>
+                                        </div>
+
+                                        <div class="stock-table-wrapper">
+                                            <table class="stock-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Warehouse</th>
+                                                        <th>In Stock</th>
+                                                        <th>Committed</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <template for:each={item.stockList} for:item="stk">
+                                                        <tr key={stk.warehouseCode}>
+                                                            <td>{stk.warehouseCode}</td>
+                                                            <td>{stk.inStock}</td>
+                                                            <td>{stk.committed}</td>
+                                                        </tr>
+                                                    </template>
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                    </section>
+                                    </template>
+
+
+                             </template>     
                            <!--   <span class="stock-status" class:in-stock={item.inStock}>
                                     <template if:true={item.inStock}>
                                         In Stock ({item.stockCount})
@@ -255,7 +293,7 @@
                                                         required>
                                     </lightning-input>
                                 </div>
-                                <template if:true={showDiscountSection}>      
+                             <!--   <template if:true={showDiscountSection}> -->     
                                     <div class="slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
                                         <div class="slds-form-element">
                                             <label class="slds-form-element__label">Disc Type</label>
@@ -288,12 +326,13 @@
                                         <div class="slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
                                         <lightning-input type="number" label="After Disc (₹)"
                                                             value={item.afterDiscPrice}
+                                                            step="0.000001"
                                                             data-product-id={item.id}
                                                             data-index={index}
                                                             disabled="true">
                                         </lightning-input>
                                     </div>
-                                </template> 
+                           <!--    </template> -->
                             </div> 
                         </template>
 
@@ -347,6 +386,7 @@
                                     <div class="field-box slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
                                         <lightning-input type="number" label="Price/Sqft"
                                                             value={item.pricePerSqft}
+                                                             step="0.000001"
                                                             disabled><!--(After Tax)-->
                                         </lightning-input>
                                     </div>
@@ -378,7 +418,7 @@
                                         </div>
                                     </div>
                                 </template>
-                                <template if:true={showDiscountSection}>
+                            <!--     <template if:true={showDiscountSection}>-->
                                         <!-- Disc Type -->
                                         <div class="input-field slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
                                             <label class="slds-form-element__label">Disc Type</label>
@@ -406,7 +446,7 @@
                                                                 onchange={handleDiscValueChange}>
                                             </lightning-input>
                                         </div>
-                                </template>
+                                <!-- </template>-->
                                 <!-- Unit Price (After Tax) for non-tile -->
                                 <template if:false={item.isTile}>
                                     <div class="qty-box slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
@@ -415,26 +455,28 @@
                                                             disabled><!--(After Tax)-->
                                         </lightning-input>
                                     </div>
-                                    <template if:true={showDiscountSection}>
-                                    <div class="qty-box slds-col slds-small-size_1-of-1 slds-medium-size_2-of-12">
-                                        <lightning-input type="number" label="After Disc/Piece (₹)"
-                                                            value={item.afterDiscPricePiece}
-                                                            disabled>
-                                        </lightning-input>
-                                    </div>
-                                        </template>
+                                   <!--  <template if:true={showDiscountSection}>-->
+                                        <div class="qty-box slds-col slds-small-size_1-of-1 slds-medium-size_2-of-12">
+                                            <lightning-input type="number" label="After Disc/Piece (₹)"
+                                                                value={item.afterDiscPricePiece}
+                                                                 step="0.000001"
+                                                                disabled>
+                                            </lightning-input>
+                                        </div>
+                                    <!-- </template>-->
                                 </template>
 
                                 <!-- After Disc/Sqft (tile) -->
-                                <template if:true={showDiscountSection}>
+                                <!-- <template if:true={showDiscountSection}>-->
                                     <template if:true={item.isTile}>
                                         <div class="qty-box slds-col slds-small-size_1-of-1 slds-medium-size_2-of-12">
                                             <lightning-input type="number" label="After Disc/Sqft (₹)"
-                                                            value={item.afterDiscPriceSqft} disabled>
+                                                            value={item.afterDiscPriceSqft}
+                                                            step="0.000001" disabled>
                                             </lightning-input>
                                         </div>
                                     </template>
-                                </template>
+                               <!--  </template> -->
                             </div>
 
                         </template>

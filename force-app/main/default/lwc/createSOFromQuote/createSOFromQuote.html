@@ -108,6 +108,25 @@
                         </lightning-combobox>
                     </div>
 
+                    <div class="slds-m-bottom_medium">
+                    <lightning-input
+                        type="date"
+                        label="Delivery Committed Date"
+                        value={deliveryCommittedDate}
+                        onchange={handleDeliveryDateChange}
+                        required>
+                    </lightning-input>
+                </div>
+
+                <div class="slds-m-bottom_medium">
+                <lightning-textarea
+                    label="Remarks"
+                    value={remarks}
+                    onchange={handleRemarksChange}
+                    placeholder="Enter remarks">
+                </lightning-textarea>
+            </div>
+
                     <!-- ================= PAYMENT SECTION (COMMENTED SAFELY) ================= -->
                     <!--
                     <div class="payment-section slds-m-bottom_medium">
@@ -182,8 +201,9 @@
                             <div class="table-scroll-wrapper">
                                  <table class="slds-table slds-table_bordered slds-table_cell-buffer slds-table_fixed-layout">
                                     <colgroup>
-                                    <col style="width: 30%;">
                                     <col style="width: 10%;">
+                                    <col style="width: 30%;">
+                                    <col style="width: 15%;">
                                     <col style="width: 15%;">
                                     <col style="width: 15%;">
                                     <col style="width: 15%;">
@@ -194,9 +214,10 @@
                                         <th style="width:5%"></th> 
                                         <th>Product</th>
                                         <th>Quantity</th>
+                                        <th>Block Qty</th>
                                         <th>Unit Price</th>
-                                        <th>Total Price</th>
                                         <th>Tax</th>
+                                        <th>Total Price</th>
                                         <th>Category</th>
                                     </tr>
                                 </thead>
@@ -213,9 +234,18 @@
                                     </td>
                                             <td class="product-cell">{item.Product2.Name}</td>
                                             <td>{item.Quantity}</td>
+                                            <td>
+                                              <lightning-input
+                                                    type="number"
+                                                    variant="label-hidden"
+                                                    value={item.BlockQty}
+                                                    data-id={item.Id}
+                                                    min="0"
+                                                    onchange={handleBlockQtyChange}>
+                                                </lightning-input></td>
                                             <td>{item.UnitPrice}</td>
-                                            <td>{item.totalPrice}</td>
                                             <td><lightning-formatted-number value={item.tax} minimum-fraction-digits="2" maximum-fraction-digits="2"> </lightning-formatted-number></td>
+                                            <td>{item.totalPrice}</td>
                                             <td>{item.category}</td>
                                         </tr>
                                     </template>
