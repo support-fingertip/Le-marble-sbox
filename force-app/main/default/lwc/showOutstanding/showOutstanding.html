@@ -1,0 +1,16 @@
+<template>
+    <lightning-card title="Fetch Outstanding">
+        <div class="slds-p-around_medium">
+            <lightning-button
+                label="Fetch Value"
+                onclick={handleClick}>
+            </lightning-button>
+
+            <template if:true={result}>
+                <p class="slds-m-top_medium">
+                    <b>Current Outstanding:</b> {result}
+                </p>
+            </template>
+        </div>
+    </lightning-card>
+</template>

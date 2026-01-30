@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Layout xmlns="http://soap.sforce.com/2006/04/metadata">
+    <excludeButtons>CreateContract</excludeButtons>
+    <excludeButtons>CreateOrder</excludeButtons>
+    <excludeButtons>DeepCloneAction</excludeButtons>
     <excludeButtons>Edit</excludeButtons>
+    <excludeButtons>OpenSlackRecordChannel</excludeButtons>
     <layoutSections>
         <customLabel>false</customLabel>
         <detailHeading>false</detailHeading>
@@ -86,6 +90,10 @@
             <layoutItems>
                 <behavior>Edit</behavior>
                 <field>District__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>Round_Off__c</field>
             </layoutItems>
         </layoutColumns>
         <layoutColumns>
@@ -348,13 +356,6 @@
         <fields>Actor</fields>
         <fields>Comments</fields>
         <relatedList>RelatedProcessHistoryList</relatedList>
-    </relatedLists>
-    <relatedLists>
-        <fields>ORDERS.ORDER_NUMBER</fields>
-        <fields>SALES.ACCOUNT.NAME</fields>
-        <fields>ORDERS.STATUS</fields>
-        <fields>ORDERS.TOTAL_AMOUNT</fields>
-        <relatedList>Order.Standard_Quote__c</relatedList>
     </relatedLists>
     <showEmailCheckbox>false</showEmailCheckbox>
     <showRunAssignmentRulesCheckbox>false</showRunAssignmentRulesCheckbox>

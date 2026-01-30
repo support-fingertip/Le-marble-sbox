@@ -23,6 +23,7 @@ public class NewQuoteController {
         @AuraEnabled public String category;
         @AuraEnabled public Decimal tax;
         @AuraEnabled public string sqftPiece;
+        @AuraEnabled public Decimal msp;
         //   @AuraEnabled public Boolean inStock;
     }
     
@@ -47,6 +48,7 @@ public class NewQuoteController {
             Product2.ProductCode,
             Product2.Product_Code__c,
             Product2.Product_Category__c,
+            Product2.MSP__c,
             Product2.Tax__c,
             Product2.Sqft_Piece__c,
             Product2.In_Stock__c
@@ -72,12 +74,17 @@ public class NewQuoteController {
             //    pw.customProductCode = pbe.Product2.Product_Code__c;
             pw.category = pbe.Product2.Product_Category__c;
             pw.tax = pbe.Product2.Tax__c;
+             system.debug('pbe.Product2.MSP__c'+pbe.Product2.MSP__c);
+            if(pbe.Product2.MSP__c!=null && pw.tax !=null){
+                pw.msp = pbe.Product2.MSP__c * (1 + pw.tax  / 100);
+                 system.debug('pw.msp '+pw.msp );
+            }
             pw.sqftPiece = pbe.Product2.Sqft_Piece__c;
             //        pw.inStock = pbe.Product2.In_Stock__c;
             
             result.add(pw);
         }
-        
+       
         return result;
         
         /*   } catch (Exception e) {
@@ -93,10 +100,9 @@ throw new AuraHandledException(e.getMessage());
         
         return [
             SELECT Id, Quantity, UnitPrice, Discount, TotalPrice, 
-            Product2Id, Product2.Name, Product2.Product_Code__c, Area__c,
+            Product2Id, Product2.Name, Product2.Product_Code__c, Area__c,Product2.MSP__c,Disc_Type__c,Dis_Value__c,
             Product2.Product_Category__c,
-            PricebookEntryId,
-            Description
+            PricebookEntryId,Description
             FROM OpportunityLineItem
             WHERE OpportunityId = :oppId and Product2.Product_Category__c=:category
             AND PricebookEntry.Pricebook2Id = :pb.Id  // ensure same PB
@@ -175,7 +181,7 @@ throw new AuraHandledException(e.getMessage());
     // Method to create cart and cart line items
     @AuraEnabled
     public static String createCart(String customerId, List<Map<String, Object>> cartItems,Decimal freightCharge, Decimal loadingCharge, 
-                                    Decimal unloadingCharge,string pbName,decimal orderTotal,string category) {
+                                    Decimal unloadingCharge,decimal roundOff,string pbName,decimal orderTotal,string category) {
                                         
                                         system.debug('orderTotal>>'+orderTotal);
                                         system.debug('pbName>>'+pbName);
@@ -203,6 +209,8 @@ throw new AuraHandledException(e.getMessage());
                                         cart.Name=oppName+'- V'+vQuote;
                                         cart.Pricebook2Id = pb.id;  
                                         cart.Quote_Category__c=category;
+                                        cart.Round_Off__c=roundOff;
+
                                         
                                         cart.BillingStreet   = oppParent.Account.BillingStreet;
                                         cart.BillingCity     = oppParent.Account.BillingCity;
@@ -242,7 +250,7 @@ throw new AuraHandledException(e.getMessage());
                                         
                                         List<QuoteLineItem> lineItems = new List<QuoteLineItem>();
                                         for(Map<String, Object> item : cartItems) {
-                                            system.debug('item>> '+(String)item.get('totalPrice'));
+                                        //    system.debug('item>> '+(String)item.get('totalPrice'));
                                             try {
                                                 if (item == null || !item.containsKey('id')) {
                                                     System.debug('Skipping null item or item without product ID');
@@ -274,12 +282,14 @@ throw new AuraHandledException(e.getMessage());
                                                 if(item.containsKey('uom')) {
                                                     lineItem.UOM__c = String.valueOf(item.get('uom'));
                                                 }
-                                                
+                                                if(lineItem.Calculated_Total_Price__c!=null && lineItem.Quantity!=null ){
+                                                    lineItem.UnitPrice=(lineItem.Calculated_Total_Price__c/lineItem.Quantity);
+                                                }
                                                 // For tiles, use unitPriceAfterTax and pricePerSqft
                                                 if(item.containsKey('unitPriceAfterTax')) {
-                                                    lineItem.UnitPrice = safeDecimalConversion(item.get('unitPriceAfterTax'));
+                                                    lineItem.Sale_price__c = safeDecimalConversion(item.get('unitPriceAfterTax'));
                                                 } else if(item.containsKey('unitPrice')) {
-                                                    lineItem.UnitPrice = safeDecimalConversion(item.get('unitPrice'));
+                                                    lineItem.Sale_price__c = safeDecimalConversion(item.get('unitPrice'));
                                                 }
                                                 if(item.containsKey('pricePerSqft')) {
                                                     lineItem.Price_Sqft__c = safeDecimalConversion(item.get('pricePerSqft'));
@@ -333,7 +343,8 @@ lineItem.Sqft__c = safeDecimalConversion(item.get('sqft'));
                                                 }
                                                 
                                                 if(item.containsKey('roomType')) {
-                                                    lineItem.Room_Type__c = String.valueOf(item.get('roomType'));
+                                                //    lineItem.Room_Type__c = String.valueOf(item.get('roomType'));
+													lineItem.Area__c = String.valueOf(item.get('roomType'));
                                                 }
                                                 
                                                 /*                     if(item.containsKey('msp')) {

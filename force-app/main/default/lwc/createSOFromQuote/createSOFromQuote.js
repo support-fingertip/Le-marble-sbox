@@ -29,7 +29,8 @@ export default class CreateSOFromQuote extends NavigationMixin(LightningElement)
     @track warehouseOptions = [];
     @track deliveryCommittedDate;
     @track remarks = '';
-
+    @track credit = false;
+    @track isAccountBlocked = false;
 
     @api recordId; 
     @track isModalOpen = false;
@@ -68,7 +69,10 @@ export default class CreateSOFromQuote extends NavigationMixin(LightningElement)
     get hasCartItems() {
         return this.cartLineItems && this.cartLineItems.length > 0;
     }
-
+    handleCreditToggle(event) {
+        this.credit = event.target.checked;
+        console.log('Credit Toggle Value:', this.credit);
+    }
     get showCreditAmount() {
         return this.selectedPaymentType === 'Credit';
     }
@@ -76,7 +80,7 @@ export default class CreateSOFromQuote extends NavigationMixin(LightningElement)
     get showCreditDueDate() {
         return this.selectedPaymentType === 'Credit';
     }
-
+    
     get groupedCartItems() {
         return this.hasCartItems;
     }
@@ -85,7 +89,7 @@ export default class CreateSOFromQuote extends NavigationMixin(LightningElement)
 wiredQuoteInfo({ error, data }) {
     if (data) {
         const quote = data.quote; 
-
+            this.isAccountBlocked=quote.Account.Blocked_Account__c;
 
         this.showCreateSOButton = !quote.Sales_Order_Created__c;
 
@@ -124,7 +128,8 @@ wiredQuoteInfo({ error, data }) {
             return {
                 ...item,
                 isSelected: true,  
-                totalPrice: quantity * unitPrice, 
+                totalPrice : (quantity * unitPrice).toFixed(2),
+             //   totalPrice: quantity * unitPrice, 
                 tax: (quantity * unitPrice) * 0.18, 
                 BlockQty:0,
                 category: item.PricebookEntry?.Product2?.Product_Category__c || 'N/A'
@@ -433,7 +438,8 @@ wiredQuoteInfo({ error, data }) {
     selectedQuoteLineItemIds: selectedItems.map(i => i.Id),
     blockQtyMap: blockQtyMap,
     deliveryCommittedDate: this.deliveryCommittedDate,
-    remarks: this.remarks 
+    remarks: this.remarks,
+    credit : this.credit
 });
         this.showToast(
             'Success',

@@ -8,6 +8,7 @@ import getDriverPicklistOptions from '@salesforce/apex/DeliveryManagementControl
 import getVehicleNumberOptions from '@salesforce/apex/DeliveryManagementController.getVehicleNumberOptions';
 
 export default class DeliveryManagement extends LightningElement {
+
     @track searchTerm = '';
     @track salesConfirmations = [];
     @track selectedSalesConfirmationId;
@@ -67,6 +68,7 @@ export default class DeliveryManagement extends LightningElement {
     get availableTabClass() {
         return 'tab active';
     }
+   
 
     async searchSalesConfirmations() {
         try {
@@ -117,6 +119,8 @@ export default class DeliveryManagement extends LightningElement {
             this.loadInitialData();
         }
     }
+
+   
 
     async loadInitialData() {
         if (!this.selectedOpportunityId) return;
@@ -251,6 +255,8 @@ export default class DeliveryManagement extends LightningElement {
                 warehouseId: this.selectedWarehouse,
                 remarks: this.remarks,
                 productData: selectedProducts
+                
+
             };
 
             await createDeliveryGroup({ deliveryGroupData: JSON.stringify(deliveryGroupData) });
@@ -265,6 +271,7 @@ export default class DeliveryManagement extends LightningElement {
             this.remarks = '';
             this.freightAmount = null;
             this.deliveryTime = null;
+            
             
             // Refresh data
             await this.loadInitialData();

@@ -12,6 +12,23 @@ public with sharing class QuotePdfController {
     public Boolean hasNaturalStone { get; set; }
     public Boolean hasBathingSolutions { get; set; }
     public Decimal priceSqft { get; set; }
+    public Boolean hasHeadOfficeDivision { get; set; }
+    public Boolean hasTile { get; set; }
+    public Boolean hasGraniteNatStone { get; set; }
+    public Boolean hasAggloTops { get; set; }
+    public Boolean hasRoofingClay { get; set; }
+    public Boolean hasSinks { get; set; }
+    public Boolean hasElecLighting { get; set; }
+    public Boolean hasFacadesCladding { get; set; }
+    public Boolean hasPlumbingBath { get; set; }
+    public Boolean hasImpMarbles { get; set; }
+    public Boolean hasTools { get; set; }
+    public Boolean hasGlassMosaicPool { get; set; }
+    public Boolean hasTimberSpcFlr { get; set; }
+    public Boolean hasConstChemAdh { get; set; }
+
+
+
 
     public QuotePdfController(ApexPages.StandardController stdController) {
         this.cart = (Quote)stdController.getRecord();
@@ -101,7 +118,32 @@ public with sharing class QuotePdfController {
         this.hasFittings = false;
         this.hasNaturalStone = false;
         this.hasBathingSolutions = false;
+        this.hasHeadOfficeDivision = false;
+        this.hasTile = false;
+        this.hasConstChemAdh = false;
         this.mrpTotal = 0;
+        this.hasGraniteNatStone = false;
+        this.hasAggloTops = false;
+        this.hasRoofingClay = false;
+        this.hasSinks = false;
+        this.hasElecLighting = false;
+        this.hasPlumbingBath = false;
+
+        this.hasImpMarbles = false;
+
+        this.hasFacadesCladding = false;
+
+        this.hasTools = false;
+
+
+        this.hasGlassMosaicPool = false;
+
+
+
+        this.hasTimberSpcFlr = false;
+
+
+        
 
       for (QuoteLineItem item : cartItems) {
       // 🔹 Detect product categories for Terms & Conditions
@@ -117,6 +159,77 @@ public with sharing class QuotePdfController {
             else if (item.Product_Category__c == 'BATHING SOLUTIONS') {
                 hasBathingSolutions = true;
             }
+            else if (item.Product_Category__c == 'HEAD OFFICE DIVISION') {
+    hasHeadOfficeDivision = true;
+                }
+                
+                else if (item.Product_Category__c != null &&
+         item.Product_Category__c.trim().toUpperCase() == 'TILE') {
+    hasTile = true;
+}
+                
+              else if (item.Product_Category__c != null &&
+             item.Product_Category__c.trim().toUpperCase() == 'CONST. CHEM & ADH') {
+            hasConstChemAdh = true;
+        }  
+                else if (item.Product_Category__c != null &&
+                 item.Product_Category__c.trim().toUpperCase() == 'GRANITE & NAT. STONE') {
+            hasGraniteNatStone = true;
+        }
+        
+                else if (item.Product_Category__c != null &&
+                         item.Product_Category__c.trim().toUpperCase() == 'AGGLO & TOPS') {
+                    hasAggloTops = true;
+                }
+                
+                else if (item.Product_Category__c != null &&
+             item.Product_Category__c.trim().toUpperCase() == 'TIMBER / SPC FLR') {
+                hasTimberSpcFlr = true;
+            }
+            
+            else if (item.Product_Category__c != null &&
+             item.Product_Category__c.trim().toUpperCase() == 'ROOFING & CLAY') {
+                        hasRoofingClay = true;
+                }
+                
+                else if (item.Product_Category__c != null &&
+         item.Product_Category__c.trim().toUpperCase() == 'SINKS') {
+    hasSinks = true;
+            }
+               else if (item.Product_Category__c != null &&
+                     item.Product_Category__c.trim().toUpperCase() == 'GLASS MOSAIC & POOL') {
+                hasGlassMosaicPool = true;
+            }
+                      else if (item.Product_Category__c != null &&
+                     item.Product_Category__c.trim().toUpperCase() == 'ELEC. & LIGHTING') {
+                hasElecLighting = true;
+            }
+               else if (item.Product_Category__c != null &&
+                     item.Product_Category__c.trim().toUpperCase() == 'TOOLS') {
+                hasTools = true;
+            }  
+            
+            else if (item.Product_Category__c != null &&
+                     item.Product_Category__c.trim().toUpperCase() == 'TOOLS') {
+                hasTools = true;
+            }
+            else if (item.Product_Category__c != null &&
+         item.Product_Category__c.trim().toUpperCase() == 'FACADES & CLADDING') {
+    hasFacadesCladding = true;
+}
+             else if (item.Product_Category__c != null &&
+         item.Product_Category__c.trim().toUpperCase() == 'IMP. MARBLES') {
+    hasImpMarbles = true;
+}                else if (item.Product_Category__c != null &&
+         item.Product_Category__c.trim().toUpperCase() == 'PLUMBING & BATH') {
+    hasPlumbingBath = true;
+}
+
+
+
+                 
+            
+
                   
     this.selectedTotalAmount += (item.Total_Price__c != null) ? item.Total_Price__c.setScale(2) : 0;
    /* if (item.Without_Discount_Total_Price__c != null) {

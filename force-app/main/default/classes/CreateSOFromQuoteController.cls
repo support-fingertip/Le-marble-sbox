@@ -9,6 +9,7 @@ public static Map<String, Object> getQuoteInfo(Id quoteId) {
         Quote q = [
             SELECT
                 Id,
+
                 Name,
                 AccountId,
                 Account.Name,
@@ -18,6 +19,7 @@ public static Map<String, Object> getQuoteInfo(Id quoteId) {
                 Account.BillingState,
                 Account.BillingPostalCode,
                 Account.BillingCountry,
+             Account.Blocked_Account__c,
                 Owner.Name,
                 OpportunityId,
                 Pricebook2Id,
@@ -68,9 +70,9 @@ public static Map<String, Object> getQuoteInfo(Id quoteId) {
     // 3. Create Order from Quote
     
     @AuraEnabled
-    public static Id createOrderFromQuote(Id quoteId , Id warehouseId,List<Id> selectedQuoteLineItemIds, Map<Id, Decimal> blockQtyMap, Date deliveryCommittedDate, String remarks) {
+    public static Id createOrderFromQuote(Id quoteId , Id warehouseId,List<Id> selectedQuoteLineItemIds, Map<Id, Decimal> blockQtyMap, Date deliveryCommittedDate, String remarks,boolean credit) {
         try {
-             // 1️⃣ Validate warehouse
+             ///️⃣ Validate warehouse
         if (warehouseId == null) {
             throw new AuraHandledException('Please select a Warehouse');
         }
@@ -100,23 +102,42 @@ public static Map<String, Object> getQuoteInfo(Id quoteId) {
            ShippingCity,
            ShippingState,
            ShippingPostalCode,
-             ShippingCountry,
-             
-             AddressLine1__c,                                     
-             AddressLine2__c,                               
-             AddressLine3__c,                              
-             District__c,                             
-             State__c,                          
-             country__c                            
-                                     
+           ShippingCountry,
+           AddressLine1__c, AddressLine2__c, AddressLine3__c,
+           District__c, State__c, Country__c
     FROM Quote
     WHERE Id = :quoteId
     LIMIT 1
 ];
 
+        Account acc = [
+            SELECT BillingStreet, BillingCity, BillingState, BillingPostalCode, BillingCountry
+            FROM Account
+            WHERE Id = :q.AccountId
+            LIMIT 1
+        ];
+
+        Contact con;
+        List<Contact> conList = [
+            SELECT Id, Name, Phone
+            FROM Contact
+            WHERE AccountId = :q.AccountId
+            ORDER BY CreatedDate ASC
+            LIMIT 1
+        ];
+        if (!conList.isEmpty()) {
+            con = conList[0];
+        }
 
 
-        Warehouse__c wh = [SELECT Id, Warehouse_Manager__c FROM Warehouse__c WHERE Id = :warehouseId LIMIT 1];
+
+        // 3️⃣ Fetch Warehouse Manager  ✅ PUT IT HERE
+        Warehouse__c wh = [
+            SELECT Id, Warehouse_Manager__c
+            FROM Warehouse__c
+            WHERE Id = :warehouseId
+            LIMIT 1
+        ];
 
             if (q.Sales_Order_Created__c == true) {
     throw new AuraHandledException(
@@ -147,6 +168,7 @@ if (deliveryCommittedDate < Date.today()) {
               // Fetch Quote Line Items
            List<QuoteLineItem> qlis = [
     SELECT
+        Id,
         Quantity,
         UnitPrice,
         PricebookEntryId,
@@ -181,55 +203,64 @@ if (deliveryCommittedDate < Date.today()) {
             ord.Remarks__c = remarks;   
 
             ord.EffectiveDate = Date.today();
-            ord.Status        = 'Draft';
-
+            ord.Status = 'Draft';
+			ord.credit__c=credit;
+            if(ord.credit__c==false){
+                 ord.Status = 'Approved';
+            }
             ord.Product_Category__c = category;
 
-            // ================= CONTACT PERSON =================
-            if (q.ContactId != null && q.Contact.Phone != null) {
+           // ================= CONTACT PERSON (From Account) =================
+            if (con != null) {
+                ord.Contact_Person_Name__c = con.Name;
 
-                // Remove all non-numeric characters
-                String phoneDigits = q.Contact.Phone.replaceAll('[^0-9]', '');
-
-                // Only assign if digits exist
-                if (!String.isBlank(phoneDigits)) {
-                    ord.Contact_Person_Number__c = Decimal.valueOf(phoneDigits);
+                if (con.Phone != null) {
+                  /*  String phoneDigits = con.Phone.replaceAll('[^0-9]', '');
+                    if (!String.isBlank(phoneDigits)) {
+                        ord.Contact_Person_Number__c = Decimal.valueOf(phoneDigits);
+                    }*/
+                    ord.Contact_Person_Number__c = con.Phone ;
                 }
+}
 
-                ord.Contact_Person_Name__c = q.Contact.Name;
-            }
-
-            ord.BillingStreet     = q.BillingStreet;
+           ord.BillingStreet     = q.BillingStreet;
             ord.BillingCity       = q.BillingCity;
             ord.BillingState      = q.BillingState;
-            ord.BillingPostalCode = q.BillingPostalCode;
+           ord.BillingPostalCode = q.BillingPostalCode;
             ord.BillingCountry    = q.BillingCountry;
+            ord.ShippingStreet     = q.ShippingStreet;
+            ord.ShippingCity       = q.ShippingCity;
+            ord.ShippingState      = q.ShippingState;
+            ord.ShippingPostalCode = q.ShippingPostalCode;
+            ord.ShippingCountry    = q.ShippingCountry;
+            ord.AddressLine1__c = q.AddressLine1__c;
+            ord.AddressLine2__c = q.AddressLine2__c;
+            ord.AddressLine3__c = q.AddressLine3__c;
+            ord.District__c = q.District__c;
+ord.State__c    = q.State__c;
+            ord.Country__c    = q.Country__c;
 
-    /*        if (String.isBlank(q.ShippingStreet)) {
-                Account acc = [
-                    SELECT ShippingStreet, ShippingCity, ShippingState,
-                        ShippingPostalCode, ShippingCountry
-                    FROM Account
-                    WHERE Id = :q.AccountId
-                    LIMIT 1
-                ];
 
-                ord.ShippingStreet     = acc.ShippingStreet;
-                ord.ShippingCity       = acc.ShippingCity;
-                ord.ShippingState      = acc.ShippingState;
-                ord.ShippingPostalCode = acc.ShippingPostalCode;
-                ord.ShippingCountry    = acc.ShippingCountry;
-            }*/
-            
-            
-            
-            ord.AddressLine1__c= q.AddressLine1__c;
-            ord.AddressLine2__c= q.AddressLine2__c;
-            ord.AddressLine3__c= q.AddressLine3__c;
-            ord.District__c= q.District__c;
-            ord.State__c= q.State__c;
-            ord.Country__c= q.country__c;
-            
+
+            if (String.isBlank(q.ShippingStreet)) {
+    Account shipAcc = [
+        SELECT ShippingStreet, ShippingCity, ShippingState,
+            ShippingPostalCode, ShippingCountry
+        FROM Account
+        WHERE Id = :q.AccountId
+        LIMIT 1
+    ];
+
+    ord.ShippingStreet     = shipAcc.ShippingStreet;
+    ord.ShippingCity       = shipAcc.ShippingCity;
+    ord.ShippingState      = shipAcc.ShippingState;
+    ord.ShippingPostalCode = shipAcc.ShippingPostalCode;
+    ord.ShippingCountry    = shipAcc.ShippingCountry;
+
+
+
+    
+}
 
             ord.Freight_Charge__c     = q.Freight_Charge__c;
             ord.Loading_Charges__c   = q.Loading_Charge__c;
@@ -252,9 +283,11 @@ if (deliveryCommittedDate < Date.today()) {
                 oi.PricebookEntryId = qli.PricebookEntryId;
                 oi.Quantity         = qli.Quantity;
                 oi.UnitPrice        = qli.UnitPrice;
-                oi.Block_Quantity__c = blockQtyMap.containsKey(qli.Id)
-                    ? blockQtyMap.get(qli.Id)
-                    : 0;
+                oi.Block_Quantity__c =
+                (blockQtyMap != null && blockQtyMap.containsKey(qli.Id))
+                ? blockQtyMap.get(qli.Id)
+                : 0;
+
                 orderItems.add(oi);
             }
 

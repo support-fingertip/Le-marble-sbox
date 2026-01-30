@@ -79,7 +79,7 @@
       </div>
     </template>
 
-    <!-- Main Content with Enhanced Tabs -->  
+    <!-- Main Content with Enhanced Tabs -->
     <template if:true={selectedSalesConfirmationId}>
       <div class="slds-tabs_default">
         <ul class="slds-tabs_default__nav" role="tablist">
@@ -116,13 +116,13 @@
                         <span class="compact-product-name slds-truncate" title={product.displayName} style="max-width: 300px;">
                             {product.displayName}
                         </span>
-                        <span class="available-qty">Available: {product.Pending_Quantity1__c}</span>
+                        <span class="available-qty">Available: {product.Quantity}</span>
                         <template if:true={product.selected}>
                             <lightning-input 
                                 type="number"
                                 value={product.deliveryQuantity}
                                 min="1"
-                                max={product.Pending_Quantity1__c}
+                                max={product.Quantity}
                                 onchange={handleDeliveryQuantityChange}
                                 onblur={handleDeliveryQuantityBlur}
                                 data-id={product.Id}
@@ -176,8 +176,33 @@
                     <lightning-input type="number" label="Freight Amount" value={freightAmount} onchange={handleFreightAmountChange} class="custom-input"></lightning-input>
                   </div>
                   <div class="slds-form-element">
-                    <lightning-textarea label="Remarks" value={remarks} onchange={handleRemarksChange} placeholder="Enter remarks" class="custom-input">
-                    </lightning-textarea>
+                    <lightning-input type="number" label="Loading Charge" value={loadingAmount} onchange={handleloadingChargeAmountChange} class="custom-input"></lightning-input>
+                  </div>
+                  <div class="slds-form-element">
+                    <lightning-input type="number" label="Unloading Charge" value={unloadingAmount} onchange={handleUnloadingChargeAmountChange} class="custom-input"></lightning-input>
+                  </div>
+
+
+                  <div class="slds-form-element"> 
+                    <lightning-combobox name="deliveryPriority" label="Delivery Priority" value={deliveryPriority} placeholder="Select Priority" options={deliveryPriorityOptions}  onchange={handleDeliveryPriorityChange}>
+                  </lightning-combobox>
+                </div>
+
+                <div class="slds-form-element">
+                <lightning-textarea
+                    label="Delivery Summary Note"
+                    value={deliverySummaryNote}
+                    onchange={handleDeliverySummaryNoteChange}
+                    placeholder="Enter delivery summary note"
+                    class="custom-input">
+                </lightning-textarea>
+            </div>
+                  <div class="slds-form-element">
+                   <lightning-textarea
+                  label="Remarks"
+                  value={remarks}
+                  disabled>
+                </lightning-textarea>
                   </div>
                   <div class="slds-form-element slds-m-top_medium">
                     <div class="slds-form-element__control">

@@ -135,10 +135,10 @@ public class sapIntegration {
             // Ship To address from Address__ fields
             Map<String, Object> shipToAddress = new Map<String, Object>{
                 'AddressName'   => 'Shipping',
-                    'Street'        => deal.ShippingStreet,
-                    'City'          => deal.ShippingCity,
+                    'Street'        => deal.Address_Line1__c,
+                    'City'          => deal.corporation__c,
                     'State'         => deal.State__c,
-                    'ZipCode'       => deal.ShippingPostalCode,
+                    'ZipCode'       => '',
                     'Country'       => deal.Country__c,//IN
                     'AddressType'   => 'bo_ShipTo',
                     'AddressName2'  => deal.Address_Line2__c,
@@ -188,6 +188,8 @@ public class sapIntegration {
                 log.status__c='SUCCESS';
                 log.response__c= 'Business Partner created: ' + bpResponse.getBody();
                 insert log;
+                deal.Pushed_to_SAP__c=true;
+                update deal;
                 notification.setBody('New Business Partner created in SAP' );   
                 try {
                     notification.send(addressee);
@@ -325,16 +327,18 @@ public class sapIntegration {
             if (!shipToAddressFoundAndUpdated && deal.ShippingAddress != null) {
                 bpAddresses.add(new Map<String, Object>{
                     'AddressName' =>'Shipping',
-                        'Street' => deal.ShippingStreet,
-                        'City' => deal.ShippingCity,
-                        'State' => deal.ShippingState,
-                        'ZipCode' => deal.ShippingPostalCode,
-                        'Country' => deal.ShippingCountry,
-                        'AddressType' => 'bo_ShipTo',
-                        'AddressName2' => deal.Address_Line2__c,
-                        'AddressName3' => deal.Address_Line3__c
+                       'Street'        => deal.Address_Line1__c,
+                    'City'          => deal.corporation__c,
+                    'State'         => deal.State__c,
+                    'ZipCode'       => '',
+                    'Country'       => deal.Country__c,//IN
+                    'AddressType'   => 'bo_ShipTo',
+                    'AddressName2'  => deal.Address_Line2__c,
+                    'AddressName3'  => deal.Address_Line3__c
                         });
             }
+            
+          
             
             if (!billToAddressFoundAndUpdated && deal.BillingAddress != null) {
                 bpAddresses.add(new Map<String, Object>{
@@ -373,20 +377,20 @@ public class sapIntegration {
             
             if (patchResponse.getStatusCode() != 204) {
                 log.status__c='Failed';
-                log.response__c= 'BP creation failed: ' + patchResponse.getBody();
+                log.response__c= 'BP update failed: ' + patchResponse.getBody();
                 insert log;
                 
                 System.debug(LoggingLevel.ERROR, 'BP update failed: ' + patchResponse.getBody());
             }
             else{
                 log.status__c='SUCCESS';
-                log.response__c= 'Business Partner created: ' + patchResponse.getBody();
+                log.response__c= 'Business Partner update: ' + patchResponse.getBody();
                 insert log;
             }
             
         } catch (Exception e) {
             log.status__c='Failed';
-            log.response__c= 'Error creating Business Partner: ' +  e.getMessage();
+            log.response__c= 'Error updating Business Partner: ' +  e.getMessage();
             insert log;
             System.debug(LoggingLevel.ERROR, 'Error updating Business Partner: ' + e.getMessage());
         }
@@ -640,9 +644,12 @@ public class sapIntegration {
     }
     
     
-    
-    public static void getCustOutstanding(string bpCode) {
+  @AuraEnabled(cacheable=false)  
+    public static decimal getCustOutstanding(string accountId) {
         
+        string bpCode=[select id,Customer_Number__c from account where id=:accountId].Customer_Number__c;
+    //    bpCode='CU0000270';
+        decimal CurrentAccountBalance;
         String sessionId=loginToSAP();
         if(sessionId!=null){  
             
@@ -688,21 +695,30 @@ public class sapIntegration {
                 
                 
                 if ((itemRes.getStatusCode() == 200 || itemRes.getStatusCode() == 201) && itemRes.getBody() != null ) {
-                    log.status__c='SUCCESS';
-                    
+                    String responseBody = itemRes.getBody();
                     
                     //CurrentAccountBalance
+                    Map<String, Object> result =
+                        (Map<String, Object>) JSON.deserializeUntyped(responseBody);
+					CurrentAccountBalance = (decimal) result.get('CurrentAccountBalance');
+
                     
-                    if(itemRes.getBody().length()<100000){
-                        //    log.response__c= res.getStatusCode();
-                    } 
-    
-                    
-                    
+                }
+                else{
+                System.debug(' Failed to fetch outstanding: ' + itemRes.getBody());
+                String errorBody = itemRes.getBody();
+                    log.Status__c = 'FAILED';
+                    log.Error_Message__c = 'Maximum number of callouts has been reached.';
+                    if(log.Status__c=='FAILED'){
+                        insert log;
+                    }
                 }
                 
             }
         }
+
+        system.debug(CurrentAccountBalance);
+       return CurrentAccountBalance;
         
     }
 }

@@ -23,7 +23,7 @@
                 <!-- Modal Header -->
                 <header class="slds-modal__header gradient-header">
                     <h2 class="slds-text-heading_medium slds-hyphenate slds-text-color_inverse">
-                        Sales Confirmation
+                        Sales Order
                     </h2>
                     <lightning-button-icon
                         icon-name="utility:close"
@@ -97,6 +97,36 @@
 
 
                        <!-- ================= WAREHOUSE SELECTION ================= -->
+
+                <div class="slds-grid slds-wrap slds-m-bottom_medium slds-grid_vertical-align-center">
+                    <div class="slds-col slds-size_1-of-2 slds-p-right_small">
+                        <lightning-input
+                            type="date"
+                            label="Delivery Committed Date"
+                            value={deliveryCommittedDate}
+                            onchange={handleDeliveryDateChange}
+                            required>
+                        </lightning-input>
+                    </div>
+                    <div class="slds-col slds-size_1-of-2 slds-align_absolute-center">
+                        <lightning-input
+                            type="toggle"
+                            label="Credit Order : "
+                            label-position="top"
+                            checked={credit}
+                            message-when-true=""
+                            message-when-false=""
+                            disabled={isAccountBlocked}
+                            onchange={handleCreditToggle}>
+                        </lightning-input>
+                    <template if:true={isAccountBlocked}>
+                        <div class="slds-text-color_error slds-text-body_small slds-m-top_x-small">
+                            This is a blocked customer.
+                        </div>
+                    </template>
+                    </div>
+                </div>
+
                     <div class="slds-m-bottom_medium">
                         <lightning-combobox
                             label="Warehouse"
@@ -108,16 +138,7 @@
                         </lightning-combobox>
                     </div>
 
-                    <div class="slds-m-bottom_medium">
-                    <lightning-input
-                        type="date"
-                        label="Delivery Committed Date"
-                        value={deliveryCommittedDate}
-                        onchange={handleDeliveryDateChange}
-                        required>
-                    </lightning-input>
-                </div>
-
+                
                 <div class="slds-m-bottom_medium">
                 <lightning-textarea
                     label="Remarks"

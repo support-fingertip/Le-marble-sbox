@@ -12,6 +12,8 @@ import getSalesOrderRemarks from '@salesforce/apex/NewDeliveryPlanController.get
 
 
 export default class NewDeliveryPlan extends LightningElement {
+    @track deliverySummaryNote = '';
+    @track deliveryPriority = '';
     @track searchTerm = '';
     @track salesConfirmations = [];
     @track selectedSalesConfirmationId;
@@ -21,7 +23,7 @@ export default class NewDeliveryPlan extends LightningElement {
     @track selectedDriver = '';
     @track selectedVehicle = '';
     @track selectedWarehouse;
-    @track remarks;
+   @track remarks = '';
     @track driverOptions = [];
     @track warehouseOptions = [];
     @track isCreateButtonDisabled = true;
@@ -29,6 +31,8 @@ export default class NewDeliveryPlan extends LightningElement {
     @track activeTab = 'available';
     @track vehicleOptions = [];
     @track freightAmount;
+    @track unloadingAmount;
+    @track loadingAmount;
     freightTouched = false;
     @track deliveryTime;
     @track vehicleNumber;
@@ -65,7 +69,10 @@ export default class NewDeliveryPlan extends LightningElement {
     handleTabClick(event) {
         // Only one tab now, so no-op or can be removed
     }
-
+    
+    handleDeliverySummaryNoteChange(event) {
+    this.deliverySummaryNote = event.target.value;
+}
     get isAvailableTabActive() {
         return true;
     }
@@ -73,6 +80,15 @@ export default class NewDeliveryPlan extends LightningElement {
     get availableTabClass() {
         return 'tab active';
     }
+
+    get deliveryPriorityOptions() {
+    return [
+        { label: 'High', value: 'High' },
+        { label: 'Normal', value: 'Normal' },
+        { label: 'Low', value: 'Low' }
+    ];
+}
+
 
     async searchSalesConfirmations() {
         try {
@@ -112,6 +128,11 @@ export default class NewDeliveryPlan extends LightningElement {
         }
     }
 
+    handleDeliveryPriorityChange(event) {
+    this.deliveryPriority = event.detail.value;
+    this.validateForm();
+}
+
     handleSalesConfirmationSelect(event) {
         const selectedId = event.currentTarget.dataset.id;
         const selectedSC = this.salesConfirmations.find(sc => sc.value === selectedId);
@@ -123,7 +144,10 @@ export default class NewDeliveryPlan extends LightningElement {
             this.salesConfirmations = [];
             this.freightTouched = false;
             this.freightAmount = null;
+             this.unloadingAmount = null;
+            this.loadingAmount = null;
             this.loadInitialData();
+            this.deliverySummaryNote = '';
             this.loadFreightFromSalesOrder();
             this.loadRemarksFromSalesOrder();
         }
@@ -139,8 +163,8 @@ export default class NewDeliveryPlan extends LightningElement {
             this.availableProducts = availableProductsResult.map(product => ({
                 ...product,
                 selected: false,
-                deliveryQuantity: product.Pending_Quantity1__c,
-                displayName: `${product.Product2.Name} - Available: ${product.Pending_Quantity1__c}`
+                deliveryQuantity: product.Quantity,
+                displayName: `${product.Product2.Name} - Available: ${product.Quantity}`
             }));
             // Load driver picklist
             const driverPicklist = await getDriverPicklistOptions();
@@ -175,23 +199,19 @@ export default class NewDeliveryPlan extends LightningElement {
 }
 
 async loadRemarksFromSalesOrder() {
-    if (!this.selectedSalesConfirmationId) {
-        return;
-    }
+    if (!this.selectedSalesConfirmationId) return;
 
     try {
         const remarks = await getSalesOrderRemarks({
             salesOrderId: this.selectedSalesConfirmationId
         });
-
-        // Auto-fill only if user has not typed anything
-        if (!this.remarks) {
-            this.remarks = remarks;
-        }
+        this.remarks = remarks || '';
     } catch (error) {
         console.error('Error loading remarks from Sales Order', error);
+        this.remarks = '';
     }
 }
+
 
     handleProductSelection(event) {
         const productId = event.target.dataset.id;
@@ -199,7 +219,7 @@ async loadRemarksFromSalesOrder() {
         if (product) {
             product.selected = event.target.checked;
             if (product.selected) {
-                product.deliveryQuantity = product.Pending_Quantity1__c;
+                product.deliveryQuantity = product.Quantity;
             }
             this.validateForm();
         }
@@ -238,32 +258,39 @@ async loadRemarksFromSalesOrder() {
     }
 
     handleDriverChange(event) {
-        this.selectedDriver = event.target.value;
-        this.validateForm();
-    }
+    this.selectedDriver = event.detail.value;
+    this.validateForm();
+}
 
     handleVehicleChange(event) {
-        this.selectedVehicle = event.target.value;
-        // Update vehicle number options based on selected vehicle type
-        this.vehicleNumberOptions = (this.vehicleTypeToNumbers[this.selectedVehicle] || []).map(num => ({ label: num, value: num }));
-        this.vehicleNumber = ''; // Reset vehicle number selection
-        this.validateForm();
-    }
+    this.selectedVehicle = event.detail.value;
+    this.vehicleNumberOptions = (this.vehicleTypeToNumbers[this.selectedVehicle] || []).map(num => ({ label: num, value: num }));
+    this.vehicleNumber = '';
+    this.validateForm();
+}
 
     handleWarehouseChange(event) {
         this.selectedWarehouse = event.target.value;
         this.validateForm();
     }
 
-    handleRemarksChange(event) {
-        this.remarks = event.target.value;
-    }
+   // handleRemarksChange(event) {
+  //      this.remarks = event.target.value;
+   // }
 
    handleFreightAmountChange(event) {
     this.freightAmount = event.target.value;
     this.freightTouched = true;
 }
 
+    handleloadingChargeAmountChange(event) {
+    this.loadingAmount = event.target.value;
+    this.freightTouched = true;
+    }
+    handleUnloadingChargeAmountChange(event) {
+    this.unloadingAmount = event.target.value;
+    this.freightTouched = true;
+    }
     handleDeliveryTimeChange(event) {
         this.deliveryTime = event.target.value;
     }
@@ -277,7 +304,7 @@ async loadRemarksFromSalesOrder() {
         const hasValidQuantities = this.availableProducts.every(product => 
             !product.selected || (product.deliveryQuantity > 0 && product.deliveryQuantity <= product.Quantity)
         );
-        const hasRequiredFields = this.deliveryDate && this.selectedDriver && this.selectedVehicle;
+      const hasRequiredFields = this.deliveryDate && this.selectedDriver && this.selectedVehicle && this.deliveryPriority;
         
         this.isCreateButtonDisabled = !(hasSelectedProducts && hasValidQuantities && hasRequiredFields);
     }
@@ -288,7 +315,7 @@ async loadRemarksFromSalesOrder() {
                 .filter(product => product.selected)
                 .map(product => ({
                     id: product.Id,
-                    deliveryQuantity: product.deliveryQuantity
+                    deliveryQuantity: Number(product.deliveryQuantity)
                 }));
 
             const deliveryGroupData = {
@@ -298,10 +325,14 @@ async loadRemarksFromSalesOrder() {
                 vehicleId: this.selectedVehicle,
                 vehicleNumber: this.vehicleNumber,
                 freightAmount: this.freightAmount !== undefined && this.freightAmount !== null && this.freightAmount !== '' ? Number(this.freightAmount) : null,
+                loadingAmount: this.loadingAmount !== undefined && this.loadingAmount !== null && this.loadingAmount !== '' ? Number(this.loadingAmount) : null,
+                unloadingAmount: this.unloadingAmount !== undefined && this.unloadingAmount !== null && this.unloadingAmount !== '' ? Number(this.unloadingAmount) : null,
                 deliveryTime: this.deliveryTime,
                 warehouseId: this.selectedWarehouse,
                 remarks: this.remarks,
-                productData: selectedProducts
+                productData: selectedProducts,
+                deliverySummaryNote: this.deliverySummaryNote,
+                deliveryPriority: this.deliveryPriority
             };
 
             await createDeliveryGroup({ deliveryGroupData: JSON.stringify(deliveryGroupData) });
@@ -315,7 +346,11 @@ async loadRemarksFromSalesOrder() {
             this.selectedWarehouse = '';
             this.remarks = '';
             this.freightAmount = null;
+                this.unloadingAmount = null;
+                    this.loadingAmount = null;
             this.deliveryTime = null;
+            this.deliverySummaryNote = '';
+            this.deliveryPriority = '';
             
             // Refresh data
             await this.loadInitialData();

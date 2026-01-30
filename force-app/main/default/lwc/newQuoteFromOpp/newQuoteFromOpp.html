@@ -240,6 +240,14 @@
                         <!-- Natural Stone branch -->
                         <template if:true={item.isNaturalStone}>
                             <div class="slds-grid slds-wrap slds-gutters">
+                                 <div class="slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8 qty-box">
+                                    <lightning-input type="number" label="Unit Price (₹)"
+                                                        value={item.msp}
+                                                        data-product-id={item.id}
+                                                        data-index={index}
+                                                        disabled="true">
+                                    </lightning-input>
+                                </div>
 
                                 <div class="slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8 qty-box">
                                     <lightning-input type="number" label="Unit Price (₹)"
@@ -376,6 +384,13 @@
 
                                     </div>
 
+                                     <div class="field-box slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
+                                        <lightning-input type="number" label="MSP"
+                                                            value={item.msp}
+                                                            disabled><!--(After Tax)-->
+                                        </lightning-input>
+                                    </div>
+
                                     <div class="field-box slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
                                         <lightning-input type="number" label="Unit Price "
                                                             value={item.unitPriceAfterTax}
@@ -449,6 +464,12 @@
                                 <!-- </template>-->
                                 <!-- Unit Price (After Tax) for non-tile -->
                                 <template if:false={item.isTile}>
+                                     <div class="field-box slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
+                                        <lightning-input type="number" label="MSP "
+                                                            value={item.msp}
+                                                            disabled><!--(After Tax)-->
+                                        </lightning-input>
+                                    </div>
                                     <div class="qty-box slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
                                         <lightning-input type="number" label="Unit Price"
                                                             value={item.unitPriceAfterTax}
@@ -456,7 +477,7 @@
                                         </lightning-input>
                                     </div>
                                    <!--  <template if:true={showDiscountSection}>-->
-                                        <div class="qty-box slds-col slds-small-size_1-of-1 slds-medium-size_2-of-12">
+                                        <div class="qty-box slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
                                             <lightning-input type="number" label="After Disc/Piece (₹)"
                                                                 value={item.afterDiscPricePiece}
                                                                  step="0.000001"
@@ -606,6 +627,13 @@
                 <label>Unloading Charge (₹)</label>
                 <input type="number" value={unloadingCharge} onchange={handleUnloadingChargeChange} />
             </div>
+            <div class="charge-row">
+            </div>
+            <div class="charge-row">
+                <label>Round Off (₹)</label>
+                <input type="number" value={roundOff} onchange={handleroundOffChargeChange} />
+            </div>
+
             </div>
 
             <div class="summary-row total">

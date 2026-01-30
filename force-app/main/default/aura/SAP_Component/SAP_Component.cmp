@@ -21,21 +21,20 @@
         <b> Get Data</b>
         <lightning:select name="DataType" label="Select Data type" required="true" value="{!v.selectedType}" onchange="{!c.ondataTypeChange}">
             <option value="">choose one...</option>
-            <option value="OutstandingData">Outstanding Data</option>
+         <!--   <option value="OutstandingData">Outstanding Data</option> -->
             <option value="Stock">Product Stock</option>
            
              <aura:if isTrue="{!(v.userProfile=='System Administrator')}">
             <option value="InvoiceData">Invoice Data</option>
-            <option value="Receipt">Receipt Data</option>
             </aura:if>
             
         </lightning:select>
-        <!-- Outstanding Data -->
+        <!-- Outstanding Data
         <aura:if isTrue="{!(v.selectedType=='OutstandingData')}">
             
             
             <div class="slds-size_1-of-1 slds-p-horizontal_small">
-                <div class="slds-form-element slds-m-bottom--medium">
+                <div class="slds-form-element slds-m-bottom-medium">
                     <div class="slds-form-element__control">   
                         
                         
@@ -46,9 +45,9 @@
                                 <div class="{!if(not(empty(v.matchacc)), 'result-buttom','')}">
                                     <aura:iteration items="{!v.matchacc}" var="item" start="0" end="8">
                                         <li role="presentation">
-                                            <span class="slds-lookup__item-action slds-media slds-media--center" role="option">
+                                            <span class="slds-lookup__item-action slds-media slds-media-center" role="option">
                                                 <div class="slds-media__body">
-                                                    <div class="slds-input-has-icon slds-input-has-icon--right">
+                                                    <div class="slds-input-has-icon slds-input-has-icon-right">
                                                         <div class="slds-lookup__result-text" data-record="{!index}" data-id="{!item.Id}" onclick="{!c.update }">
                                                             <a role="option" >
                                                                 <lightning:icon iconName="standard:product" size="xx-small"/>&nbsp;{!item.Name}
@@ -71,13 +70,10 @@
                         
                     </div> </div></div>
             
-            <!--    
-            <lightning:input type="date" name="fromDate" label="From Date" value="{!v.fromDate}"/>
-            <lightning:input type="date" name="ToDate" label="To Date" value="{!v.ToDate}" autofill="false"/><br/> -->
             <center>
                 <lightning:button variant="brand" label="Get Outstanding Data" title="Pull data" onclick="{!c.navigateToComponent}" />
             </center>
-        </aura:if> 
+        </aura:if>  -->
         <aura:if isTrue="{!(v.selectedType=='Stock')}">
             <lightning:select name="todayPlan"  label="Warehouse"  value="{!v.Warehouse}">
                 <aura:iteration items="{!v.WarehouseList}" var="value">

@@ -26,7 +26,7 @@ public with sharing class NewDeliveryPlanController {
         try {
             // Get all cart line items for this sales confirmation
             List<OrderItem> cartItems = [
-                SELECT Id, Product2.Name, Quantity, UnitPrice,Pending_Quantity1__c,
+                SELECT Id, Product2.Name, Quantity, UnitPrice,
                        order.Name, orderId,//, Moved_to_Delivery__c
                    //    (SELECT Id, Status__c FROM Pending_Purchase_Line_Items__r),
                        (SELECT Id, Quantity__c FROM Delivery_Line_Items__r)
@@ -109,6 +109,7 @@ public with sharing class NewDeliveryPlanController {
         system.debug('deliveryGroupData>'+ deliveryGroupData);
         try {
             Map<String, Object> data = (Map<String, Object>)JSON.deserializeUntyped(deliveryGroupData);
+            String deliverySummaryNote = (String) data.get('deliverySummaryNote');
             Id salesOrderId = (Id)data.get('salesConfirmationId');
 
            Order so = [
@@ -170,6 +171,9 @@ public with sharing class NewDeliveryPlanController {
                 Driver_Assigned__c = (String)data.get('driverId'),
                 Choose_Vehicle__c = (String)data.get('vehicleId'),
                 Remarks__c = (String)data.get('remarks'),
+                Delivery_Summary_Note__c = deliverySummaryNote,
+                Delivery_Priority__c = (String) data.get('deliveryPriority'),
+
                 Status__c = 'Scheduled',
                  Delivery_Status__c = 'Scheduled',
                 
@@ -191,7 +195,7 @@ public with sharing class NewDeliveryPlanController {
                 system.debug('productObj>'+ productObj);
                 Map<String, Object> product = (Map<String, Object>)productObj;
                 String productId = (String)product.get('id');
-                Decimal deliveryQuantity = (Decimal)product.get('deliveryQuantity');
+               Decimal deliveryQuantity = Decimal.valueOf(String.valueOf(product.get('deliveryQuantity')));
                 
                 // Create Delivery Line Item
                 lineItems.add(new Delivery_Line_Item__c(
