@@ -109,19 +109,79 @@ public with sharing class NewDeliveryPlanController {
         system.debug('deliveryGroupData>'+ deliveryGroupData);
         try {
             Map<String, Object> data = (Map<String, Object>)JSON.deserializeUntyped(deliveryGroupData);
+            String deliverySummaryNote = (String) data.get('deliverySummaryNote');
+            Id salesOrderId = (Id)data.get('salesConfirmationId');
+
+           Order so = [
+            SELECT 
+                Id,
+                AccountId,
+                Warehouse__c,
+                Warehouse_Manager__c,
+                Contact_Person_Name__c,	
+                Freight_Charge__c
+            FROM Order
+            WHERE Id = :salesOrderId
+            LIMIT 1
+        ];
+
             
+            Decimal finalFreight;
+
+        if (data.containsKey('freightAmount') && data.get('freightAmount') != null) {
+            finalFreight = Decimal.valueOf(String.valueOf(data.get('freightAmount')));
+        } else {
+            finalFreight = so.Freight_Charge__c;
+        }
+
+                    // ===== Delivery Date + Time merge =====
+            Date deliveryDate;
+            Time deliveryTime;
+            Datetime deliveryDateTime;
+
+            // Date
+            if (data.containsKey('deliveryDate') && data.get('deliveryDate') != null) {
+                deliveryDate = Date.valueOf((String)data.get('deliveryDate'));
+            }
+
+            // Time
+            if (data.containsKey('deliveryTime') && String.isNotBlank((String)data.get('deliveryTime'))) {
+                deliveryTime = parseTimeString(data.get('deliveryTime'));
+            }
+
+            // Combine Date + Time → Datetime
+            if (deliveryDate != null) {
+                if (deliveryTime != null) {
+                    deliveryDateTime = Datetime.newInstance(deliveryDate, deliveryTime);
+                } else {
+                    deliveryDateTime = Datetime.newInstance(
+                        deliveryDate,
+                        Time.newInstance(0, 0, 0, 0)
+                    );
+                }
+            }
             // Create Delivery Group
             Delivery_Group__c deliveryGroup = new Delivery_Group__c(
-                Sales_Order__c = (Id)data.get('salesConfirmationId'),
-                Delivery_Date__c = Date.valueOf((String)data.get('deliveryDate')),
+                Sales_Order__c = salesOrderId,
+                  Account__c  = so.AccountId,
+                    Warehouse__c   = so.Warehouse__c,
+                    Warehouse_Manager__c = so.Warehouse_Manager__c,
+                    Contact_Person__c = so.Contact_Person_Name__c,
+                   Delivery_Date_Time__c = deliveryDateTime,
                 Driver_Assigned__c = (String)data.get('driverId'),
                 Choose_Vehicle__c = (String)data.get('vehicleId'),
                 Remarks__c = (String)data.get('remarks'),
+                Delivery_Summary_Note__c = deliverySummaryNote,
+                Delivery_Priority__c = (String) data.get('deliveryPriority'),
+
                 Status__c = 'Scheduled',
-                Delivery_Time__c = data.containsKey('deliveryTime') && String.isNotBlank((String)data.get('deliveryTime')) ? parseTimeString(data.get('deliveryTime')) : null,
+                 Delivery_Status__c = 'Scheduled',
+                
                 Vehicle_Number__c = data.containsKey('vehicleNumber') ? (String)data.get('vehicleNumber') : null,
-                Freight_Amount__c = data.containsKey('freightAmount') && data.get('freightAmount') != null ? Decimal.valueOf(String.valueOf(data.get('freightAmount'))) : null,
-           Delivery_Status__c='Draft'
+               Freight_Amount__c = finalFreight
+
+
+                
             );
             
  
@@ -135,7 +195,7 @@ public with sharing class NewDeliveryPlanController {
                 system.debug('productObj>'+ productObj);
                 Map<String, Object> product = (Map<String, Object>)productObj;
                 String productId = (String)product.get('id');
-                Decimal deliveryQuantity = (Decimal)product.get('deliveryQuantity');
+               Decimal deliveryQuantity = Decimal.valueOf(String.valueOf(product.get('deliveryQuantity')));
                 
                 // Create Delivery Line Item
                 lineItems.add(new Delivery_Line_Item__c(
@@ -229,4 +289,26 @@ public with sharing class NewDeliveryPlanController {
         Integer second = parts.size() > 2 ? Integer.valueOf(parts[2]) : 0;
         return Time.newInstance(hour, minute, second, 0);
     }
+
+    @AuraEnabled(cacheable=true)
+    public static Decimal getSalesOrderFreight(Id salesOrderId) {
+    Order so = [
+    SELECT Freight_Charge__c
+    FROM Order
+    WHERE Id = :salesOrderId
+    LIMIT 1
+];
+    return so.Freight_Charge__c;
+}
+
+@AuraEnabled(cacheable=true)
+public static String getSalesOrderRemarks(Id salesOrderId) {
+    Order so = [
+        SELECT Remarks__c
+        FROM Order
+        WHERE Id = :salesOrderId
+        LIMIT 1
+    ];
+    return so.Remarks__c;
+}
 }

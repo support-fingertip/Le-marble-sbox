@@ -27,6 +27,10 @@ export default class CreateSOFromQuote extends NavigationMixin(LightningElement)
     @track isQuoteItemsLoaded = false;
     @track selectedWarehouse;
     @track warehouseOptions = [];
+    @track deliveryCommittedDate;
+    @track remarks = '';
+    @track credit = false;
+    @track isAccountBlocked = false;
 
     @api recordId; 
     @track isModalOpen = false;
@@ -57,6 +61,7 @@ export default class CreateSOFromQuote extends NavigationMixin(LightningElement)
     return (
         this.isLoading ||
         !this.selectedWarehouse ||
+        !this.deliveryCommittedDate ||
         !this.quoteLineItems.some(item => item.isSelected)
     );
 }
@@ -64,7 +69,10 @@ export default class CreateSOFromQuote extends NavigationMixin(LightningElement)
     get hasCartItems() {
         return this.cartLineItems && this.cartLineItems.length > 0;
     }
-
+    handleCreditToggle(event) {
+        this.credit = event.target.checked;
+        console.log('Credit Toggle Value:', this.credit);
+    }
     get showCreditAmount() {
         return this.selectedPaymentType === 'Credit';
     }
@@ -72,7 +80,7 @@ export default class CreateSOFromQuote extends NavigationMixin(LightningElement)
     get showCreditDueDate() {
         return this.selectedPaymentType === 'Credit';
     }
-
+    
     get groupedCartItems() {
         return this.hasCartItems;
     }
@@ -81,7 +89,7 @@ export default class CreateSOFromQuote extends NavigationMixin(LightningElement)
 wiredQuoteInfo({ error, data }) {
     if (data) {
         const quote = data.quote; 
-
+            this.isAccountBlocked=quote.Account.Blocked_Account__c;
 
         this.showCreateSOButton = !quote.Sales_Order_Created__c;
 
@@ -101,6 +109,7 @@ wiredQuoteInfo({ error, data }) {
                 : 'N/A',
             executive: quote.Owner?.Name || 'N/A'
         };
+        this.remarks = '';
     } else if (error) {
         console.error(error);
         this.showToast('Error', 'Failed to fetch quote information', 'error');
@@ -119,8 +128,10 @@ wiredQuoteInfo({ error, data }) {
             return {
                 ...item,
                 isSelected: true,  
-                totalPrice: quantity * unitPrice, 
+                totalPrice : (quantity * unitPrice).toFixed(2),
+             //   totalPrice: quantity * unitPrice, 
                 tax: (quantity * unitPrice) * 0.18, 
+                BlockQty:0,
                 category: item.PricebookEntry?.Product2?.Product_Category__c || 'N/A'
             };
         });
@@ -196,6 +207,11 @@ wiredQuoteInfo({ error, data }) {
         }));
         this.groupCartItems();
     }
+
+    handleRemarksChange(event) {
+    this.remarks = event.target.value;
+}
+
 
 
     handleWarehouseChange(event) {
@@ -333,6 +349,26 @@ wiredQuoteInfo({ error, data }) {
         this.creditDueDate = event.detail.value;
     }
 
+
+    handleDeliveryDateChange(event) {
+    this.deliveryCommittedDate = event.detail.value;
+}
+    handleBlockQtyChange(event) {
+        const recordId = event.target.dataset.id;
+        const value = event.target.value;
+
+        this.quoteLineItems = this.quoteLineItems.map(item => {
+            if (item.Id === recordId) {
+                return {
+                    ...item,
+                    BlockQty: value ? Number(value) : 0
+                };
+            }
+            return item;
+        });
+    }
+
+
     async handleOpenModal() {
         this.isLoading = true;
         this.isModalOpen = true;
@@ -366,10 +402,44 @@ wiredQuoteInfo({ error, data }) {
             return;
         }
 
+         if (!this.deliveryCommittedDate) {
+            this.showToast(
+                'Error',
+                'Delivery Committed Date is required',
+                'error'
+            );
+            this.isLoading = false;
+            return;
+        }
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const selectedDate = new Date(this.deliveryCommittedDate);
+
+        if (selectedDate < today) {
+            this.showToast(
+                'Error',
+                'Delivery Committed Date cannot be in the past',
+                'error'
+            );
+            this.isLoading = false;
+            return;
+        }
+
+        const blockQtyMap = {};
+            selectedItems.forEach(item => {
+            blockQtyMap[item.Id] = item.BlockQty || 0;
+        });
+
     const orderId = await createOrderFromQuote({
     quoteId: this.recordId,
     warehouseId: this.selectedWarehouse,
-    selectedQuoteLineItemIds: selectedItems.map(i => i.Id)
+    selectedQuoteLineItemIds: selectedItems.map(i => i.Id),
+    blockQtyMap: blockQtyMap,
+    deliveryCommittedDate: this.deliveryCommittedDate,
+    remarks: this.remarks,
+    credit : this.credit
 });
         this.showToast(
             'Success',

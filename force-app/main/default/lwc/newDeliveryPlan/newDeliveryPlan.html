@@ -176,8 +176,33 @@
                     <lightning-input type="number" label="Freight Amount" value={freightAmount} onchange={handleFreightAmountChange} class="custom-input"></lightning-input>
                   </div>
                   <div class="slds-form-element">
-                    <lightning-textarea label="Remarks" value={remarks} onchange={handleRemarksChange} placeholder="Enter remarks" class="custom-input">
-                    </lightning-textarea>
+                    <lightning-input type="number" label="Loading Charge" value={loadingAmount} onchange={handleloadingChargeAmountChange} class="custom-input"></lightning-input>
+                  </div>
+                  <div class="slds-form-element">
+                    <lightning-input type="number" label="Unloading Charge" value={unloadingAmount} onchange={handleUnloadingChargeAmountChange} class="custom-input"></lightning-input>
+                  </div>
+
+
+                  <div class="slds-form-element"> 
+                    <lightning-combobox name="deliveryPriority" label="Delivery Priority" value={deliveryPriority} placeholder="Select Priority" options={deliveryPriorityOptions}  onchange={handleDeliveryPriorityChange}>
+                  </lightning-combobox>
+                </div>
+
+                <div class="slds-form-element">
+                <lightning-textarea
+                    label="Delivery Summary Note"
+                    value={deliverySummaryNote}
+                    onchange={handleDeliverySummaryNoteChange}
+                    placeholder="Enter delivery summary note"
+                    class="custom-input">
+                </lightning-textarea>
+            </div>
+                  <div class="slds-form-element">
+                   <lightning-textarea
+                  label="Remarks"
+                  value={remarks}
+                  disabled>
+                </lightning-textarea>
                   </div>
                   <div class="slds-form-element slds-m-top_medium">
                     <div class="slds-form-element__control">

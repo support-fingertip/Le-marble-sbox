@@ -1,6 +1,7 @@
 @IsTest
 public class LeadTriggerTest {
 
+
     // Create required test user
     private static User createSalesUser() {
         Profile p = [

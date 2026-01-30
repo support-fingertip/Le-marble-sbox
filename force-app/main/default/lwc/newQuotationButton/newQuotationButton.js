@@ -24,7 +24,7 @@ export default class QuotationButton extends NavigationMixin(LightningElement) {
         { label: 'Category', fieldName: 'category', type: 'text' },
         { label: 'Quantity', fieldName: 'quantity', type: 'number' },
         { label: 'Unit Price', fieldName: 'unitPrice', type: 'currency' },
-        { label: 'Total Price', fieldName: 'totalPrice', type: 'currency' }
+        { label: 'Total Price After Disc', fieldName: 'totalPrice', type: 'currency' }
     ];
 
     get isMobile() {
@@ -40,7 +40,7 @@ export default class QuotationButton extends NavigationMixin(LightningElement) {
                 category: item.Product_Category__c,
                 quantity: item.Quantity,
                 unitPrice: item.UnitPrice,
-                totalPrice: item.TotalPrice,
+                totalPrice: item.Calculated_Total_Price__c,
                 selected: false
             }));
         }

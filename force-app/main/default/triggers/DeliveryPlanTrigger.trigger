@@ -16,8 +16,7 @@ trigger DeliveryPlanTrigger on Delivery_Group__c (
     // Block Delivered status without approval
     if (Trigger.isBefore && Trigger.isUpdate) {
         DeliveryPlanTriggerHandler.beforeUpdate(
-            Trigger.new,
-            Trigger.oldMap
+            Trigger.new,Trigger.oldMap
         );
     }
 

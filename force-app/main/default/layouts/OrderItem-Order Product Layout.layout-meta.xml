@@ -31,11 +31,11 @@
                 <field>Quantity</field>
             </layoutItems>
             <layoutItems>
-                <behavior>Edit</behavior>
+                <behavior>Readonly</behavior>
                 <field>Delivered_Quantity__c</field>
             </layoutItems>
             <layoutItems>
-                <behavior>Edit</behavior>
+                <behavior>Readonly</behavior>
                 <field>Delivery_Status__c</field>
             </layoutItems>
             <layoutItems>
@@ -43,20 +43,24 @@
                 <field>Pending_Quantity1__c</field>
             </layoutItems>
             <layoutItems>
-                <behavior>Edit</behavior>
+                <behavior>Readonly</behavior>
                 <field>Sale_Price__c</field>
             </layoutItems>
             <layoutItems>
-                <behavior>Edit</behavior>
+                <behavior>Readonly</behavior>
                 <field>Disc_Type__c</field>
             </layoutItems>
             <layoutItems>
-                <behavior>Edit</behavior>
+                <behavior>Readonly</behavior>
                 <field>Dis_Value__c</field>
             </layoutItems>
             <layoutItems>
-                <behavior>Edit</behavior>
+                <behavior>Readonly</behavior>
                 <field>After_Disc_Price_Sqft__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Readonly</behavior>
+                <field>Block_Quantity__c</field>
             </layoutItems>
         </layoutColumns>
         <layoutColumns>
@@ -115,6 +119,7 @@
     <multilineLayoutFields>Description</multilineLayoutFields>
     <multilineLayoutFields>OrderId</multilineLayoutFields>
     <relatedLists>
+        <excludeButtons>New</excludeButtons>
         <fields>NAME</fields>
         <relatedList>Delivery_Line_Item__c.Sales_Order_Line_Item__c</relatedList>
     </relatedLists>

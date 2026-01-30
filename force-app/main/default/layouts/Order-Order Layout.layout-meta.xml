@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Layout xmlns="http://soap.sforce.com/2006/04/metadata">
+    <excludeButtons>Change</excludeButtons>
+    <excludeButtons>CreateContractFromOrder</excludeButtons>
+    <excludeButtons>DeepCloneAction</excludeButtons>
+    <excludeButtons>OpenSlackRecordChannel</excludeButtons>
     <layoutSections>
         <customLabel>false</customLabel>
         <detailHeading>false</detailHeading>
@@ -113,6 +117,42 @@
             <layoutItems>
                 <behavior>Edit</behavior>
                 <field>Discount__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>SAP_Doc_Num__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>Remarks__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>AddressLine1__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>AddressLine2__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>AddressLine3__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>District__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>State__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>Country__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>Credit__c</field>
             </layoutItems>
         </layoutColumns>
         <layoutColumns>
@@ -234,6 +274,11 @@
         </platformActionListItems>
     </platformActionList>
     <relatedLists>
+        <excludeButtons>AddOrderProduct</excludeButtons>
+        <excludeButtons>AddProduct</excludeButtons>
+        <excludeButtons>EditAllProduct</excludeButtons>
+        <excludeButtons>MultiAdd</excludeButtons>
+        <excludeButtons>MultiEdit</excludeButtons>
         <fields>Product2</fields>
         <fields>OrderItemNumber</fields>
         <fields>Quantity</fields>
@@ -270,6 +315,8 @@
         <relatedList>RelatedHistoryList</relatedList>
     </relatedLists>
     <relatedLists>
+        <excludeButtons>MassChangeOwner</excludeButtons>
+        <excludeButtons>New</excludeButtons>
         <fields>NAME</fields>
         <relatedList>Delivery_Group__c.Sales_Order__c</relatedList>
     </relatedLists>

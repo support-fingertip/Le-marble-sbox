@@ -86,22 +86,30 @@ public class LeadTriggerHandler {
             }
         }
 
-        // AUTO-FILL COMPANY & COUNTRY 
-        for (Lead ls : leadList) {
+       // AUTO-FILL COMPANY, COUNTRY & COUNTRY CODE ---
+      for (Lead ls : leadList) {
 
-            // Auto-fill Company
-            if (ls.Company == null) {
-                String fullName = '';
-                if (String.isNotBlank(ls.FirstName))  fullName += ls.FirstName;
-                if (String.isNotBlank(ls.LastName))   fullName += (fullName != '' ? ' ' : '') + ls.LastName;
-                ls.Company = fullName;
-            }
+    // Auto-fill Company
+    if (ls.Company == null) {
+        String fullName = '';
+        if (String.isNotBlank(ls.FirstName))  fullName += ls.FirstName;
+        if (String.isNotBlank(ls.LastName))   fullName += (fullName != '' ? ' ' : '') + ls.LastName;
+        ls.Company = fullName;
+    }
 
-            // Auto-fill Country
-            if (ls.Country == null || ls.Country == '') {
-                ls.Country = 'India';
-            }
-        }
+    // Auto-fill Country 
+    if (ls.Country == null || ls.Country == '') {
+        ls.Country = 'India';
+    }
+
+    // Auto-fill Country Code (NEW)
+    if ((ls.Country_Code__c == null || ls.Country_Code__c == '')
+        && ls.Country != null
+        && ls.Country.toLowerCase() == 'india') {
+
+        ls.Country_Code__c = 'IN';
+    }
+}
 
 
         // SALES EXECUTIVE OWNER LOGIC (BEFORE UPDATE)
@@ -130,96 +138,120 @@ public class LeadTriggerHandler {
 
 
 
-    // AFTER UPDATE — ALL NOTIFICATIONS
-    public static void afterUpdate(List<Lead> leadList, Map<Id, Lead> oldMap) {
+  public static void afterUpdate(List<Lead> leadList, Map<Id, Lead> oldMap) {
+  
+  
 
-        // Notification Types
-        CustomNotificationType unqualifiedType =
-            [SELECT Id FROM CustomNotificationType WHERE DeveloperName = 'Lead_unqualified_notification' LIMIT 1];
+    // Notification Types (use EXACT developer names from Setup)
+    CustomNotificationType unqualifiedType =
+        [SELECT Id FROM CustomNotificationType WHERE DeveloperName = 'Lead_Unqualified_Notification' LIMIT 1];
 
-        CustomNotificationType assignType =
-            [SELECT Id FROM CustomNotificationType WHERE DeveloperName = 'Lead_assign_notification' LIMIT 1];
+    CustomNotificationType assignType =
+        [SELECT Id FROM CustomNotificationType WHERE DeveloperName = 'Lead_Assigned_Notification' LIMIT 1];
 
-        CustomNotificationType convertedType =
-            [SELECT Id FROM CustomNotificationType WHERE DeveloperName = 'Lead_converted_notification' LIMIT 1];
+    CustomNotificationType convertedType =
+        [SELECT Id FROM CustomNotificationType WHERE DeveloperName = 'Lead_Converted_Notification' LIMIT 1];
 
-        // Admin recipient
-        Id adminId = [
-            SELECT Id FROM User WHERE Profile.Name = 'System Administrator' AND IsActive = true LIMIT 1
-        ].Id;
+    for (Lead newLead : leadList) {
+        Lead oldLead = oldMap.get(newLead.Id);
+        if (oldLead == null) continue;
 
+        // Build Full Name
+        String sal = (newLead.Salutation != null) ? newLead.Salutation + '. ' : '';
+        String fname = (newLead.FirstName != null) ? newLead.FirstName + ' ' : '';
+        String lname = (newLead.LastName != null) ? newLead.LastName : '';
+        String fullName = sal + fname + lname;
+        String company = (newLead.Company != null) ? newLead.Company : '';
 
-        for (Lead newLead : leadList) {
+        // LEAD UNQUALIFIED NOTIFICATION (to Admin/Manager as per BRD)
+        if (newLead.Status == 'Unqualified' && oldLead.Status != 'Unqualified') {
+            try {
+                Messaging.CustomNotification noti = new Messaging.CustomNotification();
+                noti.setTitle('Lead Marked as Unqualified');
+                noti.setBody('Lead "' + fullName + '" (' + company + ') has been marked as Unqualified.');
+                noti.setNotificationTypeId(unqualifiedType.Id);
+                noti.setTargetId(newLead.Id);
 
-            Lead oldLead = oldMap.get(newLead.Id);
+                // Example: send to Owner (change to Manager if BRD)
+                noti.send(new Set<String>{ String.valueOf(newLead.OwnerId) });
 
-            // Build Full Name
-            String sal = (newLead.Salutation != null) ? newLead.Salutation + '. ' : '';
-            String fname = (newLead.FirstName != null) ? newLead.FirstName + ' ' : '';
-            String lname = (newLead.LastName != null) ? newLead.LastName : '';
-            String fullName = sal + fname + lname;
-            String company = (newLead.Company != null) ? newLead.Company : '';
-
-            //  LEAD UNQUALIFIED NOTIFICATION
-            if (newLead.Status == 'Unqualified' && oldLead.Status != 'Unqualified') {
-                try {
-                    Messaging.CustomNotification noti = new Messaging.CustomNotification();
-                    noti.setTitle('Lead Marked as Unqualified');
-                    noti.setBody('Lead "' + fullName + '" (' + company + ') has been marked as Unqualified.');
-                    noti.setNotificationTypeId(unqualifiedType.Id);
-                    noti.setTargetId(newLead.Id);
-                    noti.send(new Set<String>{ adminId });
-                } catch (Exception e) {
-                    System.debug('Error sending unqualified notification: ' + e.getMessage());
-                }
+            } catch (Exception e) {
+                System.debug('Error sending unqualified notification: ' + e.getMessage());
             }
+        }
 
-            // LEAD ASSIGNED NOTIFICATION
-            if (newLead.OwnerId != oldLead.OwnerId) {
-                try {
-                    Messaging.CustomNotification noti = new Messaging.CustomNotification();
-                    noti.setTitle('New Lead Assigned');
-                    noti.setBody('A new lead "' + fullName + '" (' + company + ') has been assigned to you.');
-                    noti.setNotificationTypeId(assignType.Id);
-                    noti.setTargetId(newLead.Id);
-                    noti.send(new Set<String>{ newLead.OwnerId });
-                } catch (Exception e) {
-                    System.debug('Error sending assignment notification: ' + e.getMessage());
-                }
+        // LEAD ASSIGNED NOTIFICATION
+        if (newLead.OwnerId != oldLead.OwnerId) {
+            try {
+                Messaging.CustomNotification noti = new Messaging.CustomNotification();
+                noti.setTitle('New Lead Assigned');
+                noti.setBody('A new lead "' + fullName + '" (' + company + ') has been assigned to you.');
+                noti.setNotificationTypeId(assignType.Id);
+                noti.setTargetId(newLead.Id);
+                noti.send(new Set<String>{ String.valueOf(newLead.OwnerId) });
+
+            } catch (Exception e) {
+                System.debug('Error sending assignment notification: ' + e.getMessage());
             }
+        }
 
-            // LEAD CONVERTED NOTIFICATION
-            if (newLead.IsConverted == true && oldLead.IsConverted == false) {
-                try {
-                    Messaging.CustomNotification noti = new Messaging.CustomNotification();
-                    noti.setTitle('Lead Converted');
-                    noti.setBody('Lead "' + fullName + '" (' + company + ') has been successfully converted.');
-                    noti.setNotificationTypeId(convertedType.Id);
-                    noti.setTargetId(newLead.Id);
-                    noti.send(new Set<String>{ adminId });
-                } catch (Exception e) {
-                    System.debug('Error sending conversion notification: ' + e.getMessage());
-                }
+        // ✅ LEAD CONVERTED NOTIFICATION (send to Lead Owner / assigned user)
+        if (newLead.IsConverted == true && oldLead.IsConverted == false) {
+            try {
+                Messaging.CustomNotification noti = new Messaging.CustomNotification();
+                noti.setTitle('Lead Converted');
+                noti.setBody('Lead "' + fullName + '" (' + company + ') has been successfully converted.');
+                noti.setNotificationTypeId(convertedType.Id);
+                noti.setTargetId(newLead.Id);
+
+                // ✅ Send to assigned user/owner
+                noti.send(new Set<String>{ String.valueOf(newLead.OwnerId) });
+
+            } catch (Exception e) {
+                System.debug('Error sending conversion notification: ' + e.getMessage());
             }
         }
     }
+}
 
 
-
-    // AFTER INSERT — SEND THANK YOU EMAIL
+    // AFTER INSERT 
     public static void afterInsert(List<Lead> leadList) {
-        List<Id> leadIds = new List<Id>();
+    
+    CustomNotificationType assignType =
+    [SELECT Id FROM CustomNotificationType WHERE DeveloperName = 'Lead_Assigned_Notification' LIMIT 1];
 
-        for (Lead ld : leadList) {
-            if (ld.Email != null) {
-                leadIds.add(ld.Id);
-            }
+for (Lead ld : leadList) {
+    try {
+        Messaging.CustomNotification noti = new Messaging.CustomNotification();
+        noti.setTitle('New Lead Assigned');
+        noti.setBody('A new lead "' + ld.Name + '" has been assigned to you.');
+        noti.setNotificationTypeId(assignType.Id);
+        noti.setTargetId(ld.Id);
+        noti.send(new Set<String>{ String.valueOf(ld.OwnerId) });
+    } catch (Exception e) {
+        System.debug('Error sending assignment notification after insert: ' + e.getMessage());
+    }
+}
+    List<Id> leadIds = new List<Id>();
+    for (Lead ld : leadList) {
+
+        if (ld.Email != null) {
+            leadIds.add(ld.Id);
         }
-
-        if (!leadIds.isEmpty()) {
-            LeadThankYouEmailHelper.sendThankYouEmail(leadIds);
+        String phone = ld.Phone != null ? ld.Phone : ld.MobilePhone;
+        if (phone != null) {
+            String phoneNumber = phone.replaceAll('[^0-9]', '');
+           if (!phoneNumber.startsWith('91') && phoneNumber.length() == 10) {
+    phoneNumber = '91' + phoneNumber;
+    }
+            WhatsAppMessageSender.sendThanksMessage(phoneNumber);
         }
     }
+  //  if (!leadIds.isEmpty()) {
+       // LeadThankYouEmailHelper.sendThankYouEmail(leadIds);
+   // }
+}
     
 // DUPLICATION CHECK (EMAIL + SECONDARY EMAIL + PHONE + SEC PHONE)
 

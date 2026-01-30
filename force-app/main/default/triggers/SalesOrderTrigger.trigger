@@ -22,7 +22,7 @@ trigger SalesOrderTrigger on Sales_Confirmation__c (after insert, after update) 
 
             if (!approvedOrders.isEmpty()) {
                 // Create SAP Orders
-                SAPOrderService.createSAPOrders(approvedOrders);
+       //         SAPOrderService.createSAPOrders(approvedOrders);
                 
                 // Handle warehouse locked records
                 List<Sales_Confirmation__c> warehouseLockedRecords = new List<Sales_Confirmation__c>();

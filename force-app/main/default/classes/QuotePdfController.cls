@@ -7,8 +7,28 @@ public with sharing class QuotePdfController {
     public String discountType { get; set; }
     public Decimal discountValue { get; set; }
     public Decimal mrpTotal { get; set; }
+    public Boolean hasSanitary { get; set; }
+    public Boolean hasFittings { get; set; }
     public Boolean hasNaturalStone { get; set; }
+    public Boolean hasBathingSolutions { get; set; }
     public Decimal priceSqft { get; set; }
+    public Boolean hasHeadOfficeDivision { get; set; }
+    public Boolean hasTile { get; set; }
+    public Boolean hasGraniteNatStone { get; set; }
+    public Boolean hasAggloTops { get; set; }
+    public Boolean hasRoofingClay { get; set; }
+    public Boolean hasSinks { get; set; }
+    public Boolean hasElecLighting { get; set; }
+    public Boolean hasFacadesCladding { get; set; }
+    public Boolean hasPlumbingBath { get; set; }
+    public Boolean hasImpMarbles { get; set; }
+    public Boolean hasTools { get; set; }
+    public Boolean hasGlassMosaicPool { get; set; }
+    public Boolean hasTimberSpcFlr { get; set; }
+    public Boolean hasConstChemAdh { get; set; }
+
+
+
 
     public QuotePdfController(ApexPages.StandardController stdController) {
         this.cart = (Quote)stdController.getRecord();
@@ -70,7 +90,7 @@ public with sharing class QuotePdfController {
                        Sqft__c, Price_Sqft__c, After_Disc_Price_Sqft__c,
                        Total_Price__c, Price__c, Unit_Price__c, UOM__c,
                        After_Disc_Price_Piece__c, Dis_Value__c,
-                       Room_Type__c, Disc_Type__c,
+                       Room_Type__c, Disc_Type__c,UnitPrice,
                        Description, Without_Discount_Total_Price__c,
                        Calculated_Total_Price__c 
                 FROM QuoteLineItem
@@ -81,7 +101,7 @@ public with sharing class QuotePdfController {
                 SELECT Id, Product2.Name, Product_Category__c, Quantity,
                        Sqft__c, Price_Sqft__c, After_Disc_Price_Sqft__c,
                        Total_Price__c, Price__c, Unit_Price__c, UOM__c,
-                       After_Disc_Price_Piece__c, Dis_Value__c,
+                       After_Disc_Price_Piece__c, Dis_Value__c,UnitPrice,
                        Room_Type__c, Disc_Type__c,
                        Description, Without_Discount_Total_Price__c,
                        Calculated_Total_Price__c 
@@ -94,19 +114,134 @@ public with sharing class QuotePdfController {
 
         this.products = new List<QuotationLineItem>();
         this.selectedTotalAmount = 0;
+        this.hasSanitary = false;
+        this.hasFittings = false;
         this.hasNaturalStone = false;
+        this.hasBathingSolutions = false;
+        this.hasHeadOfficeDivision = false;
+        this.hasTile = false;
+        this.hasConstChemAdh = false;
         this.mrpTotal = 0;
+        this.hasGraniteNatStone = false;
+        this.hasAggloTops = false;
+        this.hasRoofingClay = false;
+        this.hasSinks = false;
+        this.hasElecLighting = false;
+        this.hasPlumbingBath = false;
+
+        this.hasImpMarbles = false;
+
+        this.hasFacadesCladding = false;
+
+        this.hasTools = false;
+
+
+        this.hasGlassMosaicPool = false;
+
+
+
+        this.hasTimberSpcFlr = false;
+
+
+        
 
       for (QuoteLineItem item : cartItems) {
-    this.selectedTotalAmount += (item.Total_Price__c != null) ? item.Total_Price__c : 0;
-    if (item.Without_Discount_Total_Price__c != null) {
+      // 🔹 Detect product categories for Terms & Conditions
+            if (item.Product_Category__c == 'SANITARY') {
+                hasSanitary = true;
+            }
+            else if (item.Product_Category__c == 'FITTINGS') {
+                hasFittings = true;
+            }
+            else if (item.Product_Category__c == 'NATURAL STONE') {
+                hasNaturalStone = true;
+            }
+            else if (item.Product_Category__c == 'BATHING SOLUTIONS') {
+                hasBathingSolutions = true;
+            }
+            else if (item.Product_Category__c == 'HEAD OFFICE DIVISION') {
+    hasHeadOfficeDivision = true;
+                }
+                
+                else if (item.Product_Category__c != null &&
+         item.Product_Category__c.trim().toUpperCase() == 'TILE') {
+    hasTile = true;
+}
+                
+              else if (item.Product_Category__c != null &&
+             item.Product_Category__c.trim().toUpperCase() == 'CONST. CHEM & ADH') {
+            hasConstChemAdh = true;
+        }  
+                else if (item.Product_Category__c != null &&
+                 item.Product_Category__c.trim().toUpperCase() == 'GRANITE & NAT. STONE') {
+            hasGraniteNatStone = true;
+        }
+        
+                else if (item.Product_Category__c != null &&
+                         item.Product_Category__c.trim().toUpperCase() == 'AGGLO & TOPS') {
+                    hasAggloTops = true;
+                }
+                
+                else if (item.Product_Category__c != null &&
+             item.Product_Category__c.trim().toUpperCase() == 'TIMBER / SPC FLR') {
+                hasTimberSpcFlr = true;
+            }
+            
+            else if (item.Product_Category__c != null &&
+             item.Product_Category__c.trim().toUpperCase() == 'ROOFING & CLAY') {
+                        hasRoofingClay = true;
+                }
+                
+                else if (item.Product_Category__c != null &&
+         item.Product_Category__c.trim().toUpperCase() == 'SINKS') {
+    hasSinks = true;
+            }
+               else if (item.Product_Category__c != null &&
+                     item.Product_Category__c.trim().toUpperCase() == 'GLASS MOSAIC & POOL') {
+                hasGlassMosaicPool = true;
+            }
+                      else if (item.Product_Category__c != null &&
+                     item.Product_Category__c.trim().toUpperCase() == 'ELEC. & LIGHTING') {
+                hasElecLighting = true;
+            }
+               else if (item.Product_Category__c != null &&
+                     item.Product_Category__c.trim().toUpperCase() == 'TOOLS') {
+                hasTools = true;
+            }  
+            
+            else if (item.Product_Category__c != null &&
+                     item.Product_Category__c.trim().toUpperCase() == 'TOOLS') {
+                hasTools = true;
+            }
+            else if (item.Product_Category__c != null &&
+         item.Product_Category__c.trim().toUpperCase() == 'FACADES & CLADDING') {
+    hasFacadesCladding = true;
+}
+             else if (item.Product_Category__c != null &&
+         item.Product_Category__c.trim().toUpperCase() == 'IMP. MARBLES') {
+    hasImpMarbles = true;
+}                else if (item.Product_Category__c != null &&
+         item.Product_Category__c.trim().toUpperCase() == 'PLUMBING & BATH') {
+    hasPlumbingBath = true;
+}
+
+
+
+                 
+            
+
+                  
+    this.selectedTotalAmount += (item.Total_Price__c != null) ? item.Total_Price__c.setScale(2) : 0;
+   /* if (item.Without_Discount_Total_Price__c != null) {
         this.mrpTotal += item.Without_Discount_Total_Price__c;
+    }*/
+     if (item.UnitPrice != null) {
+        this.mrpTotal += item.UnitPrice*item.Quantity;
     }
     String descriptionField = null;
     if (item.Product_Category__c == 'NATURAL STONE') {
-        descriptionField = item.Description;
-        this.hasNaturalStone = true;
-    }
+    descriptionField = item.Description;
+}
 
     System.debug('Processing item: ' + item.Product2.Name);
 
@@ -115,9 +250,10 @@ public with sharing class QuotePdfController {
         item.Product_Category__c,
         item.Quantity,
         item.Sqft__c,
-        item.Price__c,
+        item.UnitPrice,
         null,
-        item.After_Disc_Price_Piece__c,
+        item.Dis_Value__c,
+       // item.After_Disc_Price_Piece__c,
         item.Calculated_Total_Price__c,   // ✔ FIXED HERE
         item.UOM__c,
         null, // imageUrl - no image field on Quote Line; logic kept but value null
@@ -128,7 +264,7 @@ public with sharing class QuotePdfController {
         item.Price_Sqft__c
     ));
 }
-
+system.debug('this.mrpTotal - this.selectedTotalAmount'+ this.mrpTotal +' -'+ this.selectedTotalAmount);
 this.totalDiscount = this.mrpTotal - this.selectedTotalAmount;
 
 System.debug('Final products list size: ' + this.products.size()); 
@@ -140,7 +276,7 @@ System.debug('Final products list size: ' + this.products.size());
         try {
             return [
                 SELECT Id, Product2.Name, Product_Category__c, Quantity,
-                       Unit_Price__c, Total_Price__c,unitprice,TotalPrice
+                       Unit_Price__c, Total_Price__c,unitprice,TotalPrice,Calculated_Total_Price__c
                 FROM QuoteLineItem
                 WHERE QuoteId = :cartId
                 ORDER BY Product2.Name ASC
@@ -209,10 +345,10 @@ System.debug('Final products list size: ' + this.products.size());
         String body,
         String quotationBlob
     ) {
-        try {
+   //     try {
             // cartId is Quote Id now
             Quote quoteRecord = [
-                SELECT Id, Name, QuoteToName, Email
+                SELECT Id, Name, QuoteToName, Email,ownerId,status
                 FROM Quote
                 WHERE Id = :cartId
                 LIMIT 1
@@ -234,35 +370,97 @@ Messaging.SingleEmailMessage email = new Messaging.SingleEmailMessage();
 email.setToAddresses(new List<String>{ finalEmail });
 
             email.setSubject(subject);
-            email.setPlainTextBody(body);
-
-            String nameForFile = !String.isBlank(quoteRecord.QuoteToName)
-                ? quoteRecord.QuoteToName
-                : quoteRecord.Name;
-
-            Messaging.EmailFileAttachment attachment = new Messaging.EmailFileAttachment();
-     attachment.setFileName('Quotation_' + nameForFile + '.pdf');
-
-      PageReference page = Page.StandardQuote;
-       page.getParameters().put('id', cartId);
-       if (selectedItemIds != null && !selectedItemIds.isEmpty()) {
-    page.getParameters().put('selectedItems', String.join(selectedItemIds, ','));
-    }
-
-Blob pdfBlob = page.getContentAsPDF();
-attachment.setBody(pdfBlob);
-attachment.setContentType('application/pdf');
-
-            email.setFileAttachments(new Messaging.EmailFileAttachment[] { attachment });
-            Messaging.sendEmail(new Messaging.SingleEmailMessage[] { email });
-        } catch (Exception e) {
-            throw new AuraHandledException(e.getMessage());
+        email.setPlainTextBody(body);
+        
+        String nameForFile = !String.isBlank(quoteRecord.QuoteToName)
+            ? quoteRecord.QuoteToName
+            : quoteRecord.Name;
+        
+        Messaging.EmailFileAttachment attachment = new Messaging.EmailFileAttachment();
+        attachment.setFileName('Quotation_' + nameForFile + '.pdf');
+        
+        PageReference page = Page.StandardQuote;
+        page.getParameters().put('id', cartId);
+        if (selectedItemIds != null && !selectedItemIds.isEmpty()) {
+            page.getParameters().put('selectedItems', String.join(selectedItemIds, ','));
         }
-    }
-
-    public PageReference previewQuotation() {
-        if (this.products == null) {
-            loadCartLineItems(new Set<Id>());
+        
+        Blob pdfBlob = page.getContentAsPDF();
+        attachment.setBody(pdfBlob);
+        attachment.setContentType('application/pdf');
+        
+        email.setFileAttachments(new Messaging.EmailFileAttachment[] { attachment });
+     //   Messaging.sendEmail(new Messaging.SingleEmailMessage[] { email });
+        
+        
+        Messaging.SendEmailResult[] results =
+            Messaging.sendEmail(new Messaging.SingleEmailMessage[] { email });
+        
+        if (results != null && results.size() > 0) {
+            Messaging.SendEmailResult result = results[0];
+            
+            if (result.isSuccess()) {
+                System.debug('Email sent successfully');
+            } else {
+                for (Messaging.SendEmailError err : result.getErrors()) {
+                    System.debug('Email failed: ' + err.getMessage());
+                }
+            }
+        }
+        
+            // ✅ Mark quotation as sent
+            Quote q = new Quote();
+            q.Id = cartId;
+            q.Quotation_Sent_to_Customer__c = true;
+            q.Quote_sent_date__c = system.today();
+            if(quoteRecord.status!='Accepted'){
+                q.Status='Presented';
+            }
+            
+            update q;
+            if(quoteRecord.status!='Accepted'){
+                list<Task> tsk = new  list<Task>();
+                tsk = [SELECT Id,Subject,Status, WhatId FROM Task WHERE WhatId=:cartId AND Subject = 'Customer acceptance Follow up' AND Status != 'Completed' limit 1]; 
+                if(tsk.size()>0){
+                    tsk[0].ActivityDate = System.today();
+                    tsk[0].ReminderDateTime =
+                        DateTime.newInstance(
+                            q.Quote_sent_date__c.addDays(2),
+                            Time.newInstance(9, 0, 0, 0)
+                        );
+                    update tsk[0];
+                }   
+                
+                else{
+                    Task t = new Task();
+                    t.WhatId = cartId;
+                    t.OwnerId = quoteRecord.OwnerId;
+                    t.Subject = 'Customer acceptance Follow up';
+                    t.Status = 'Not Started';
+                    t.Priority = 'High';
+                    t.ActivityDate = System.today();
+                    
+                    // 🔔 REMINDER AFTER 2 DAYS
+                    t.IsReminderSet = true;
+                    t.ReminderDateTime =
+                        DateTime.newInstance(
+                            q.Quote_sent_date__c.addDays(2),
+                            Time.newInstance(9, 0, 0, 0)
+                        );
+                    
+                    insert t;
+                } 
+            }
+            
+            System.debug('Quotation_Sent_to_Customer__c updated for Quote: ' + cartId);
+            /* } catch (Exception e) {
+    throw new AuraHandledException(e.getMessage());
+    }*/
+        }
+        
+        public PageReference previewQuotation() {
+            if (this.products == null) {
+                loadCartLineItems(new Set<Id>());
         }
         return null;
     }

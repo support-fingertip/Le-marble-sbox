@@ -11,7 +11,7 @@
         <inputParameters>
             <name>customNotifTypeId</name>
             <value>
-                <elementReference>SalesOrderNotificationType</elementReference>
+                <elementReference>SO_NotificationId.Id</elementReference>
             </value>
         </inputParameters>
         <inputParameters>
@@ -35,7 +35,7 @@
         <inputParameters>
             <name>targetId</name>
             <value>
-                <stringValue>$Record.Id</stringValue>
+                <elementReference>$Record.Id</elementReference>
             </value>
         </inputParameters>
         <nameSegment>customNotificationAction</nameSegment>
@@ -50,18 +50,18 @@
             <assignToReference>RecipientIds</assignToReference>
             <operator>Add</operator>
             <value>
-                <stringValue>$Record.OwnerId</stringValue>
+                <elementReference>$Record.OwnerId</elementReference>
             </value>
         </assignmentItems>
         <connector>
-            <targetReference>Send_Sales_Order_Status_Notification</targetReference>
+            <targetReference>SO_NotificationId</targetReference>
         </connector>
     </assignments>
     <constants>
         <name>SalesOrderNotificationTitle</name>
         <dataType>String</dataType>
         <value>
-            <stringValue>Sales Order Status Updated</stringValue>
+            <stringValue>Sales Order Approved</stringValue>
         </value>
     </constants>
     <description>Sends a custom bell notification to the Sales Order owner whenever the Sales Order status is updated.</description>
@@ -98,6 +98,27 @@
         </value>
     </processMetadataValues>
     <processType>AutoLaunchedFlow</processType>
+    <recordLookups>
+        <name>SO_NotificationId</name>
+        <label>SO NotificationId</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Send_Sales_Order_Status_Notification</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>DeveloperName</field>
+            <operator>EqualTo</operator>
+            <value>
+                <stringValue>Sales_Order_Notification</stringValue>
+            </value>
+        </filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>CustomNotificationType</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
     <start>
         <locationX>0</locationX>
         <locationY>0</locationY>
@@ -116,7 +137,7 @@
         <recordTriggerType>Update</recordTriggerType>
         <triggerType>RecordAfterSave</triggerType>
     </start>
-    <status>Obsolete</status>
+    <status>Active</status>
     <variables>
         <name>RecipientIds</name>
         <dataType>String</dataType>

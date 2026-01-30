@@ -11,7 +11,7 @@
         <inputParameters>
             <name>customNotifTypeId</name>
             <value>
-                <stringValue>Delivery Plan Approved</stringValue>
+                <elementReference>NotiType</elementReference>
             </value>
         </inputParameters>
         <inputParameters>
@@ -35,7 +35,7 @@
         <inputParameters>
             <name>targetId</name>
             <value>
-                <stringValue>$Record.Id</stringValue>
+                <elementReference>recordId</elementReference>
             </value>
         </inputParameters>
         <nameSegment>customNotificationAction</nameSegment>
@@ -51,7 +51,7 @@
         <inputParameters>
             <name>customNotifTypeId</name>
             <value>
-                <stringValue>Delivery Plan Approved</stringValue>
+                <elementReference>NotiType</elementReference>
             </value>
         </inputParameters>
         <inputParameters>
@@ -75,12 +75,44 @@
         <inputParameters>
             <name>targetId</name>
             <value>
-                <stringValue>$Record.Id</stringValue>
+                <elementReference>recordId</elementReference>
             </value>
         </inputParameters>
         <nameSegment>customNotificationAction</nameSegment>
     </actionCalls>
     <apiVersion>65.0</apiVersion>
+    <assignments>
+        <name>Assignment_3</name>
+        <label>recId</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignmentItems>
+            <assignToReference>recordId</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>$Record.Id</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Get_Noti_Records</targetReference>
+        </connector>
+    </assignments>
+    <assignments>
+        <name>notTypeId</name>
+        <label>notTypeId</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignmentItems>
+            <assignToReference>NotiType</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>Get_Noti_Records.Id</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Delivery_Plan_Approved_or_Rejected</targetReference>
+        </connector>
+    </assignments>
     <assignments>
         <name>Set_Recipients_Approved</name>
         <label>Set Recipients – Approved</label>
@@ -173,18 +205,53 @@
         </value>
     </processMetadataValues>
     <processType>AutoLaunchedFlow</processType>
+    <recordLookups>
+        <name>Get_Noti_Records</name>
+        <label>Get Noti Record</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>notTypeId</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>DeveloperName</field>
+            <operator>EqualTo</operator>
+            <value>
+                <stringValue>DeliveryPlan_Notification</stringValue>
+            </value>
+        </filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>CustomNotificationType</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
     <start>
         <locationX>0</locationX>
         <locationY>0</locationY>
         <connector>
-            <targetReference>Delivery_Plan_Approved_or_Rejected</targetReference>
+            <targetReference>Assignment_3</targetReference>
         </connector>
         <filterFormula>ISCHANGED({!$Record.Approval_Status__c})</filterFormula>
         <object>Delivery_Group__c</object>
         <recordTriggerType>Update</recordTriggerType>
         <triggerType>RecordAfterSave</triggerType>
     </start>
-    <status>Obsolete</status>
+    <status>Active</status>
+    <variables>
+        <name>NotiType</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+    <variables>
+        <name>recordId</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>false</isOutput>
+    </variables>
     <variables>
         <name>varRecipientIds</name>
         <dataType>String</dataType>

@@ -8,25 +8,19 @@
         <actionName>customNotificationAction</actionName>
         <actionType>customNotificationAction</actionType>
         <connector>
-            <targetReference>Loop_1</targetReference>
+            <targetReference>remove_last_user</targetReference>
         </connector>
         <flowTransactionModel>CurrentTransaction</flowTransactionModel>
         <inputParameters>
             <name>customNotifTypeId</name>
             <value>
-                <elementReference>get_Custom_Notify.Id</elementReference>
+                <elementReference>get_notifi.Id</elementReference>
             </value>
         </inputParameters>
         <inputParameters>
             <name>recipientIds</name>
             <value>
                 <elementReference>CurUserId</elementReference>
-            </value>
-        </inputParameters>
-        <inputParameters>
-            <name>senderId</name>
-            <value>
-                <elementReference>recordId</elementReference>
             </value>
         </inputParameters>
         <inputParameters>
@@ -59,11 +53,43 @@
             <assignToReference>CurUserId</assignToReference>
             <operator>Add</operator>
             <value>
-                <stringValue>{!Loop_1.Id}</stringValue>
+                <elementReference>Loop_1.Id</elementReference>
             </value>
         </assignmentItems>
         <connector>
             <targetReference>Send_Custom_Notification_Action_1</targetReference>
+        </connector>
+    </assignments>
+    <assignments>
+        <name>Product_launched</name>
+        <label>Product launched</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignmentItems>
+            <assignToReference>Product_Details.Product_Launched__c</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <booleanValue>true</booleanValue>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>update_prod</targetReference>
+        </connector>
+    </assignments>
+    <assignments>
+        <name>remove_last_user</name>
+        <label>remove last user</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignmentItems>
+            <assignToReference>CurUserId</assignToReference>
+            <operator>RemoveAll</operator>
+            <value>
+                <elementReference>Loop_1.Id</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Loop_1</targetReference>
         </connector>
     </assignments>
     <constants>
@@ -86,7 +112,7 @@
     <formulas>
         <name>notTitle</name>
         <dataType>String</dataType>
-        <expression>{!New_Product_Launch}</expression>
+        <expression>&quot;New product launched&quot;</expression>
     </formulas>
     <interviewLabel>New_Product_Launch {!$Flow.CurrentDateTime}</interviewLabel>
     <label>New_Product_Launch</label>
@@ -100,6 +126,9 @@
         <nextValueConnector>
             <targetReference>Assignment_1</targetReference>
         </nextValueConnector>
+        <noMoreValuesConnector>
+            <targetReference>Product_launched</targetReference>
+        </noMoreValuesConnector>
     </loops>
     <processMetadataValues>
         <name>BuilderType</name>
@@ -121,8 +150,8 @@
     </processMetadataValues>
     <processType>Flow</processType>
     <recordLookups>
-        <name>get_Custom_Notify</name>
-        <label>get Custom Notify</label>
+        <name>get_notifi</name>
+        <label>get notifi</label>
         <locationX>0</locationX>
         <locationY>0</locationY>
         <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
@@ -134,7 +163,7 @@
             <field>DeveloperName</field>
             <operator>EqualTo</operator>
             <value>
-                <stringValue>Notification_to_Sales_Coordinator</stringValue>
+                <stringValue>Product_Launch</stringValue>
             </value>
         </filters>
         <getFirstRecordOnly>true</getFirstRecordOnly>
@@ -169,7 +198,7 @@
         <locationY>0</locationY>
         <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
         <connector>
-            <targetReference>get_Custom_Notify</targetReference>
+            <targetReference>get_notifi</targetReference>
         </connector>
         <filterLogic>and</filterLogic>
         <filters>
@@ -183,6 +212,13 @@
         <object>User</object>
         <storeOutputAutomatically>true</storeOutputAutomatically>
     </recordLookups>
+    <recordUpdates>
+        <name>update_prod</name>
+        <label>update prod</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <inputReference>Product_Details</inputReference>
+    </recordUpdates>
     <screens>
         <description>Are you sure you want to launch this product?
 A notification will be sent to users.</description>
@@ -196,9 +232,10 @@ A notification will be sent to users.</description>
         <connector>
             <targetReference>Product_Details</targetReference>
         </connector>
+        <helpText>&lt;p&gt;Are you sure you want to launch this product?&lt;/p&gt;&lt;p&gt;A notification will be sent to users.&lt;/p&gt;</helpText>
         <nextOrFinishButtonLabel>Launch Product</nextOrFinishButtonLabel>
         <showFooter>true</showFooter>
-        <showHeader>true</showHeader>
+        <showHeader>false</showHeader>
     </screens>
     <start>
         <locationX>0</locationX>
@@ -207,7 +244,7 @@ A notification will be sent to users.</description>
             <targetReference>Confirm_Product_Launch</targetReference>
         </connector>
     </start>
-    <status>Draft</status>
+    <status>Active</status>
     <variables>
         <name>CurUserId</name>
         <dataType>String</dataType>

@@ -436,12 +436,22 @@
                                 <td style="border: 1px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 15px;">{!item.roomType}</td>
                                 <td style="border: 1px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 15px;">{!item.sqft}</td>
                                 <td style="border: 1px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 15px;">{!item.quantity}</td>
-                                <td style="border: 1px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 15px;">
+                               <td style="border: 1px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 15px;">
                                     <apex:outputText value="{!IF(NOT(ISBLANK(item.unitPrice)), item.unitPrice, item.priceSqft)}"/>
 
                                     
+                                </td> 
+                                <td style="border: 1px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 15px;">
+                                    <apex:outputText value="{!
+                                                            IF(
+                                                            item.discountType = 'Percentage',
+                                                            TEXT(item.afterDiscPrice) & '%',
+                                                            item.afterDiscPrice
+                                                            )
+                                                            }"
+                                                     />
                                 </td>
-                                <td style="border: 1px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 15px;">{!item.afterDiscPrice}</td>
+                         <!--       <td style="border: 1px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 15px;">{!item.afterDiscPrice}</td>-->
                                 <td style="border: 1px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 15px;">{!item.total}</td>
                                 <td class="image-col" style="border: 1px solid #000; padding: 8px; text-align: center;">
                                     <apex:outputPanel rendered="{!NOT(ISBLANK(item.imageUrl))}">
@@ -536,35 +546,394 @@
                     </tr>
                 </table>
             </div>
-            
-            <div class="terms" style="margin-top: 40px; font-family: Arial, Helvetica, sans-serif;">
-                <div style="font-size: 20px; font-weight: bold; margin-bottom: 8px; text-align: left;">Terms &amp; Conditions</div>
-                <hr style="border: none; border-top: 2px solid #444; margin-bottom: 18px; margin-top: 0;"/>
-                <div style="margin-bottom: 18px;">
-                    <div style="font-weight: bold; font-size: 16px; margin-bottom: 6px;">Return &amp; Replacement Policy :</div>
-                    <div style="font-size: 15px; margin-bottom: 10px;">
-                        Materials delivered will have to be checked on site for damage while delivering and Sanitary &amp; Fitting mandatorily will need to be open delivery, any other discrepancy other than sanitary &amp; Fittings to be reported back in 5 days. Immediate Replacement against damaged goods will be done on availability or arrangements will be done after communicating a tentative date of delivery. All Return or replacement material should be immaculate &amp; &quot;Saleable&quot; condition with original packaging.
-                    </div>
-                    <ul style="margin-left: 20px; font-size: 15px;">
-                        <li style="font-weight: bold; margin-bottom: 0px;">Validity of the quotation is up to {!TEXT(DAY(Quote.Validity_Date__c))}-{!TEXT(MONTH(Quote.Validity_Date__c))}-{!TEXT(YEAR(Quote.Validity_Date__c))}.</li>
-                        <li style="font-weight: bold; margin-bottom: 0px;">100% of the amount has to be paid in advance and no credit facility is available.</li>
-                        <li style="font-weight: bold; margin-bottom: 0px;">Delivery of the items will be made within 15 days from the date of confirmation except against order</li>
-                        <li style="font-weight: bold; margin-bottom: 0px;">Freight &amp; Unloading will have to be borne by the customer and communicated before invoicing.</li>
-                        <li style="font-weight: bold; margin-bottom: 0px;">All items received against order, strictly cannot be taken back</li>
-                        <li style="font-weight: bold; margin-bottom: 0px;">Please check and verify the quantity before placing the order.</li>
-                        <li style="font-weight: bold; margin-bottom: 0px;">Up to 2-3 % of transit damages has to be borne by the client, any damages more than that will be replaced.</li>
-                        <li style="font-weight: bold; margin-bottom: 0px;">All delivery needs to be cross verified with invoice before driver leaves, and sign off to be done on invoice strictly by the person receiving the consignment. Delivery materials to be checked by customer or his representatives and no complaints will be accepted post this.</li>
-                        <li style="font-weight: bold; margin-bottom: 0px;">Any terms mentioned in PI will be applicable</li>
-                    </ul>
+         
+<!-- FORCE NEW PAGE FOR IMAGE -->
+<div class="page-break"></div>
+
+                <!-- PROMOTIONAL IMAGE (TOP OF PAGE) -->
+                <div style="width:100%; text-align:center; margin-bottom:20px;">
+                    <apex:image url="{!URLFOR($Resource.QuoteTemplate)}"
+                        style="max-width:650px; width:100%; height:auto;"
+                        alt="Quote Promotional Image"/>
                 </div>
+            <!-- ================= TERMS & CONDITIONS ================= -->
+<div class="terms" style="margin-top:40px; font-family:Arial, Helvetica, sans-serif;">
+
+    <div style="font-size:20px; font-weight:bold; margin-bottom:12px;">
+        Terms &amp; Conditions
+    </div>
+
+    <!-- ================= COMMON ================= -->
+    <div style="font-size:16px; font-weight:bold; margin-bottom:6px;">
+        COMMON TERMS &amp; CONDITIONS
+    </div>
+
+
+    <ol style="margin-left:22px; font-size:15px;">
+        <li>Orders will be processed only against advance payment.</li>
+        <li>No credit facility is available under any circumstances.</li>
+        <li>Materials supplied against confirmed orders cannot be taken back or returned.</li>
+        <li>Freight and unloading charges shall be borne by the customer.</li>
+        <li>
+            All materials must be cross-verified with the invoice at the time of delivery
+            before the driver leaves. The invoice must be signed by the authorised person
+            receiving the consignment.
+        </li>
+        <li>
+            Materials must be inspected by the customer or their representative at the time
+            of delivery. No complaints will be accepted after delivery.
+        </li>
+        <li>Up to 2–3% transit damage shall be borne by the customer.</li>
+        <li>
+            Any additional terms mentioned in the Quotation or Proforma Invoice (PI)
+            shall be applicable and binding.
+        </li>
+    </ol>
+
+    <!-- ================= SANITARY ================= -->
+    <apex:outputPanel rendered="{!hasSanitary}">
+        <div style="font-size:16px; font-weight:bold; margin-top:16px;">
+             SANITARY WARE – SPECIFIC TERMS
+        </div>
+        <ul style="margin-left:20px; font-size:15px;">
+            <li>Sanitary ware must be accepted on open delivery.</li>
+            <li>Any damage or discrepancy related to sanitary ware must be reported at the time of delivery.</li>
+            <li>Replacement against damaged goods will be arranged subject to availability, or a tentative delivery date will be communicated.</li>
+            <li>All approved return or replacement materials must be in immaculate, saleable condition with original packaging.</li>
+        </ul>
+    </apex:outputPanel>
+    
+    <!-- ================= HEAD OFFICE DIVISION ================= -->
+    <apex:outputPanel rendered="{!hasHeadOfficeDivision}">
+        <div style="font-size:16px; font-weight:bold; margin-top:16px;">
+            HEAD OFFICE DIVISION – SPECIFIC TERMS
+        </div>
+        <ol style="margin-left:22px; font-size:15px;">
+            <li>100% advance payment is mandatory.</li>
+            <li>Delivery will be made within 15 days from the date of confirmation, except for order-based items.</li>
+            <li>Customers must verify quantities before placing the order.</li>
+            <li>Quotation validity shall be as mentioned in the quotation / PI.</li>
+            <li>Immediate replacement for damaged goods will be arranged subject to availability.</li>
+            <li>Items supplied against order cannot be taken back.</li>
+        </ol>
+    </apex:outputPanel>
+    
+    
+    <!-- ================= TILES ================= -->
+        <apex:outputPanel rendered="{!hasTile}">
+            <div style="font-size:16px; font-weight:bold; margin-top:16px;">
+                TILES – SPECIFIC TERMS
             </div>
+        
+            <ol style="margin-left:22px; font-size:15px;">
+                <li>Tiles may exhibit batch-wise variations in shade, calibre, thickness, texture, and finish, which are industry-accepted norms.</li>
+                <li>Customers must ensure uniformity of batch, shade, and size prior to installation.</li>
+                <li>Tiles must be dry-laid and approved before fixing.</li>
+                <li>Any manufacturing defect, shortage, or damage must be reported before installation.</li>
+                <li>Once tiles are installed, they shall be deemed fully accepted, and no claims shall be entertained thereafter.</li>
+                <li>Breakage, wastage, and chipping during cutting, handling, or installation are not covered.</li>
+                <li>Transit breakage up to 2–3% is acceptable and shall be borne by the customer.</li>
+                <li>Freight and unloading charges shall be borne by the consignee.</li>
+                <li>The company shall not be responsible for installation-related issues, adhesive compatibility, or workmanship defects.</li>
+            </ol>
+        </apex:outputPanel>
+
+    
+    <!-- ================= FITTINGS ================= -->
+    <apex:outputPanel rendered="{!hasFittings}">
+        <div style="font-size:16px; font-weight:bold; margin-top:16px;">
+            FITTINGS – SPECIFIC TERMS
+        </div>
+        <ul style="margin-left:20px; font-size:15px;">
+            <li>Fittings must be accepted on open delivery.</li>
+            <li>Any damage or discrepancy related to fittings must be reported at the time of delivery.</li>
+            <li>Any discrepancy other than fittings must be reported within 5 days from the date of delivery.</li>
+            <li>Replacement against damaged goods will be arranged subject to availability, or a tentative delivery date will be communicated.</li>
+            <li>All approved return or replacement materials must be in immaculate, saleable condition with original packaging.</li>
+        </ul>
+    </apex:outputPanel>
+
+    <!-- ================= VENGERI DIVISION ================= -->
+    <apex:outputPanel rendered="{!hasNaturalStone}">
+        <div style="font-size:16px; font-weight:bold; margin-top:16px;">
+             VENGERI DIVISION – SPECIFIC TERMS
+        </div>
+        <ul style="margin-left:20px; font-size:15px;">
+            <li>Quotation validity is 5 days from the date of issue.</li>
+            <li>Prices quoted are applicable for single purchase only.</li>
+            <li>100% advance payment is mandatory.</li>
+            <li>Delivery will be made within 20 working days from order confirmation, except for order-based items.</li>
+            <li>Billing and delivery addresses must be confirmed at the time of placing the order.</li>
+            <li>Customers must verify quantities before order confirmation.</li>
+            <li>
+                Stone being a natural material, variations in colour, design, shade, veins,
+                patches, and size may occur. Thickness / size tolerance of ±1–2 mm is acceptable.
+            </li>
+        </ul>
+    </apex:outputPanel>
+
+    <!-- ================= BATHING SOLUTIONS ================= -->
+    <apex:outputPanel rendered="{!hasBathingSolutions}">
+        <div style="font-size:16px; font-weight:bold; margin-top:16px;">
+             BATHING SOLUTIONS – SPECIFIC TERMS
+        </div>
+        <ul style="margin-left:20px; font-size:15px;">
+            <li>Colour items once ordered cannot be returned or exchanged under any circumstances.</li>
+            <li>80% advance payment is required for order confirmation.</li>
+            <li>The balance amount must be cleared before delivery.</li>
+            <li>Order processing will commence only after receipt of the advance payment.</li>
+        </ul>
+    </apex:outputPanel>
+    
+    <!-- ================= CONSTRUCTION CHEMICALS & ADHESIVES ================= -->
+        <apex:outputPanel rendered="{!hasConstChemAdh}">
+            <div style="font-size:16px; font-weight:bold; margin-top:16px;">
+                CONSTRUCTION CHEMICALS &amp; ADHESIVES (CONST. CHEM &amp; ADH) – SPECIFIC TERMS
+    </div>
+
+    <ol style="margin-left:22px; font-size:15px;">
+        <li>Products must be stored, handled, mixed, and applied strictly as per manufacturer instructions.</li>
+        <li>Shelf life and storage conditions printed on packaging must be adhered to.</li>
+        <li>Performance of construction chemicals depends on site conditions such as substrate quality, temperature, humidity, and workmanship.</li>
+        <li>The company does not guarantee performance where application guidelines are not followed.</li>
+        <li>No return or replacement shall be allowed for opened, mixed, or partially used materials.</li>
+        <li>Trial application is recommended before bulk usage.</li>
+        <li>Freight and unloading charges shall be borne by the consignee.</li>
+    </ol>
+    </apex:outputPanel>
+    
+    
+    <!-- ================= GRANITE & NATURAL STONE ================= -->
+<apex:outputPanel rendered="{!hasGraniteNatStone}">
+    <div style="font-size:16px; font-weight:bold; margin-top:16px;">
+        GRANITE &amp; OTHER NATURAL STONES (GRANITE &amp; NAT. STONE) – SPECIFIC TERMS
+    </div>
+
+    <ol style="margin-left:22px; font-size:15px;">
+        <li>Granite and natural stones are natural products and may show variations in colour, pattern, veins, and inclusions.</li>
+        <li>Thickness and size tolerance of ±1–2 mm is acceptable.</li>
+        <li>Customer approval is mandatory before cutting or fabrication.</li>
+        <li>Materials once cut or installed are non-returnable.</li>
+        <li>Breakage during fabrication or installation is not covered.</li>
+        <li>No warranty is provided against staining, scratching, or wear.</li>
+        <li>Freight and unloading charges shall be borne by the consignee.</li>
+    </ol>
+</apex:outputPanel>
+
+            <!-- ================= AGGLOMERATE & COUNTERTOPS ================= -->
+            <apex:outputPanel rendered="{!hasAggloTops}">
+                <div style="font-size:16px; font-weight:bold; margin-top:16px;">
+                    AGGLOMERATE &amp; COUNTERTOPS (AGGLO &amp; TOPS) – SPECIFIC TERMS
+                </div>
+            
+                <ol style="margin-left:22px; font-size:15px;">
+                    <li>Engineered and agglomerate stone products may show minor shade and pattern variation between batches.</li>
+                    <li>Final appearance may vary depending on edge profiling, joints, and lighting conditions.</li>
+                    <li>All measurements and drawings must be approved by the customer prior to fabrication.</li>
+                    <li>Customized or cut-to-size products are non-returnable.</li>
+                    <li>Heat exposure beyond recommended limits may damage the product.</li>
+                    <li>Freight and unloading charges shall be borne by the consignee.</li>
+                </ol>
+            </apex:outputPanel>
+            
+            
+            <!-- ================= TIMBER / WOODEN FLOORING / SPC FLOORING ================= -->
+            <apex:outputPanel rendered="{!hasTimberSpcFlr}">
+                <div style="font-size:16px; font-weight:bold; margin-top:16px;">
+                    TIMBER / WOODEN FLOORING / SPC FLOORING (TIMBER / SPC FLR) – SPECIFIC TERMS
+                </div>
+            
+                <ol style="margin-left:22px; font-size:15px;">
+                    <li>Timber and wooden flooring products may exhibit natural grain, knot, and shade variations.</li>
+                    <li>Expansion, contraction, warping, or cupping may occur due to changes in temperature and humidity.</li>
+                    <li>Subfloor conditions must be level, dry, and suitable prior to installation.</li>
+                    <li>Acclimatization as per manufacturer guidelines is mandatory.</li>
+                    <li>Water damage, termite attack, and improper maintenance are excluded from warranty.</li>
+                    <li>Freight and unloading charges shall be borne by the consignee.</li>
+                </ol>
+            </apex:outputPanel>
+            
+            
+            
+            
+            <!-- ================= IMPORTED MARBLES ================= -->
+            <apex:outputPanel rendered="{!hasImpMarbles}">
+                <div style="font-size:16px; font-weight:bold; margin-top:16px;">
+                    IMPORTED MARBLES (IMP. MARBLES) – SPECIFIC TERMS
+                </div>
+            
+                <ol style="margin-left:22px; font-size:15px;">
+                    <li>Imported marbles are 100% natural stones. Natural characteristics such as colour variations, veins, fissures, mineral deposits, patches, pinholes, hairline cracks, and texture differences are inherent and unavoidable.</li>
+                    <li>Such natural characteristics shall not be construed as defects or grounds for rejection, replacement, or compensation.</li>
+                    <li>Samples, photographs, displays, and mock-ups are indicative only. Actual material supplied may vary in shade, pattern, and appearance.</li>
+                    <li>Minor edge chips, surface irregularities, and polishing marks are acceptable within industry tolerance.</li>
+                    <li>Customer or their representative must inspect and approve the material prior to cutting, processing, or installation.</li>
+                    <li>Materials once cut, processed, installed, or altered in any manner are strictly non-returnable and non-refundable.</li>
+                    <li>Breakage or damage occurring during handling, cutting, fabrication, or installation is entirely at the customer’s risk.</li>
+                    <li>Transit damage up to 2–3% of the total supplied quantity shall be considered acceptable and unavoidable and shall be borne by the customer.</li>
+                    <li>Any claim for transit damage beyond the permissible limit must be reported at the time of delivery, supported by photographs and endorsed on the delivery document.</li>
+                    <li>Freight charges and unloading at site shall be borne by the consignee, unless otherwise agreed in writing.</li>
+                    <li>No warranty or guarantee, express or implied, is provided.</li>
+                </ol>
+            </apex:outputPanel>
+            
+            
+            
+            <!-- ================= PLUMBING & BATHING SOLUTIONS ================= -->
+                <apex:outputPanel rendered="{!hasPlumbingBath}">
+                    <div style="font-size:16px; font-weight:bold; margin-top:16px;">
+                        PLUMBING &amp; BATHING SOLUTIONS (PLUMBING &amp; BATH) – SPECIFIC TERMS
+                    </div>
+                
+                    <ol style="margin-left:22px; font-size:15px;">
+                        <li>All plumbing and bathing products must be accepted on an open delivery basis.</li>
+                        <li>Any shortage, damage, or mismatch must be reported at the time of delivery.</li>
+                        <li>Installation must be carried out by qualified and experienced plumbers strictly as per manufacturer guidelines.</li>
+                        <li>Product warranty, where applicable, shall be governed solely by the manufacturer’s warranty terms.</li>
+                        <li>Improper installation, misuse, unauthorized repairs, or alteration shall void warranty claims.</li>
+                        <li>The company is not responsible for concealed damages identified after installation.</li>
+                        <li>Freight and unloading charges shall be borne by the consignee.</li>
+                    </ol>
+                </apex:outputPanel>
+                
+                
+            
+            
+            
+            <!-- ================= ROOFING SOLUTIONS & CLAY PRODUCTS ================= -->
+            <apex:outputPanel rendered="{!hasRoofingClay}">
+                <div style="font-size:16px; font-weight:bold; margin-top:16px;">
+                    ROOFING SOLUTIONS &amp; CLAY PRODUCTS (ROOFING &amp; CLAY) – SPECIFIC TERMS
+                </div>
+            
+                <ol style="margin-left:22px; font-size:15px;">
+                    <li>Roofing and clay products may show minor dimensional and colour variations.</li>
+                    <li>Due to the fragile nature of the products, transit breakage up to 2–3% is acceptable.</li>
+                    <li>Claims beyond permissible limits must be reported at the time of delivery.</li>
+                    <li>Proper slope, fixing method, and support structure must be ensured by the installer.</li>
+                    <li>Natural ageing, weathering, and climatic effects are not manufacturing defects.</li>
+                    <li>Freight and unloading charges shall be borne by the consignee.</li>
+                </ol>
+            </apex:outputPanel>
+            
+            
+            
+            <!-- ================= SINKS ================= -->
+                <apex:outputPanel rendered="{!hasSinks}">
+                    <div style="font-size:16px; font-weight:bold; margin-top:16px;">
+                        SINKS – SPECIFIC TERMS
+                    </div>
+                
+                    <ol style="margin-left:22px; font-size:15px;">
+                        <li>Sinks must be inspected for cracks, chips, glaze defects, and dimensions before installation.</li>
+                        <li>Damage caused during installation, impact, or overtightening is not covered.</li>
+                        <li>Cosmetic variations are acceptable within manufacturing tolerance.</li>
+                        <li>Warranty, if applicable, is limited to manufacturing defects only.</li>
+                        <li>Freight and unloading charges shall be borne by the consignee.</li>
+                    </ol>
+                </apex:outputPanel>
+                 <!-- ================= GLASS MOSAICS & POOL SOLUTIONS ================= -->
+                <apex:outputPanel rendered="{!hasGlassMosaicPool}">
+                    <div style="font-size:16px; font-weight:bold; margin-top:16px;">
+                        GLASS MOSAICS &amp; POOL SOLUTIONS (GLASS MOSAIC &amp; POOL) – SPECIFIC TERMS
+                    </div>
+                
+                    <ol style="margin-left:22px; font-size:15px;">
+                        <li>Glass mosaics may show minor shade, size, and thickness variations.</li>
+                        <li>Colour perception may vary under different lighting and water conditions.</li>
+                        <li>Transit damage up to 2–3% is acceptable due to product fragility.</li>
+                        <li>Waterproofing, substrate preparation, and installation are the responsibility of the installer.</li>
+                        <li>Use of recommended adhesives and grouts is mandatory.</li>
+                        <li>No claims shall be entertained after installation.</li>
+                        <li>Freight and unloading charges shall be borne by the consignee.</li>
+                    </ol>
+                </apex:outputPanel>
+                
+                
+                
+                
+                <!-- ================= ELECTRICAL & LIGHTING SOLUTIONS ================= -->
+        <apex:outputPanel rendered="{!hasElecLighting}">
+            <div style="font-size:16px; font-weight:bold; margin-top:16px;">
+                ELECTRICAL &amp; LIGHTING SOLUTIONS (ELEC. &amp; LIGHTING) – SPECIFIC TERMS
+            </div>
+        
+            <ol style="margin-left:22px; font-size:15px;">
+                <li>Electrical products must be installed by licensed electricians only.</li>
+                <li>Electrical ratings and compatibility must be verified prior to installation.</li>
+                <li>Damage due to voltage fluctuation, moisture, or misuse is excluded.</li>
+                <li>Warranty claims shall be governed by manufacturer policy.</li>
+                <li>Opened or installed items are not returnable.</li>
+                <li>Freight and unloading charges shall be borne by the consignee.</li>
+            </ol>
+        </apex:outputPanel>
+        
+            <!-- ================= TOOLS ================= -->
+            <apex:outputPanel rendered="{!hasTools}">
+                <div style="font-size:16px; font-weight:bold; margin-top:16px;">
+                    TOOLS – SPECIFIC TERMS
+                </div>
+            
+                <ol style="margin-left:22px; font-size:15px;">
+                    <li>Tools must be checked for functionality at the time of delivery.</li>
+                    <li>Warranty, if applicable, is limited to manufacturing defects.</li>
+                    <li>Wear and tear, misuse, overloading, and consumables are excluded.</li>
+                    <li>Used tools are not eligible for return or replacement.</li>
+                    <li>Freight and unloading charges shall be borne by the consignee.</li>
+                </ol>
+            </apex:outputPanel>
+            
+            <!-- ================= EXTERNAL FACADES & CLADDING SOLUTIONS ================= -->
+            <apex:outputPanel rendered="{!hasFacadesCladding}">
+                <div style="font-size:16px; font-weight:bold; margin-top:16px;">
+                    EXTERNAL FACADES &amp; CLADDING SOLUTIONS (FACADES &amp; CLADDING) – SPECIFIC TERMS
+                </div>
+            
+                <ol style="margin-left:22px; font-size:15px;">
+                    <li>Facade and cladding materials may show batch and shade variations.</li>
+                    <li>Structural suitability must be verified by the project consultant or architect.</li>
+                    <li>Fixing systems must be compatible with site and environmental conditions.</li>
+                    <li>Environmental exposure such as pollution, UV, and coastal conditions may affect appearance.</li>
+                    <li>No warranty is provided against fading or ageing.</li>
+                    <li>Freight and unloading charges shall be borne by the consignee.</li>
+                </ol>
+            </apex:outputPanel>
+            
+
+
+
+
+    
+    <!-- ================= NATURAL STONE ================= -->
+    <apex:outputPanel rendered="{!hasNaturalStone}">
+        <div style="font-size:16px; font-weight:bold; margin-top:16px;">
+             NATURAL STONE – SPECIFIC TERMS
+        </div>
+        <ul style="margin-left:20px; font-size:15px;">
+            <li>Delivery will be made within 15 days from the date of order confirmation, except for order-based items.</li>
+            <li>Replacement against transit damage (beyond permissible limits) will be arranged subject to availability.</li>
+            <li>All approved return or replacement materials must be in immaculate, saleable condition with original packaging.</li>
+            <li>Italian / imported marble and granite are 100% natural stones and may contain cracks, patches, veins, or shade variations.</li>
+            <li>Variations in colour, design, and texture are natural and do not constitute defects.</li>
+            <li>Prior to installation, ensure there is no moisture or seepage from the base surface. RCC is recommended where required.</li>
+            <li>Installation must be carried out by skilled professionals using recommended epoxy, adhesives, joint fillers, and chemicals.</li>
+            <li>The company does not provide any warranty or guarantee for natural stones or issues arising from faulty installation.</li>
+        </ul>
+    </apex:outputPanel>
+
+</div>
+
+           
+  
+
 
             <div class="signature-section" style="margin-top: 30px; margin-bottom: 20px; text-align: right;">
                 <div style="width: 300px; border: 2px solid #000000; padding: 15px; display: inline-block;">
                     <p style="color: #999; font-size: 22px; margin: 0 0 25px 0; text-align: center;">Customer Signature</p>
                     <div style="border-bottom: 1px solid #000000; margin-bottom: 8px;"></div>
                 </div>
-            </div>
+                </div>
+            
 
             <div class="footer">
                 <p style="font-size: 18px;">Le Marble Gallery | Opposite Civil Station | Eranhipalam | Calicut-20</p>

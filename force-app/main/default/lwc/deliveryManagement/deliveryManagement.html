@@ -157,7 +157,9 @@
                   <div class="slds-form-element">
                     <lightning-input type="time" label="Delivery Time" value={deliveryTime} onchange={handleDeliveryTimeChange} class="custom-input"></lightning-input>
                   </div>
-                  <div class="slds-form-element">
+
+                  
+                                  <div class="slds-form-element">
                     <lightning-combobox name="vehicle" label="Vehicle Type" value={selectedVehicle}
                       placeholder="Select Vehicle Type" options={vehicleOptions} onchange={handleVehicleChange} class="custom-input">
                     </lightning-combobox>
@@ -175,6 +177,8 @@
                   <div class="slds-form-element">
                     <lightning-input type="number" label="Freight Amount" value={freightAmount} onchange={handleFreightAmountChange} class="custom-input"></lightning-input>
                   </div>
+
+                  
                   <div class="slds-form-element">
                     <lightning-textarea label="Remarks" value={remarks} onchange={handleRemarksChange} placeholder="Enter remarks" class="custom-input">
                     </lightning-textarea>

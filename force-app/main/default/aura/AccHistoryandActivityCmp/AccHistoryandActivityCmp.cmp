@@ -1,0 +1,256 @@
+<aura:component controller="AccHistoryandActivityController" implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" access="global" >
+    <aura:attribute name="AccountData" type="Object[]"/>
+    <aura:attribute name="initDone" type="Boolean" default="false" />
+    <aura:attribute name="mycolumns" type="List"/>
+    <aura:attribute name="viewAllBool" type="Boolean" default="true"/>
+    <aura:attribute name="paginationList" type="Object[]"/>
+    <aura:attribute name="pageSize" type="Integer" default="50"/>
+    <aura:attribute name="selFilter" type="String" default="All"/>
+    <aura:attribute name="totalSize" type="Integer"/>
+    
+    <aura:attribute name="start" type="Integer" />
+    
+    <aura:attribute name="end" type="Integer"/>
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    
+    <article class="slds-card">
+        <div class="slds-page-header slds-page-header_vertical">
+            <header class="slds-media slds-media_center slds-has-flexi-truncate">
+                <div class="slds-media">
+                    <div class="slds-media__figure">
+                        <span class="slds-icon_container slds-icon-standard-lead" title="lead">
+                            <lightning:icon iconName="standard:lead" alternativeText="Utility image" title="Image" />
+                            <span class="slds-assistive-text">Account Activity and History</span>
+                        </span>
+                    </div>
+                    <div class="slds-media__body">
+                        <div class="slds-page-header__name">
+                            <div class="slds-page-header__name-title">
+                                <h1>
+                                    <span class="slds-page-header__title slds-hyphenate" title=" Account Activity and History">Account Activity and History</span>
+                                </h1>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <lightning:icon iconName="action:refresh" alternativeText="Action Refresh" size="xx-small" style="cursor:pointer" title="Image" onclick="{!c.refresh}" />
+                
+            </header>
+        </div>
+        <hr style="margin:0px"/>
+        
+        <div class="slds-card__body slds-card__body_inner">
+            <lightning:select name="filter" aura:id="filter" label="Filter" value="{!v.selFilter}" onchange="{! c.onChange }" >
+                <option value="All">All</option>
+                 <option value="Contacts">Contacts</option>
+                <option value="Opportunities">Opportunities</option>
+                <option value="Quotes">Quotes</option>
+                <option value="SalesOrder">Sales Orders</option>
+                <option value="DeliveryPlans">Delivery Plans</option>
+                <option value="Invoices">Invoices</option>
+            </lightning:select>
+        </div>
+        <hr style="margin:0px"/>
+        
+        <div class="slds-card__body slds-card__body_inner">
+            <lightning:recordViewForm>
+                <aura:iteration items="{!v.paginationList}" var="c">
+                    <aura:if isTrue="{!or(c.Field != null, c.Subject != null)}">
+                        <aura:if isTrue="{!c.Field!=null}">
+                            <aura:if isTrue="{!c.Field=='Created'}">
+                                <tr>
+                                    <td>
+                                        <p>
+                                            <div class="cAccount_WrapHistoryActivity">
+                                                
+                                                <b>Account CreatedBy: </b>{!c.CreatedBy}&emsp; &emsp; &emsp; &emsp;<br/>
+                                                
+                                            </div>
+                                            <div class="cAccount_WrapHistoryActivity">
+                                                
+                                                <b>Date: </b><ui:outputDateTime  value="{!c.CreatedDate}"/>
+                                                
+                                            </div>
+                                        </p>
+                                    <!--    <div class="cAccount_WrapHistoryActivity" >Account is created.</div><br/>-->
+                                    </td>
+                                </tr> <hr style="margin:0px;padding:5px;"/>
+                                <aura:set attribute="else">
+                                    
+                                    <aura:if isTrue="{!or(c.OldValue!=null, c.NewValue!=null)}">
+                                        
+                                        <tr>
+                                            <td>
+                                                <p>
+                                                    <div class="cAccount_WrapHistoryActivity">
+                                                        <b>Name: </b>{!c.CreatedBy}&emsp; &emsp; &emsp; &emsp;
+                                                        <b>Date: </b><ui:outputDateTime  value="{!c.CreatedDate}"/>
+                                                    </div>
+                                                </p>
+                                                <div class="cAccount_WrapHistoryActivity">
+                                                    {!c.Field} has been updated <aura:if isTrue="{!c.OldValue != null}">from {!c.OldValue}</aura:if> to {!c.NewValue}.
+                                                </div><br/>
+                                            </td>
+                                        </tr> <hr style="margin:0px;padding:5px;"/>
+                                    </aura:if>
+                                    
+                                    
+                                </aura:set>
+                            </aura:if>
+                            <aura:set attribute="else">
+                                <aura:if isTrue="{!c.Subject != null}">
+                                    <tr>
+                                        <td>
+                                            <p>
+                                                <div class="cAccount_WrapHistoryActivity">
+                                                    <b>Name: </b>{!c.CreatedBy}&emsp; &emsp; &emsp; &emsp;
+                                                    <b>Date: </b><ui:outputDateTime  value="{!c.CreatedDate}"/>
+                                                </div>
+                                            </p>
+                                            <div class="cAccount_WrapHistoryActivity">
+                                                <b>Activity Subject: </b> {!c.Subject}<br/>
+                                                <b>Activity Description: </b> {!c.Description}</div><br/>
+                                        </td>
+                                    </tr> <hr style="margin:0px;padding:5px;"/>
+                                </aura:if>
+                            </aura:set>
+                        </aura:if>
+                        
+                    </aura:if>
+                    
+                    <aura:if isTrue="{!c.type=='Contacts'}">
+                        <tr>
+                            <td>
+                                <p>
+                                    <div class="cAccount_WrapHistoryActivity">
+                                        <b>Contact Name: </b>{!c.LeadName}&emsp; 
+                                        <b>Date: </b><ui:outputDateTime  value="{!c.CreatedDate}"/>
+                                    </div>
+                                    <div class="cAccount_WrapHistoryActivity">
+                                        <b>CreatedByName: </b>{!c.CreatedBy}&emsp; &emsp; &emsp; &emsp;
+                                    </div>
+                                    
+                                </p>
+                                
+                            </td>
+                        </tr> <hr style="margin:0px;padding:5px;"/>
+                        
+                        
+                    </aura:if>
+                    <aura:if isTrue="{!c.type=='Quotes'}">
+                        <tr>
+                            <td>
+                                <p>
+                                    <div class="cAccount_WrapHistoryActivity">
+                                        <b>Quotes Id: </b>{!c.LeadName}&emsp; 
+                                        <b> Date: </b><ui:outputDateTime  value="{!c.CreatedDate}"/>
+                                         <b>Total Amount: </b>{!c.TotAmount}&emsp; 
+                                    </div>
+                                    <div class="cAccount_WrapHistoryActivity">
+                                        <b>CreatedByName: </b>{!c.CreatedBy}&emsp; &emsp; &emsp; &emsp;
+                                    </div>
+                                    
+                                </p>
+                                
+                            </td>
+                        </tr> <hr style="margin:0px;padding:5px;"/>
+                        
+                        
+                    </aura:if>
+                    <aura:if isTrue="{!c.type=='SalesOrder'}">
+                        <tr>
+                            <td>
+                                <p>
+                                    <div class="cAccount_WrapHistoryActivity">
+                                        <b>Order No: </b>{!c.LeadName}&emsp; 
+                                        <b>Date: </b><ui:outputDateTime  value="{!c.CreatedDate}"/>
+                                    </div>
+                                    <div class="cAccount_WrapHistoryActivity">
+                                        <b>CreatedBy: </b>{!c.CreatedBy}&emsp; &emsp; 
+                                         &emsp; &emsp; &emsp; &emsp;
+                                    </div>
+                                    
+                                </p>
+                                
+                            </td>
+                        </tr> <hr style="margin:0px;padding:5px;"/>
+                        
+                        
+                    </aura:if>
+                    
+                    <aura:if isTrue="{!c.type=='Invoices'}">
+                        <tr>
+                            <td>
+                                <p>
+                                    <div class="cAccount_WrapHistoryActivity">
+                                        <b>Invoice No: </b>{!c.LeadName}&emsp; 
+                                        <b>Date: </b><ui:outputDateTime  value="{!c.CreatedDate}"/>
+                                    </div>
+                                    <div class="cAccount_WrapHistoryActivity">
+                                        <b>Amount: </b>{!c.TotAmount}&emsp; 
+                                        <b>CreatedByName: </b>{!c.CreatedBy}&emsp; &emsp; &emsp; &emsp;
+                                    </div>
+                                    
+                                </p>
+                                
+                            </td>
+                        </tr> <hr style="margin:0px;padding:5px;"/>
+                        
+                        
+                    </aura:if>
+                      <aura:if isTrue="{!c.type=='Opportunities'}">
+                        <tr>
+                            <td>
+                                <p>
+                                    <div class="cAccount_WrapHistoryActivity">
+                                        <b>Opportunity Name: </b>{!c.LeadName}&emsp; 
+                                       
+                                    </div>
+                                    <div class="cAccount_WrapHistoryActivity">
+                                        <b>Status: </b>{!c.CreatedBy}&emsp; &emsp; &emsp; &emsp;
+                                         <b> Date: </b><ui:outputDateTime  value="{!c.CreatedDate}"/>
+                                    </div>
+                                    
+                                </p>
+                                
+                            </td>
+                        </tr> <hr style="margin:0px;padding:5px;"/>
+                        
+                        
+                    </aura:if>
+                    <aura:if isTrue="{!c.type=='DeliveryPlans'}">
+                        <tr>
+                            <td>
+                                <p>
+                                    <div class="cAccount_WrapHistoryActivity">
+                                        <b>DeliveryPlans Name: </b>{!c.LeadName}&emsp; 
+                                       
+                                    </div>
+                                    <div class="cAccount_WrapHistoryActivity">
+                                        <b>Status: </b>{!c.CreatedBy}&emsp; &emsp; &emsp; &emsp;
+                                         <b> Date: </b><ui:outputDateTime  value="{!c.CreatedDate}"/>
+                                    </div>
+                                    
+                                </p>
+                                
+                            </td>
+                        </tr> <hr style="margin:0px;padding:5px;"/>
+                        
+                        
+                    </aura:if>
+                </aura:iteration>
+                <tr>
+                    <lightning:button label="First" disabled="{!v.start == 0}"  onclick="{!c.first}" />
+                    
+                    <lightning:button label="Previous" disabled="{!v.start == 0}"  onclick="{!c.previous}" />
+                    
+                    <lightning:button label="Next" disabled="{!v.end >= v.totalSize-1}" onclick="{!c.next}" />
+                    
+                    <lightning:button label="Last" disabled="{!v.end >= v.totalSize-1}" onclick="{!c.last}" />
+                </tr>
+            </lightning:recordViewForm>
+        </div>
+        
+    </article>
+</aura:component>
