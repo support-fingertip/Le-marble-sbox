@@ -71,7 +71,7 @@ public static Map<String, Object> getQuoteInfo(Id quoteId) {
     
     @AuraEnabled
     public static Id createOrderFromQuote(Id quoteId , Id warehouseId,List<Id> selectedQuoteLineItemIds, Map<Id, Decimal> blockQtyMap, Date deliveryCommittedDate, String remarks,boolean credit) {
-        try {
+      //  try {
              ///️⃣ Validate warehouse
         if (warehouseId == null) {
             throw new AuraHandledException('Please select a Warehouse');
@@ -205,9 +205,8 @@ if (deliveryCommittedDate < Date.today()) {
             ord.EffectiveDate = Date.today();
             ord.Status = 'Draft';
 			ord.credit__c=credit;
-            if(ord.credit__c==false){
-                 ord.Status = 'Approved';
-            }
+
+        
             ord.Product_Category__c = category;
 
            // ================= CONTACT PERSON (From Account) =================
@@ -240,40 +239,41 @@ if (deliveryCommittedDate < Date.today()) {
 ord.State__c    = q.State__c;
             ord.Country__c    = q.Country__c;
 
-
-
-            if (String.isBlank(q.ShippingStreet)) {
-    Account shipAcc = [
-        SELECT ShippingStreet, ShippingCity, ShippingState,
-            ShippingPostalCode, ShippingCountry
-        FROM Account
-        WHERE Id = :q.AccountId
-        LIMIT 1
-    ];
-
-    ord.ShippingStreet     = shipAcc.ShippingStreet;
-    ord.ShippingCity       = shipAcc.ShippingCity;
-    ord.ShippingState      = shipAcc.ShippingState;
-    ord.ShippingPostalCode = shipAcc.ShippingPostalCode;
-    ord.ShippingCountry    = shipAcc.ShippingCountry;
-
-
-
-    
-}
-
-            ord.Freight_Charge__c     = q.Freight_Charge__c;
-            ord.Loading_Charges__c   = q.Loading_Charge__c;
-            ord.Unloading_Charges__c = q.Unloading_Charge__c;
-
+        
+        
+        if (String.isBlank(q.ShippingStreet)) {
+            Account shipAcc = [
+                SELECT ShippingStreet, ShippingCity, ShippingState,
+                ShippingPostalCode, ShippingCountry
+                FROM Account
+                WHERE Id = :q.AccountId
+                LIMIT 1
+            ];
             
-            ord.Warehouse_Manager__c = wh.Warehouse_Manager__c;
-            insert ord;
-
+            ord.ShippingStreet     = shipAcc.ShippingStreet;
+            ord.ShippingCity       = shipAcc.ShippingCity;
+            ord.ShippingState      = shipAcc.ShippingState;
+            ord.ShippingPostalCode = shipAcc.ShippingPostalCode;
+            ord.ShippingCountry    = shipAcc.ShippingCountry;
+            
+            
+            
+            
+        }
+        
+        ord.Freight_Charge__c     = q.Freight_Charge__c;
+        ord.Loading_Charges__c   = q.Loading_Charge__c;
+        ord.Unloading_Charges__c = q.Unloading_Charge__c;
+        
+        
+        ord.Warehouse_Manager__c = wh.Warehouse_Manager__c;
+        insert ord;
+        
+    
             q.Sales_Order_Created__c = true;
             update q;
-
-           
+            
+            
 
             // Create Order Items
             List<OrderItem> orderItems = new List<OrderItem>();
@@ -294,14 +294,19 @@ ord.State__c    = q.State__c;
             if (!orderItems.isEmpty()) {
                 insert orderItems;
             }
-
+        if(ord.credit__c==false){
+            ord.Status = 'Approved';
+            update ord;
+        }
             return ord.Id;
 
-        } catch (Exception e) {
+        
+        /*}
+        catch (Exception e) {
             throw new AuraHandledException(
                 'Error creating order from quote: ' + e.getMessage()
             );
-        }
+        }*/
     }
      // 4. Get Payment Type Options
     

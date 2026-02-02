@@ -1298,9 +1298,19 @@
         <readable>false</readable>
     </fieldPermissions>
     <fieldPermissions>
+        <editable>false</editable>
+        <field>Delivery_Group__c.Loading_Charges__c</field>
+        <readable>false</readable>
+    </fieldPermissions>
+    <fieldPermissions>
         <editable>true</editable>
         <field>Delivery_Group__c.Quantity__c</field>
         <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>Delivery_Group__c.QuoteId__c</field>
+        <readable>false</readable>
     </fieldPermissions>
     <fieldPermissions>
         <editable>false</editable>
@@ -1320,6 +1330,11 @@
     <fieldPermissions>
         <editable>false</editable>
         <field>Delivery_Group__c.Total_Km__c</field>
+        <readable>false</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>Delivery_Group__c.Unloading_Charges__c</field>
         <readable>false</readable>
     </fieldPermissions>
     <fieldPermissions>

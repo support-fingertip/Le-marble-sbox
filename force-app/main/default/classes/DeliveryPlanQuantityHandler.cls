@@ -1,17 +1,13 @@
 public class DeliveryPlanQuantityHandler {
 
-    public static void handleAfterUpdate(
-        List<Delivery_Group__c> newList,
-        Map<Id, Delivery_Group__c> oldMap
-    ) {
+    public static void handleAfterUpdate( List<Delivery_Group__c> newList, Map<Id, Delivery_Group__c> oldMap ) {
         Set<Id> deliveredPlanIds = new Set<Id>();
 
         // STEP 1: Detect Delivery Plans newly marked Delivered
         for (Delivery_Group__c dp : newList) {
             Delivery_Group__c oldDp = oldMap.get(dp.Id);
 
-            if (oldDp.Delivery_Status__c != 'Delivered' &&
-                dp.Delivery_Status__c == 'Delivered') {
+            if (oldDp.Delivery_Status__c != 'Delivered' && dp.Delivery_Status__c == 'Delivered') {
                 deliveredPlanIds.add(dp.Id);
             }
         }

@@ -119,12 +119,15 @@ public with sharing class NewDeliveryPlanController {
                 Warehouse__c,
                 Warehouse_Manager__c,
                 Contact_Person_Name__c,	
-                Freight_Charge__c
+                Freight_Charge__c,
+                Loading_Charges__c,
+                Unloading_Charges__c
             FROM Order
             WHERE Id = :salesOrderId
             LIMIT 1
         ];
 
+           
             
             Decimal finalFreight;
 
@@ -133,6 +136,21 @@ public with sharing class NewDeliveryPlanController {
         } else {
             finalFreight = so.Freight_Charge__c;
         }
+
+            Decimal finalLoading;
+            if (data.containsKey('loadingAmount') && data.get('loadingAmount') != null) {
+                finalLoading = Decimal.valueOf(String.valueOf(data.get('loadingAmount')));
+            } else {
+                finalLoading = so.Loading_Charges__c;
+            }
+
+            Decimal finalUnloading;
+            if (data.containsKey('unloadingAmount') && data.get('unloadingAmount') != null) {
+                finalUnloading = Decimal.valueOf(String.valueOf(data.get('unloadingAmount')));
+            } else {
+                finalUnloading = so.Unloading_Charges__c;
+            }
+
 
                     // ===== Delivery Date + Time merge =====
             Date deliveryDate;
@@ -178,8 +196,9 @@ public with sharing class NewDeliveryPlanController {
                  Delivery_Status__c = 'Scheduled',
                 
                 Vehicle_Number__c = data.containsKey('vehicleNumber') ? (String)data.get('vehicleNumber') : null,
-               Freight_Amount__c = finalFreight
-
+               Freight_Amount__c = finalFreight,
+               Loading_Charges__c = finalLoading,
+               Unloading_Charges__c = finalUnloading
 
                 
             );
@@ -310,5 +329,27 @@ public static String getSalesOrderRemarks(Id salesOrderId) {
         LIMIT 1
     ];
     return so.Remarks__c;
+}
+
+@AuraEnabled(cacheable=true)
+public static Decimal getSalesOrderLoading(Id salesOrderId) {
+    Order so = [
+        SELECT Loading_Charges__c
+        FROM Order
+        WHERE Id = :salesOrderId
+        LIMIT 1
+    ];
+    return so.Loading_Charges__c;
+}
+
+@AuraEnabled(cacheable=true)
+public static Decimal getSalesOrderUnloading(Id salesOrderId) {
+    Order so = [
+        SELECT Unloading_Charges__c
+        FROM Order
+        WHERE Id = :salesOrderId
+        LIMIT 1
+    ];
+    return so.Unloading_Charges__c;
 }
 }
