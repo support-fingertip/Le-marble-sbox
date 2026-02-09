@@ -403,3 +403,14 @@
     }
     
 }
+
+.blur-background {
+    filter: blur(4px);
+    pointer-events: none; /* Prevent clicks */
+    user-select: none;
+}
+
+/* Keep modal sharp */
+.slds-modal {
+    filter: none !important;
+}

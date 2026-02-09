@@ -29,13 +29,15 @@ public class LeadTriggerHandler {
         //  AUTO-FILL COMPANY & COUNTRY ---
         for (Lead ls : leadList) {
 
-            // Auto-fill Company 
-            if (ls.Company == null) {
-                String fullName = '';
-                if (String.isNotBlank(ls.FirstName))  fullName += ls.FirstName;
-                if (String.isNotBlank(ls.LastName))   fullName += (fullName != '' ? ' ' : '') + ls.LastName;
-                ls.Company = fullName;
-            }
+            // Auto-fill Company (Standard required field)
+// Auto-fill Company ONLY for B2C
+if (ls.Customer_Type__c == 'B2C') {
+    String fullName = '';
+    if (String.isNotBlank(ls.FirstName)) fullName += ls.FirstName;
+    if (String.isNotBlank(ls.LastName))  fullName += (fullName != '' ? ' ' : '') + ls.LastName;
+
+    ls.Company = fullName;
+}
 
             // Auto-fill Country 
             if (ls.Country == null || ls.Country == '') {
@@ -90,12 +92,14 @@ public class LeadTriggerHandler {
       for (Lead ls : leadList) {
 
     // Auto-fill Company
-    if (ls.Company == null) {
-        String fullName = '';
-        if (String.isNotBlank(ls.FirstName))  fullName += ls.FirstName;
-        if (String.isNotBlank(ls.LastName))   fullName += (fullName != '' ? ' ' : '') + ls.LastName;
-        ls.Company = fullName;
-    }
+ // Auto-fill Company ONLY for B2C
+if (ls.Customer_Type__c == 'B2C') {
+    String fullName = '';
+    if (String.isNotBlank(ls.FirstName)) fullName += ls.FirstName;
+    if (String.isNotBlank(ls.LastName))  fullName += (fullName != '' ? ' ' : '') + ls.LastName;
+
+    ls.Company = fullName;
+}
 
     // Auto-fill Country 
     if (ls.Country == null || ls.Country == '') {
@@ -139,18 +143,50 @@ public class LeadTriggerHandler {
 
 
   public static void afterUpdate(List<Lead> leadList, Map<Id, Lead> oldMap) {
-  
-  
-
-    // Notification Types (use EXACT developer names from Setup)
-    CustomNotificationType unqualifiedType =
-        [SELECT Id FROM CustomNotificationType WHERE DeveloperName = 'Lead_Unqualified_Notification' LIMIT 1];
-
-    CustomNotificationType assignType =
-        [SELECT Id FROM CustomNotificationType WHERE DeveloperName = 'Lead_Assigned_Notification' LIMIT 1];
-
-    CustomNotificationType convertedType =
-        [SELECT Id FROM CustomNotificationType WHERE DeveloperName = 'Lead_Converted_Notification' LIMIT 1];
+          
+          Set<Id> ownerIds = new Set<Id>();
+          List<Lead> unLeads = new List<Lead>();
+          
+          Set<Id> accountIds = new Set<Id>();
+          Map<Id, String> leadEmailMap = new Map<Id, String>();
+          
+          for (Lead l : leadList) {
+              Lead oldLead = oldMap.get(l.Id);
+              
+              if (l.Status == 'Unqualified' && oldLead.Status != 'Unqualified') {
+                  unLeads.add(l);
+                  ownerIds.add(l.OwnerId);
+              }
+              
+                if (l.IsConverted == true && oldLead.IsConverted == false && l.Email != null) {
+                    accountIds.add(l.ConvertedAccountId);
+                    leadEmailMap.put(l.ConvertedAccountId, l.Email); 
+                }
+          }
+      //update account email with lead email
+      if (!accountIds.isEmpty()) {
+          List<Account> accounts = [ SELECT Id, Email__c FROM Account WHERE Id IN :accountIds ];
+          
+          for (Account acc : accounts) {
+              if (leadEmailMap.containsKey(acc.Id)) {
+                  acc.Email__c = leadEmailMap.get(acc.Id);
+              }
+          }
+          
+          update accounts;
+      }
+      
+      Map<Id, User> ownerMap = new Map<Id, User>( [SELECT Id, ManagerId FROM User WHERE Id IN :ownerIds AND ManagerId != null] );
+      
+      // Notification Types (use EXACT developer names from Setup)
+      CustomNotificationType unqualifiedType =
+          [SELECT Id FROM CustomNotificationType WHERE DeveloperName = 'Lead_Unqualified_Notification' LIMIT 1];
+      
+      CustomNotificationType assignType =
+          [SELECT Id FROM CustomNotificationType WHERE DeveloperName = 'Lead_Assigned_Notification' LIMIT 1];
+      
+      CustomNotificationType convertedType =
+          [SELECT Id FROM CustomNotificationType WHERE DeveloperName = 'Lead_Converted_Notification' LIMIT 1];
 
     for (Lead newLead : leadList) {
         Lead oldLead = oldMap.get(newLead.Id);
@@ -166,6 +202,10 @@ public class LeadTriggerHandler {
         // LEAD UNQUALIFIED NOTIFICATION (to Admin/Manager as per BRD)
         if (newLead.Status == 'Unqualified' && oldLead.Status != 'Unqualified') {
             try {
+                Set<String> managerIds = new Set<String>();
+                managerIds.add(ownerMap.get(newLead.OwnerId).ManagerId);
+                managerIds.add(newLead.OwnerId);
+                
                 Messaging.CustomNotification noti = new Messaging.CustomNotification();
                 noti.setTitle('Lead Marked as Unqualified');
                 noti.setBody('Lead "' + fullName + '" (' + company + ') has been marked as Unqualified.');
@@ -173,7 +213,7 @@ public class LeadTriggerHandler {
                 noti.setTargetId(newLead.Id);
 
                 // Example: send to Owner (change to Manager if BRD)
-                noti.send(new Set<String>{ String.valueOf(newLead.OwnerId) });
+                noti.send(managerIds);
 
             } catch (Exception e) {
                 System.debug('Error sending unqualified notification: ' + e.getMessage());
@@ -225,7 +265,7 @@ for (Lead ld : leadList) {
     try {
         Messaging.CustomNotification noti = new Messaging.CustomNotification();
         noti.setTitle('New Lead Assigned');
-        noti.setBody('A new lead "' + ld.Name + '" has been assigned to you.');
+        noti.setBody('A new lead "' + ld.FirstName+' '+ld.LastName + '" has been assigned to you.');
         noti.setNotificationTypeId(assignType.Id);
         noti.setTargetId(ld.Id);
         noti.send(new Set<String>{ String.valueOf(ld.OwnerId) });
@@ -382,6 +422,7 @@ for (Lead ld : leadList) {
         }
     }
 }
+
 
 
 // Helper to clean phone numbers

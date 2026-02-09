@@ -53,7 +53,8 @@ public class QuoteLineItem_HandlerTest {
             Quantity = 1,
             UnitPrice = 100,
             OpportunityLineItemId = oli.Id,
-            Area__c = 'North',
+              Area__c = 'North',
+          
             MSP__c = 50
         );
 

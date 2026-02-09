@@ -8,6 +8,10 @@ import getDriverPicklistOptions from '@salesforce/apex/NewDeliveryPlanController
 import getVehicleNumberOptions from '@salesforce/apex/NewDeliveryPlanController.getVehicleNumberOptions';
 import getSalesOrderFreight from '@salesforce/apex/NewDeliveryPlanController.getSalesOrderFreight';
 import getSalesOrderRemarks from '@salesforce/apex/NewDeliveryPlanController.getSalesOrderRemarks';
+import getSalesOrderLoading from '@salesforce/apex/NewDeliveryPlanController.getSalesOrderLoading';
+import getSalesOrderUnloading from '@salesforce/apex/NewDeliveryPlanController.getSalesOrderUnloading';
+
+
 
 
 
@@ -34,6 +38,8 @@ export default class NewDeliveryPlan extends LightningElement {
     @track unloadingAmount;
     @track loadingAmount;
     freightTouched = false;
+    loadingTouched = false;
+    unloadingTouched = false;
     @track deliveryTime;
     @track vehicleNumber;
     @track vehicleNumberOptions = [];
@@ -143,6 +149,8 @@ export default class NewDeliveryPlan extends LightningElement {
             this.searchTerm = selectedSC.label;
             this.salesConfirmations = [];
             this.freightTouched = false;
+            this.loadingTouched = false;
+            this.unloadingTouched = false;
             this.freightAmount = null;
              this.unloadingAmount = null;
             this.loadingAmount = null;
@@ -150,6 +158,8 @@ export default class NewDeliveryPlan extends LightningElement {
             this.deliverySummaryNote = '';
             this.loadFreightFromSalesOrder();
             this.loadRemarksFromSalesOrder();
+            this.loadLoadingFromSalesOrder();
+            this.loadUnloadingFromSalesOrder();
         }
     }
 
@@ -283,14 +293,18 @@ async loadRemarksFromSalesOrder() {
     this.freightTouched = true;
 }
 
-    handleloadingChargeAmountChange(event) {
-    this.loadingAmount = event.target.value;
-    this.freightTouched = true;
-    }
-    handleUnloadingChargeAmountChange(event) {
-    this.unloadingAmount = event.target.value;
-    this.freightTouched = true;
-    }
+handleloadingChargeAmountChange(event) {
+  this.loadingAmount = event.target.value;
+  this.loadingTouched = true;
+}
+
+handleUnloadingChargeAmountChange(event) {
+  this.unloadingAmount = event.target.value;
+  this.unloadingTouched = true;
+}
+
+
+    
     handleDeliveryTimeChange(event) {
         this.deliveryTime = event.target.value;
     }
@@ -373,11 +387,11 @@ async loadRemarksFromSalesOrder() {
         const addr = this.selectedSalesConfirmation.address || {};
         const formattedAddress = [addr.street, addr.city, addr.state, addr.postalCode, addr.country]
             .filter(Boolean)
-            .join(', ');
+            .join(', ');    
         return {
             name: this.selectedSalesConfirmation.name,
             quoteName: this.selectedSalesConfirmation.quoteName,
-            oppOwner: this.selectedSalesConfirmation.oppOwner || 'N/A',
+            orderOwner: this.selectedSalesConfirmation.orderOwner || 'N/A',
             company: this.selectedSalesConfirmation.company || 'N/A',
             customerName: this.selectedSalesConfirmation.customerName || 'N/A',
             phone: this.selectedSalesConfirmation.phone || 'N/A',
@@ -389,7 +403,40 @@ async loadRemarksFromSalesOrder() {
             warehouse: this.selectedSalesConfirmation.warehouse || 'N/A',
             approvalStatus: this.selectedSalesConfirmation.approvalStatus || 'N/A',
             productCategory: this.selectedSalesConfirmation.productCategory || 'N/A',
-            preferredDeliveryDate: this.selectedSalesConfirmation.preferredDeliveryDate || null
+            preferredDeliveryDate: this.selectedSalesConfirmation.preferredDeliveryDate || null,
+            
         };
     }
+
+    async loadLoadingFromSalesOrder() {
+  if (!this.selectedSalesConfirmationId) return;
+
+  try {
+    const loading = await getSalesOrderLoading({
+      salesOrderId: this.selectedSalesConfirmationId
+    });
+
+    if (!this.loadingTouched) {
+      this.loadingAmount = loading;
+    }
+  } catch (error) {
+    console.error('Error loading loading charge', error);
+  }
+}
+
+async loadUnloadingFromSalesOrder() {
+  if (!this.selectedSalesConfirmationId) return;
+
+  try {
+    const unloading = await getSalesOrderUnloading({
+      salesOrderId: this.selectedSalesConfirmationId
+    });
+
+    if (!this.unloadingTouched) {
+      this.unloadingAmount = unloading;
+    }
+  } catch (error) {
+    console.error('Error loading unloading charge', error);
+  }
+}
 }

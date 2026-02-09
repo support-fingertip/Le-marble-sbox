@@ -38,20 +38,14 @@ public class QuoteTriggerHandler {
 }*/
 
     // 🔹 Existing task logic (unchanged)
-    public static void handleAfterSave(
-        List<Quote> newList,
-        Map<Id, Quote> oldMap,
-        Boolean isInsert
-    ) {
+    public static void handleAfterSave(List<Quote> newList,Map<Id, Quote> oldMap,Boolean isInsert) {
         Set<Id> acceptedQuoteIds = new Set<Id>();
 
         for (Quote q : newList) {
             Quote oldQ = oldMap != null ? oldMap.get(q.Id) : null;
 
-            if (oldQ != null &&
-                oldQ.Status != q.Status &&
-                (q.Status == 'Accepted' || q.Status == 'Denied')) {
-
+            if (oldQ != null && ( (oldQ.Status != q.Status && (q.Status == 'Accepted' || q.Status == 'Denied') ) || (oldQ.Approval_Status__c != q.Approval_Status__c && q.Approval_Status__c == 'Revised')))
+                {
                 acceptedQuoteIds.add(q.Id);
             }
         }
@@ -81,8 +75,7 @@ public class QuoteTriggerHandler {
         Set<String> userIds,
         String title,
         String body,
-        Id quoteId
-    ) {
+        Id quoteId) {
         if (userIds.isEmpty()) return;
 
         CustomNotificationType notificationType = [
@@ -204,47 +197,73 @@ public static void handleStatusBasedNotifications(
     }
 }
     
-    public static void handleCustomerAcceptedNotification(
-    List<Quote> newList,
-    Map<Id, Quote> oldMap
-) {
+    public static void handleCustomerAcceptedNotification(List<Quote> newList,Map<Id, Quote> oldMap) {
     Set<Id> oppIds = new Set<Id>();
     Map<Id, Quote> acceptedQuotes = new Map<Id, Quote>();
-
+	Set<Id> ownIds = new Set<Id>();
     // 1. Detect status change
     for (Quote q : newList) {
         Quote oldQ = oldMap.get(q.Id);
 
-        if (oldQ != null &&
-            oldQ.Status != 'Accepted' &&
-            q.Status == 'Accepted' &&
-            q.OpportunityId != null) {
-
+        if (oldQ != null && oldQ.Customer_Accepted__c == false && q.Customer_Accepted__c == true && q.OpportunityId != null) {
             acceptedQuotes.put(q.Id, q);
             oppIds.add(q.OpportunityId);
+            ownIds.add(q.OwnerId);
         }
     }
-
+        
     if (acceptedQuotes.isEmpty()) return;
+        Map<Id, User> users = new Map<Id, User>([SELECT Id, ManagerId FROM User WHERE Id IN :ownIds  AND ManagerId != null]);
+        
+        
+        Set<Id> managerIds = new Set<Id>();
+        for (User u : users.values()) {
+            managerIds.add(u.ManagerId);
+        }
 
+         if (managerIds.isEmpty()) return;
+        
+        Map<Id, List<User>> managerToCoordinators = new Map<Id, List<User>>();
+        
+        for (User u : [
+            SELECT Id, ManagerId
+            FROM User
+            WHERE ManagerId IN :managerIds
+            AND Profile.Name = 'Coordinator'
+            AND IsActive = true
+        ]) {
+            if (!managerToCoordinators.containsKey(u.ManagerId)) {
+                managerToCoordinators.put(u.ManagerId, new List<User>());
+            }
+            managerToCoordinators.get(u.ManagerId).add(u);
+        }
+        
     // 2. Fetch Opportunity → Account
-    Map<Id, Opportunity> oppMap = new Map<Id, Opportunity>([
-        SELECT Id, Account.Name
-        FROM Opportunity
-        WHERE Id IN :oppIds
-    ]);
+    Map<Id, Opportunity> oppMap = new Map<Id, Opportunity>([SELECT Id, Account.Name FROM Opportunity WHERE Id IN :oppIds ]);
 
     // 3. Notify internal user (Quote Owner)
     for (Quote q : acceptedQuotes.values()) {
-
+        
+        User owner = users.get(q.OwnerId);
+        if (owner == null) continue;
+        
+        List<User> coordinators = managerToCoordinators.get(owner.ManagerId);
+        if (coordinators == null || coordinators.isEmpty()) continue;
+        
+        
         Opportunity opp = oppMap.get(q.OpportunityId);
         String customerName =
             (opp != null && opp.Account != null)
             ? opp.Account.Name
             : 'Customer';
 
+        Set<String> coordinatorIds = new Set<String>();
+        for (User u : coordinators) {
+            coordinatorIds.add(u.Id);
+        }
+        
         sendNotification(
-            new Set<String>{ String.valueOf(q.OwnerId) },
+          coordinatorIds,
             'Quote Accepted',
             customerName + ' has accepted the quote',
             q.Id

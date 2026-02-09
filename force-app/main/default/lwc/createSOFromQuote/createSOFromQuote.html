@@ -16,6 +16,7 @@
 
     <!-- ================= MODAL ================= -->
     <template if:true={isModalOpen}>
+      <div class={backgroundClass}>
         <section role="dialog" tabindex="-1"
             class="slds-modal slds-fade-in-open slds-modal_large">
             <div class="slds-modal__container">
@@ -222,24 +223,26 @@
                             <div class="table-scroll-wrapper">
                                  <table class="slds-table slds-table_bordered slds-table_cell-buffer slds-table_fixed-layout">
                                     <colgroup>
-                                    <col style="width: 10%;">
+                                    <col style="width: 6%;">
                                     <col style="width: 30%;">
-                                    <col style="width: 15%;">
-                                    <col style="width: 15%;">
-                                    <col style="width: 15%;">
-                                    <col style="width: 15%;">
-                                    <col style="width: 15%;">
-                                </colgroup>
+                                    <col style="width: 9%;">
+                                    <col style="width: 9%;">
+                                    <col style="width: 9%;">
+                                    <col style="width: 9%;">    
+                                    <col style="width: 12%;">
+                                </colgroup> 
                                     <thead>
                                     <tr>
-                                        <th style="width:5%"></th> 
+                                        <th style="width:2%"></th> 
                                         <th>Product</th>
                                         <th>Quantity</th>
-                                        <th>Block Qty</th>
+                                        <template if:false={isFactoryWarehouse}>
+                                            <th>Block Qty</th>
+                                        </template>
                                         <th>Unit Price</th>
-                                        <th>Tax</th>
+                                      <!--<th>Tax</th> -->
                                         <th>Total Price</th>
-                                        <th>Category</th>
+                                        <th>Batch</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -255,20 +258,85 @@
                                     </td>
                                             <td class="product-cell">{item.Product2.Name}</td>
                                             <td>{item.Quantity}</td>
+                                            <template if:false={isFactoryWarehouse}>
                                             <td>
-                                              <lightning-input
+                                                <lightning-input
                                                     type="number"
                                                     variant="label-hidden"
                                                     value={item.BlockQty}
                                                     data-id={item.Id}
                                                     min="0"
                                                     onchange={handleBlockQtyChange}>
-                                                </lightning-input></td>
+                                                </lightning-input>
+                                            </td>
+                                        </template>
+
                                             <td>{item.UnitPrice}</td>
-                                            <td><lightning-formatted-number value={item.tax} minimum-fraction-digits="2" maximum-fraction-digits="2"> </lightning-formatted-number></td>
-                                            <td>{item.totalPrice}</td>
-                                            <td>{item.category}</td>
+                                      <!--   <td><lightning-formatted-number value={item.tax} minimum-fraction-digits="2" maximum-fraction-digits="2"> </lightning-formatted-number></td>
+                                    -->     <td>{item.totalPrice}</td>
+                                           <td>
+                                                <template if:false={isFactoryWarehouse}>
+                                                    <lightning-button
+                                                        label="View Batch"
+                                                        variant="brand-outline"
+                                                        data-id={item.Id}
+                                                        onclick={handleViewBatch}>
+                                                    </lightning-button>
+                                                </template>
+                                            </td>
+
                                         </tr>
+
+
+
+   <template if:true={item.batches}>
+        <template if:true={item.batches.length}>
+            <tr key={item.Id}>
+                <td colspan="8" class="slds-p-left_large">
+
+                    <table class="slds-table slds-table_cell-buffer slds-table_bordered slds-m-top_x-small">
+                        <thead>
+                            <tr>
+                                <th>Warehouse</th>
+                                <th>Batch</th>
+                                <th>Qty</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template for:each={item.batches} for:item="b">
+                                <tr key={b.Eid}>
+                                    <td>{b.warehouseCode}</td>
+                                    <td>{b.Batch}</td>
+                                    <td>{b.quantity}</td>
+                                    <td>
+                                        <lightning-button-icon
+                                            icon-name="utility:edit"
+                                            variant="bare"
+                                            data-qli={item.Id}
+                                            data-eid={b.Eid}
+                                            onclick={handleEditBatch}>
+                                        </lightning-button-icon>
+
+                                        <lightning-button-icon
+                                            icon-name="utility:delete"
+                                            variant="bare"
+                                            data-qli={item.Id}
+                                            data-eid={b.Eid}
+                                            onclick={handleDeleteBatch}>
+                                        </lightning-button-icon>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+
+                </td>
+            </tr>
+        </template>
+    </template>
+
+
                                     </template>
                                 </tbody>
                             </table>
@@ -312,7 +380,70 @@
         </section>
 
         <div class="slds-backdrop slds-backdrop_open"></div>
+      </div>
+        <template if:true={isBatchModalOpen}>
+        <section role="dialog" class="slds-modal slds-fade-in-open slds-modal_medium">
+        <div class="slds-modal__container">
+
+        <header class="slds-modal__header">
+            <h2 class="slds-text-heading_medium">Batch Details</h2>
+        </header>
+
+        <div class="slds-modal__content slds-p-around_medium">
+
+            <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+                <thead>
+                    <tr>
+                        <th>Warehouse</th>
+                        <th>Batch</th>
+                        <th>Available Qty</th>
+                        <th>Enter Qty</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <template for:each={batchList} for:item="b">
+                        <tr key={b.Eid}>
+                            <td>{b.warehouseCode}</td>
+                            <td>{b.Batch}</td>
+                            <td>{b.inStock}</td>
+                            <td>
+                                <lightning-input
+                                    type="number"
+                                    min="0"
+                                    data-eid={b.Eid}
+                                    value={b.quantity}
+                                    onchange={handleBatchQtyChange}>
+                                </lightning-input>
+                            </td>
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
+
+        </div>
+
+        <footer class="slds-modal__footer">
+            <lightning-button
+                label="Cancel"
+                onclick={closeBatchModal}>
+            </lightning-button>
+
+            <lightning-button
+                label="Save"
+                variant="brand"
+                onclick={saveBatchItems}>
+            </lightning-button>
+        </footer>
+
+        </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
     </template>
+
+
+
+
+  </template>
 
     <!-- ================= LOADING SPINNER ================= -->
     <template if:true={isLoading}>

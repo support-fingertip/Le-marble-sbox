@@ -118,13 +118,16 @@ public with sharing class NewDeliveryPlanController {
                 AccountId,
                 Warehouse__c,
                 Warehouse_Manager__c,
-                Contact_Person_Name__c,	
-                Freight_Charge__c
+                Contact_Person_Name__c,	AddressLine1__c,AddressLine2__c,AddressLine3__c,District__c,State__c,
+                Freight_Charge__c,
+                Loading_Charges__c,
+                Unloading_Charges__c
             FROM Order
             WHERE Id = :salesOrderId
             LIMIT 1
         ];
 
+           
             
             Decimal finalFreight;
 
@@ -133,6 +136,21 @@ public with sharing class NewDeliveryPlanController {
         } else {
             finalFreight = so.Freight_Charge__c;
         }
+
+            Decimal finalLoading;
+            if (data.containsKey('loadingAmount') && data.get('loadingAmount') != null) {
+                finalLoading = Decimal.valueOf(String.valueOf(data.get('loadingAmount')));
+            } else {
+                finalLoading = so.Loading_Charges__c;
+            }
+
+            Decimal finalUnloading;
+            if (data.containsKey('unloadingAmount') && data.get('unloadingAmount') != null) {
+                finalUnloading = Decimal.valueOf(String.valueOf(data.get('unloadingAmount')));
+            } else {
+                finalUnloading = so.Unloading_Charges__c;
+            }
+
 
                     // ===== Delivery Date + Time merge =====
             Date deliveryDate;
@@ -163,25 +181,27 @@ public with sharing class NewDeliveryPlanController {
             // Create Delivery Group
             Delivery_Group__c deliveryGroup = new Delivery_Group__c(
                 Sales_Order__c = salesOrderId,
-                  Account__c  = so.AccountId,
-                    Warehouse__c   = so.Warehouse__c,
-                    Warehouse_Manager__c = so.Warehouse_Manager__c,
-                    Contact_Person__c = so.Contact_Person_Name__c,
-                   Delivery_Date_Time__c = deliveryDateTime,
+                Account__c  = so.AccountId,
+                Warehouse__c   = so.Warehouse__c,
+                Warehouse_Manager__c = so.Warehouse_Manager__c,
+                Contact_Person__c = so.Contact_Person_Name__c,
+                Delivery_Date_Time__c = deliveryDateTime,
                 Driver_Assigned__c = (String)data.get('driverId'),
                 Choose_Vehicle__c = (String)data.get('vehicleId'),
                 Remarks__c = (String)data.get('remarks'),
                 Delivery_Summary_Note__c = deliverySummaryNote,
                 Delivery_Priority__c = (String) data.get('deliveryPriority'),
-
+                
                 Status__c = 'Scheduled',
-                 Delivery_Status__c = 'Scheduled',
+                Delivery_Status__c = 'Scheduled',
                 
                 Vehicle_Number__c = data.containsKey('vehicleNumber') ? (String)data.get('vehicleNumber') : null,
-               Freight_Amount__c = finalFreight
-
-
+                Freight_Amount__c = finalFreight,
+                Loading_Charges__c = finalLoading,
+                Unloading_Charges__c = finalUnloading,
                 
+                Delivery_Address__c=so.AddressLine1__c!=null? so.AddressLine1__c+' ':''+ so.AddressLine2__c!=null? so.AddressLine2__c+' ':''+so.AddressLine3__c!=null? so.AddressLine3__c+' ':''+ 
+                so.District__c!=null? so.District__c+' ':''+ so.State__c!=null? so.State__c+' ':''
             );
             
  
@@ -310,5 +330,27 @@ public static String getSalesOrderRemarks(Id salesOrderId) {
         LIMIT 1
     ];
     return so.Remarks__c;
+}
+
+@AuraEnabled(cacheable=true)
+public static Decimal getSalesOrderLoading(Id salesOrderId) {
+    Order so = [
+        SELECT Loading_Charges__c
+        FROM Order
+        WHERE Id = :salesOrderId
+        LIMIT 1
+    ];
+    return so.Loading_Charges__c;
+}
+
+@AuraEnabled(cacheable=true)
+public static Decimal getSalesOrderUnloading(Id salesOrderId) {
+    Order so = [
+        SELECT Unloading_Charges__c
+        FROM Order
+        WHERE Id = :salesOrderId
+        LIMIT 1
+    ];
+    return so.Unloading_Charges__c;
 }
 }

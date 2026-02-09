@@ -100,8 +100,8 @@ throw new AuraHandledException(e.getMessage());
         
         return [
             SELECT Id, Quantity, UnitPrice, Discount, TotalPrice, 
-            Product2Id, Product2.Name, Product2.Product_Code__c, Area__c,Product2.MSP__c,Disc_Type__c,Dis_Value__c,
-            Product2.Product_Category__c,
+           Product2Id, Product2.Name, Product2.Product_Code__c, Product2.MSP__c,   Area__c,
+            Product2.Product_Category__c,Sqft__c,
             PricebookEntryId,Description
             FROM OpportunityLineItem
             WHERE OpportunityId = :oppId and Product2.Product_Category__c=:category
@@ -123,7 +123,7 @@ throw new AuraHandledException(e.getMessage());
     public static List<PricebookEntry> getPBEntries(String pbName) {
         
         Pricebook2 pb = [
-            SELECT Id	
+            SELECT Id   
             FROM Pricebook2
             WHERE Name = :pbName
             LIMIT 1
@@ -160,6 +160,26 @@ throw new AuraHandledException(e.getMessage());
             throw new AuraHandledException(e.getMessage());
         }
     }
+
+    @AuraEnabled(cacheable=true)
+public static List<Map<String, String>> getAreaPicklistValues() {
+    try {
+        List<Map<String, String>> values = new List<Map<String, String>>();
+
+        Schema.DescribeFieldResult fieldResult = QuoteLineItem.Area__c.getDescribe();
+        List<Schema.PicklistEntry> ple = fieldResult.getPicklistValues();
+
+        for (Schema.PicklistEntry p : ple) {
+            values.add(new Map<String, String>{
+                'label' => p.getLabel(),
+                'value' => p.getValue()
+            });
+        }
+        return values;
+    } catch (Exception e) {
+        throw new AuraHandledException(e.getMessage());
+    }
+}
     
     @AuraEnabled(cacheable=true)
     public static List<String> getPriceNames() {
@@ -343,8 +363,8 @@ lineItem.Sqft__c = safeDecimalConversion(item.get('sqft'));
                                                 }
                                                 
                                                 if(item.containsKey('roomType')) {
-                                                //    lineItem.Room_Type__c = String.valueOf(item.get('roomType'));
-													lineItem.Area__c = String.valueOf(item.get('roomType'));
+                                                  lineItem.Room_Type__c = String.valueOf(item.get('roomType'));
+                                                  lineItem.Area__c = String.valueOf(item.get('roomType'));
                                                 }
                                                 
                                                 /*                     if(item.containsKey('msp')) {
@@ -520,7 +540,7 @@ throw new AuraHandledException('Error creating cart: ' + e.getMessage());
                     System.debug('Decoded ITEMS_URL: ' + decodedUrl);
                     system.debug('ITEMS_URL>>>'+ITEMS_URL);
                     HttpRequest itemReq = new HttpRequest();
-                    itemReq.setEndpoint(ITEMS_URL);	
+                    itemReq.setEndpoint(ITEMS_URL); 
                     itemReq.setMethod('GET');
                     itemReq.setHeader('Content-Type', 'application/json');
                     itemReq.setHeader('Accept', 'application/json');
@@ -606,6 +626,7 @@ InStock = String.valueOf(warehouseInfo.get('InStock'));
             throw new AuraHandledException('Error creating cart line item: ' + e.getMessage());
         }
     }
+    
     // Dummy method 1: Utility to log information
     public static void logInfo(String message) {
         System.debug('INFO: ' + message);

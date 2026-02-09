@@ -17,11 +17,7 @@ trigger QuoteTrigger on Quote (
     if (Trigger.isAfter && Trigger.isInsert) {
 
         // Existing task-related logic
-        QuoteTriggerHandler.handleAfterSave(
-            Trigger.new,
-            null,
-            true
-        );
+        QuoteTriggerHandler.handleAfterSave(Trigger.new,null,true);
     }
 
     /* =========================
