@@ -71,6 +71,10 @@
                 <behavior>Edit</behavior>
                 <field>Blocked_Account__c</field>
             </layoutItems>
+            <layoutItems>
+                <behavior>Readonly</behavior>
+                <field>SAP_Sync_Status__c</field>
+            </layoutItems>
         </layoutColumns>
         <layoutColumns>
             <layoutItems>

@@ -8,6 +8,7 @@ import getProductCategories from '@salesforce/apex/NewQuoteController.getProduct
 import getPBEntries from '@salesforce/apex/NewQuoteController.getPBEntries';
 import createCart from '@salesforce/apex/NewQuoteController.createCart';
 import checkLiveStock from '@salesforce/apex/NewQuoteController.checkLiveStock';
+import getAreaPicklistValues from '@salesforce/apex/NewQuoteController.getAreaPicklistValues';
 
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { NavigationMixin, CurrentPageReference } from 'lightning/navigation';
@@ -40,7 +41,7 @@ openPreview=false;
   @track orderTotal = 0;
 @track useMRP = true; 
     get isCategoryDisabled() {
-        return this.selectedPB;   // disabled when no Pricebook selected
+        return !this.selectedPB || this.selectedPB === 'select';  // disabled when no Pricebook selected
     }
     
    /* get priceModeLabel() {
@@ -58,6 +59,23 @@ openPreview=false;
 
     @wire(CurrentPageReference)
     pageRef;
+
+    @track areaOptions = [];
+
+@wire(getAreaPicklistValues)
+wiredAreaPicklist({ data, error }) {
+    if (data) {
+        this.areaOptions = data.map(v => ({
+    label: v.label,
+    value: v.value
+}));
+    } else if (error) {
+        console.error('❌ Error loading Area picklist:', error);
+    }
+}
+
+
+
     
     
 
@@ -158,7 +176,7 @@ openPreview=false;
                     })
                 );
     
-                // 🔥 Redirect automatically to Quote record page
+                //  Redirect automatically to Quote record page
                 setTimeout(() => {
                     this[NavigationMixin.Navigate]({
                         type: 'standard__recordPage',
@@ -240,9 +258,9 @@ openPreview=false;
         get showDiscountSection() {
          return this.selectedPB !== 'MSP';
         }
-        get isCategoryDisabled() {
-            return !this.selectedPB; // disable when selectedPB is false
-        }
+       // get isCategoryDisabled() {
+       //     return !this.selectedPB; // disable when selectedPB is false
+       // }
         handlePBSelect(event) {
            this.selectedCategory='';
                 this.selectedProducts = [];
@@ -316,7 +334,7 @@ openPreview=false;
                    const cartItem1 = {
                 id: '',
                  lineNo:1,
-                compositeKey:'',
+                compositeKey: `${Date.now()}_${Math.random()}`,
                 name: '',
                 code: '',
                 category: this.selectedCategory,
@@ -353,7 +371,7 @@ var i=0;
                 const cartItem = {
                        lineNo:i,
                     id: item.Product2Id,
-                    compositeKey:compositeKey,
+                   
                     name: item.Product2.Name,
                     code: item.Product2.Product_Code__c,
                     category: item.Product2.Product_Category__c,
@@ -366,10 +384,10 @@ var i=0;
                     discType: item.Disc_Type__c,
                     discValue: item.Dis_Value__c || 0,
                     roomType: item.Area__c,
-                    requiredSqft: 0,
+                    requiredSqft: item.Sqft__c,
                     pricePerSqft: 0,
                     afterDiscPriceSqft: 0,
-                    sqft: 0, sqm: 0,
+                    sqft: item.Sqft__c, sqm: 0,
                     pricebookEntryId: item.PricebookEntryId,
                      isNaturalStone: item.Product2.Product_Category__c === 'NATURAL STONE',
                      isTile:item.Product2.Product_Category__c === 'TILE',
@@ -420,9 +438,10 @@ var i=0;
             rows.splice(rowIndex, 1);
 
             // Create new blank row
-            const newRow = {
+           const newRow = {
+   compositeKey: `${Date.now()}_${Math.random()}`,
                 id: '',
-                compositeKey:'',
+             
                 lineNo:rowIndex+1,
                 name: '',
                 code: '',
@@ -553,23 +572,27 @@ var i=0;
             }
         }
 
-        updateProduct(productId, field, value,idx) {
-            const productIndex = idx;
-            
-            if (productIndex !== -1) {
-                this.selectedProducts [productIndex][field] = value;
-                 const product = this.selectedProducts[productIndex];
-                const newKey = `${product.id || ''}_${product.roomType || 'default'}_${product.description || 'default'}`;
-                product.compositeKey = newKey;
+        updateProduct(productId, field, value, idx) {
+    const productIndex = idx;
 
-        
-                this.calculatePrices(productIndex);
-                this.selectedProducts  = [...this.selectedProducts ]; // Trigger reactivity
-            }
-        }
+    if (productIndex !== -1) {
+        this.selectedProducts[productIndex][field] = value;
+
+        const product = this.selectedProducts[productIndex];
+
+        // ✅ KEY MUST USE Area/RoomType, not any random field value
+        const areaVal = (field === 'roomType') ? value : product.roomType;
+        const newKey = `${product.id || ''}_${areaVal || 'default'}_${product.description || ''}`;
+        product.compositeKey = newKey;
+
+        this.calculatePrices(productIndex);
+        this.selectedProducts = [...this.selectedProducts];
+    }
+}
 
         calculatePrices(productIndex) {
             const product = this.selectedProducts [productIndex];
+            console.log(product.isNaturalStone);
      //    alert(JSON.stringify(product));   
             if (product.isNaturalStone) {
                 // Natural Stone calculation
@@ -1115,6 +1138,18 @@ alert('hi');
             this.activeRowIndex = typeof idx !== 'undefined' ? Number(idx) : null;
         }
 
+        handleSearchBlur() {
+        setTimeout(() => {
+            this.selectedProducts = this.selectedProducts.map(row => ({
+                ...row,
+                showDropdown: false
+            }));
+            this.showSearchDropdown = false;
+        }, 200);
+    }
+
+
+
         handleSearchInput(event) {
             const index = event.target.dataset.index;
             const value = event.target.value;
@@ -1144,7 +1179,6 @@ const rowCategory = this.selectedProducts[index].category;
                 showDropdown: i == index
             }));*/
 
-            console.log('this.products>>'+JSON.stringify(this.products));
             this.searchResults = this.products.filter(p => {
                 const matchesSearch =
                     (p.Name || '').toLowerCase().includes(value.toLowerCase()) ||
@@ -1168,10 +1202,16 @@ const rowCategory = this.selectedProducts[index].category;
 
 
 handleSearchResultClick(event) {
+      const productId1 = event.currentTarget.dataset.productId;
+    const rowIndex1 = event.currentTarget.dataset.index;
+
+    console.log('Selected Product Id:', productId1);
+    console.log('Row Index:', rowIndex1);
+
     // find clicked element (works even if inner child was clicked)
     const el = event.target.closest('[data-product-id]');
     if (!el) return;
-
+console.log(el);
     const productId = el.dataset.productId;
     // find the product in the same array you rendered
     const selectedProduct = (this.searchResults || []).find(p => String(p.Id) === String(productId))
@@ -1279,12 +1319,13 @@ handleSearchResultClick(event) {
     }
 
     handleRoomTypeChange(event) {
-        const productId = event.target.dataset.productId;
-        const value = event.target.value;
-        const idx = event.target.dataset.index;
+    const productId = event.target.dataset.productId;
+    const idx = event.target.dataset.index;
+    const value = event.detail.value;   
 
-        this.updateProduct(productId, 'roomType', value,idx);
-    }
+    this.updateProduct(productId, 'roomType', value, idx);
+}
+
 
     // Add new method for handling natural stone unit price changes
     handleNaturalStoneUnitPriceChange(event) {
@@ -1384,7 +1425,13 @@ handleSearchResultClick(event) {
 
       addRow(event){
         const index = event.target.dataset.index;
-        this.addItemRecord(index);
+    this.addItemRecord(index);
+        setTimeout(() => {
+    const container = this.template.querySelector('[data-id="scrollContainer"]');
+    if (container) {
+        container.scrollTop = container.scrollHeight;
+    }
+}, 50);
     }
 
 
@@ -1416,10 +1463,11 @@ handleSearchResultClick(event) {
         let items = [...this.selectedProducts];
   //      if (index === -1) {
 
-           const newItem ={
+          const newItem = {
+   compositeKey: `${Date.now()}_${Math.random()}`,
             lineNo:index+1,
                     id: '',
-                    compositeKey:'',
+                    
                     name: '',
                     code: '',
                     category: '',
@@ -1552,5 +1600,5 @@ handleSearchResultClick(event) {
             this.draggedIndex = null;
         }
         
-
+        
     }

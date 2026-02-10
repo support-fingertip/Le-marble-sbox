@@ -12,9 +12,24 @@
         <valueSetDefinition>
             <sorted>false</sorted>
             <value>
+                <fullName>Draft</fullName>
+                <default>true</default>
+                <label>Draft</label>
+            </value>
+            <value>
                 <fullName>Submitted</fullName>
                 <default>false</default>
                 <label>Submitted</label>
+            </value>
+            <value>
+                <fullName>Logistics Head Approved</fullName>
+                <default>false</default>
+                <label>Logistics Head Approved</label>
+            </value>
+            <value>
+                <fullName>Logistics Head Rejected</fullName>
+                <default>false</default>
+                <label>Logistics Head Rejected</label>
             </value>
             <value>
                 <fullName>Approved</fullName>
@@ -25,11 +40,6 @@
                 <fullName>Rejected</fullName>
                 <default>false</default>
                 <label>Rejected</label>
-            </value>
-            <value>
-                <fullName>Draft</fullName>
-                <default>true</default>
-                <label>Draft</label>
             </value>
         </valueSetDefinition>
     </valueSet>

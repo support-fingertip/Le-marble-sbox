@@ -387,11 +387,11 @@ handleUnloadingChargeAmountChange(event) {
         const addr = this.selectedSalesConfirmation.address || {};
         const formattedAddress = [addr.street, addr.city, addr.state, addr.postalCode, addr.country]
             .filter(Boolean)
-            .join(', ');
+            .join(', ');    
         return {
             name: this.selectedSalesConfirmation.name,
             quoteName: this.selectedSalesConfirmation.quoteName,
-            oppOwner: this.selectedSalesConfirmation.oppOwner || 'N/A',
+            orderOwner: this.selectedSalesConfirmation.orderOwner || 'N/A',
             company: this.selectedSalesConfirmation.company || 'N/A',
             customerName: this.selectedSalesConfirmation.customerName || 'N/A',
             phone: this.selectedSalesConfirmation.phone || 'N/A',
@@ -403,7 +403,8 @@ handleUnloadingChargeAmountChange(event) {
             warehouse: this.selectedSalesConfirmation.warehouse || 'N/A',
             approvalStatus: this.selectedSalesConfirmation.approvalStatus || 'N/A',
             productCategory: this.selectedSalesConfirmation.productCategory || 'N/A',
-            preferredDeliveryDate: this.selectedSalesConfirmation.preferredDeliveryDate || null
+            preferredDeliveryDate: this.selectedSalesConfirmation.preferredDeliveryDate || null,
+            
         };
     }
 

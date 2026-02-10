@@ -21,8 +21,10 @@ public class OpportunityItemHandler {
         }
         
         // Re-query Product Category
-        List<OpportunityLineItem> oliList = [
-            SELECT Id, OpportunityId, Product2.Product_Category__c
+               List<OpportunityLineItem> oliList = [
+            SELECT Id, OpportunityId,
+                   Product2.Name,
+                   Product2.Product_Category__c
             FROM OpportunityLineItem
             WHERE Id IN :oliIds
         ];
@@ -77,11 +79,20 @@ public class OpportunityItemHandler {
             Messaging.CustomNotification notification =
                 new Messaging.CustomNotification();
             
-            notification.setNotificationTypeId(cnt.Id);
-            notification.setTitle('Opportunity Product Added');
-            notification.setBody('A product has been added to an opportunity');
-            notification.setTargetId(oliList[0].OpportunityId);
+           notification.setNotificationTypeId(cnt.Id);
+
+            List<String> prodNames = new List<String>();
+            for (OpportunityLineItem oli : oliList) {
+                if (oli.Product2 != null && oli.Product2.Name != null) {
+                    prodNames.add(oli.Product2.Name);
+                }
+            }
+            String prodNamesStr = String.join(prodNames, ', ');
             
+            notification.setTitle('Opportunity Product Added');
+            notification.setBody('Product(s) added: ' + prodNamesStr);
+            
+            notification.setTargetId(oliList[0].OpportunityId);
             notification.send(notifyUsers);
         }
     }
@@ -100,7 +111,7 @@ public class OpportunityItemHandler {
         
         // 2. Query QuoteLineItems
         Map<Id, QuoteLineItem> qliMap = new Map<Id, QuoteLineItem>([
-            SELECT Id, Area__c,MSP__c,Disc_Type__c,Dis_Value__c
+            SELECT Id,Area__c,MSP__c,Disc_Type__c,Dis_Value__c,Sqft__c
             FROM QuoteLineItem
             WHERE Id IN :qliIds
         ]);
@@ -110,10 +121,11 @@ public class OpportunityItemHandler {
             if (oli.QuoteLineItemId__c != null) {
                 Id qliId = (Id) oli.QuoteLineItemId__c;
                 if (qliMap.containsKey(qliId)) {
-                    oli.Area__c = qliMap.get(qliId).Area__c;
+                  oli.Area__c = qliMap.get(qliId).Area__c;
                     oli.MSP__c = qliMap.get(qliId).MSP__c;
                     oli.Disc_Type__c = qliMap.get(qliId).Disc_Type__c;
                     oli.Dis_Value__c = qliMap.get(qliId).Dis_Value__c;
+                    oli.Sqft__c = qliMap.get(qliId).Sqft__c;
                 }
             }
         }

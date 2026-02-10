@@ -173,6 +173,14 @@
         <enabled>false</enabled>
     </classAccesses>
     <classAccesses>
+        <apexClass>OpportunityTriggerHandler</apexClass>
+        <enabled>false</enabled>
+    </classAccesses>
+    <classAccesses>
+        <apexClass>OrderItemDuplicateBlockTest</apexClass>
+        <enabled>false</enabled>
+    </classAccesses>
+    <classAccesses>
         <apexClass>OrderProductTriggerHandler</apexClass>
         <enabled>false</enabled>
     </classAccesses>
@@ -465,6 +473,11 @@
     <fieldPermissions>
         <editable>true</editable>
         <field>Account.Pushed_to_SAP__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>Account.SAP_Sync_Status__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
@@ -2008,6 +2021,16 @@
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
+        <editable>false</editable>
+        <field>Opportunity.Proposal_SLA_Deadline__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Opportunity.Proposal_Stage_Date__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
         <editable>true</editable>
         <field>Opportunity.ROI_Analysis_Completed__c</field>
         <readable>true</readable>
@@ -2065,6 +2088,11 @@
     <fieldPermissions>
         <editable>false</editable>
         <field>OpportunityLineItem.QuoteLineItemId__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>OpportunityLineItem.Sqft__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
@@ -2329,6 +2357,31 @@
     </fieldPermissions>
     <fieldPermissions>
         <editable>true</editable>
+        <field>Order_Batch_Item__c.Batch__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Order_Batch_Item__c.Eid__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Order_Batch_Item__c.Order_Product__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Order_Batch_Item__c.Quantity__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Order_Batch_Item__c.Warehouse_Code__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
         <field>Payment__c.Amount__c</field>
         <readable>true</readable>
     </fieldPermissions>
@@ -2483,9 +2536,9 @@
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
-        <editable>false</editable>
+        <editable>true</editable>
         <field>Product2.Brand__c</field>
-        <readable>false</readable>
+        <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
         <editable>true</editable>
@@ -2635,6 +2688,11 @@
     <fieldPermissions>
         <editable>true</editable>
         <field>Quote.Country__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Quote.Customer_Accepted__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
@@ -3192,6 +3250,9 @@
         <layout>OrderItem-Order Product Layout</layout>
     </layoutAssignments>
     <layoutAssignments>
+        <layout>Order_Batch_Item__c-Order Batch Item Layout</layout>
+    </layoutAssignments>
+    <layoutAssignments>
         <layout>Payment__c-Payment Layout</layout>
     </layoutAssignments>
     <layoutAssignments>
@@ -3235,6 +3296,9 @@
     </layoutAssignments>
     <layoutAssignments>
         <layout>QuoteLineItem-Quote Line Item Layout</layout>
+    </layoutAssignments>
+    <layoutAssignments>
+        <layout>Recommendation-Recommendation Layout</layout>
     </layoutAssignments>
     <layoutAssignments>
         <layout>Sales_Confirmation__c-Sales Confirmation Layout</layout>
@@ -3678,6 +3742,10 @@
     </tabVisibilities>
     <tabVisibilities>
         <tab>New_Quote_From_Opportunity</tab>
+        <visibility>DefaultOn</visibility>
+    </tabVisibilities>
+    <tabVisibilities>
+        <tab>Order_Batch_Item__c</tab>
         <visibility>DefaultOn</visibility>
     </tabVisibilities>
     <tabVisibilities>

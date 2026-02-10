@@ -1,5 +1,5 @@
 public with sharing class QuotePdfController {
-
+	
     public List<QuotationLineItem> products { get; set; }
     public Quote cart { get; set; } // now holds Quote record instead of Cart__c
     public Decimal totalDiscount { get; set; }
@@ -39,10 +39,10 @@ public with sharing class QuotePdfController {
         // Fetch the complete Quote record with all related fields you might need
         List<Quote> qList = [
         SELECT Id, Name, AccountId, OpportunityId,
-         Freight_Charge__c, Loading_Charge__c, Unloading_Charge__c,
+         Freight_Charge__c, Loading_Charge__c, Unloading_Charge__c,Round_Off__c,
         Total_Amount1__c, Subtotal, TotalPrice, GrandTotal, Discount,
         Email, Phone, Fax,
-        QuoteToName, QuoteToAddress,
+        QuoteToName, QuoteToAddress,createddate,
         BillingAddress, ShippingAddress,
         Owner.Name, Owner.Title, Owner.Email,
         Owner.Phone,
@@ -144,9 +144,9 @@ public with sharing class QuotePdfController {
 
 
         
-
-      for (QuoteLineItem item : cartItems) {
-      // 🔹 Detect product categories for Terms & Conditions
+        
+        for (QuoteLineItem item : cartItems) {
+            // 🔹 Detect product categories for Terms & Conditions
             if (item.Product_Category__c == 'SANITARY') {
                 hasSanitary = true;
             }
@@ -160,110 +160,133 @@ public with sharing class QuotePdfController {
                 hasBathingSolutions = true;
             }
             else if (item.Product_Category__c == 'HEAD OFFICE DIVISION') {
-    hasHeadOfficeDivision = true;
-                }
-                
-                else if (item.Product_Category__c != null &&
-         item.Product_Category__c.trim().toUpperCase() == 'TILE') {
-    hasTile = true;
-}
-                
-              else if (item.Product_Category__c != null &&
-             item.Product_Category__c.trim().toUpperCase() == 'CONST. CHEM & ADH') {
-            hasConstChemAdh = true;
-        }  
-                else if (item.Product_Category__c != null &&
-                 item.Product_Category__c.trim().toUpperCase() == 'GRANITE & NAT. STONE') {
-            hasGraniteNatStone = true;
+                hasHeadOfficeDivision = true;
+            }
+            
+            else if (item.Product_Category__c != null &&
+                     item.Product_Category__c.trim().toUpperCase() == 'TILE') {
+                         hasTile = true;
+                     }
+            
+            else if (item.Product_Category__c != null &&
+                     item.Product_Category__c.trim().toUpperCase() == 'CONST. CHEM & ADH') {
+                         hasConstChemAdh = true;
+                     }  
+            else if (item.Product_Category__c != null &&
+                     item.Product_Category__c.trim().toUpperCase() == 'GRANITE & NAT. STONE') {
+                         hasGraniteNatStone = true;
+                     }
+            
+            else if (item.Product_Category__c != null &&
+                     item.Product_Category__c.trim().toUpperCase() == 'AGGLO & TOPS') {
+                         hasAggloTops = true;
+                     }
+            
+            else if (item.Product_Category__c != null &&
+                     item.Product_Category__c.trim().toUpperCase() == 'TIMBER / SPC FLR') {
+                         hasTimberSpcFlr = true;
+                     }
+            
+            else if (item.Product_Category__c != null &&
+                     item.Product_Category__c.trim().toUpperCase() == 'ROOFING & CLAY') {
+                         hasRoofingClay = true;
+                     }
+            
+            else if (item.Product_Category__c != null &&
+                     item.Product_Category__c.trim().toUpperCase() == 'SINKS') {
+                         hasSinks = true;
+                     }
+            else if (item.Product_Category__c != null &&
+                     item.Product_Category__c.trim().toUpperCase() == 'GLASS MOSAIC & POOL') {
+                         hasGlassMosaicPool = true;
+                     }
+            else if (item.Product_Category__c != null &&
+                     item.Product_Category__c.trim().toUpperCase() == 'ELEC. & LIGHTING') {
+                         hasElecLighting = true;
+                     }
+            else if (item.Product_Category__c != null &&
+                     item.Product_Category__c.trim().toUpperCase() == 'TOOLS') {
+                         hasTools = true;
+                     }  
+            
+            else if (item.Product_Category__c != null &&
+                     item.Product_Category__c.trim().toUpperCase() == 'TOOLS') {
+                         hasTools = true;
+                     }
+            else if (item.Product_Category__c != null &&
+                     item.Product_Category__c.trim().toUpperCase() == 'FACADES & CLADDING') {
+                         hasFacadesCladding = true;
+                     }
+            else if (item.Product_Category__c != null &&
+                     item.Product_Category__c.trim().toUpperCase() == 'IMP. MARBLES') {
+                         hasImpMarbles = true;
+                     }               
+            else if (item.Product_Category__c != null &&
+                     item.Product_Category__c.trim().toUpperCase() == 'PLUMBING & BATH') {
+                         hasPlumbingBath = true;
+                     }
+            
+            
+            
+            
+            
+            
+            
+            this.selectedTotalAmount += (item.Total_Price__c != null) ? item.Total_Price__c.setScale(2) : 0;
+            /* if (item.Without_Discount_Total_Price__c != null) {
+this.mrpTotal += item.Without_Discount_Total_Price__c;
+}*/
+            if (item.UnitPrice != null) {
+                this.mrpTotal += item.UnitPrice*item.Quantity;
+            }
+            String descriptionField = null;
+            if (item.Product_Category__c == 'NATURAL STONE') {
+                descriptionField = item.Description;
+            }
+            
+            System.debug('Processing item: ' + item.Product2.Name);
+            
+            products.add(new QuotationLineItem(
+                item.Product2.Name,
+                item.Product_Category__c,
+                item.Quantity,
+                item.Sqft__c,
+                item.UnitPrice,
+                null,
+                item.Dis_Value__c,
+                // item.After_Disc_Price_Piece__c,
+                item.Calculated_Total_Price__c,   // ✔ FIXED HERE
+                item.UOM__c,
+                null, // imageUrl - no image field on Quote Line; logic kept but value null
+                item.Room_Type__c,
+                item.Disc_Type__c,
+                item.Dis_Value__c,
+                descriptionField,
+                item.Price_Sqft__c
+            ));
         }
         
-                else if (item.Product_Category__c != null &&
-                         item.Product_Category__c.trim().toUpperCase() == 'AGGLO & TOPS') {
-                    hasAggloTops = true;
-                }
-                
-                else if (item.Product_Category__c != null &&
-             item.Product_Category__c.trim().toUpperCase() == 'TIMBER / SPC FLR') {
-                hasTimberSpcFlr = true;
+        
+        
+        Map<String,AreaGroupWrapper> mapArea = new Map<String,AreaGroupWrapper>();
+        
+        for(QuotationLineItem p : products){
+            
+            String area = String.isBlank(p.roomType) ? 'OTHERS' : p.roomType;
+            
+            if(!mapArea.containsKey(area)){
+                mapArea.put(area,new AreaGroupWrapper(area));
             }
             
-            else if (item.Product_Category__c != null &&
-             item.Product_Category__c.trim().toUpperCase() == 'ROOFING & CLAY') {
-                        hasRoofingClay = true;
-                }
-                
-                else if (item.Product_Category__c != null &&
-         item.Product_Category__c.trim().toUpperCase() == 'SINKS') {
-    hasSinks = true;
-            }
-               else if (item.Product_Category__c != null &&
-                     item.Product_Category__c.trim().toUpperCase() == 'GLASS MOSAIC & POOL') {
-                hasGlassMosaicPool = true;
-            }
-                      else if (item.Product_Category__c != null &&
-                     item.Product_Category__c.trim().toUpperCase() == 'ELEC. & LIGHTING') {
-                hasElecLighting = true;
-            }
-               else if (item.Product_Category__c != null &&
-                     item.Product_Category__c.trim().toUpperCase() == 'TOOLS') {
-                hasTools = true;
-            }  
-            
-            else if (item.Product_Category__c != null &&
-                     item.Product_Category__c.trim().toUpperCase() == 'TOOLS') {
-                hasTools = true;
-            }
-            else if (item.Product_Category__c != null &&
-         item.Product_Category__c.trim().toUpperCase() == 'FACADES & CLADDING') {
-    hasFacadesCladding = true;
-}
-             else if (item.Product_Category__c != null &&
-         item.Product_Category__c.trim().toUpperCase() == 'IMP. MARBLES') {
-    hasImpMarbles = true;
-}                else if (item.Product_Category__c != null &&
-         item.Product_Category__c.trim().toUpperCase() == 'PLUMBING & BATH') {
-    hasPlumbingBath = true;
-}
-
-
-
-                 
-            
-
-                  
-    this.selectedTotalAmount += (item.Total_Price__c != null) ? item.Total_Price__c.setScale(2) : 0;
-   /* if (item.Without_Discount_Total_Price__c != null) {
-        this.mrpTotal += item.Without_Discount_Total_Price__c;
-    }*/
-     if (item.UnitPrice != null) {
-        this.mrpTotal += item.UnitPrice*item.Quantity;
-    }
-    String descriptionField = null;
-    if (item.Product_Category__c == 'NATURAL STONE') {
-    descriptionField = item.Description;
-}
-
-    System.debug('Processing item: ' + item.Product2.Name);
-
-    products.add(new QuotationLineItem(
-        item.Product2.Name,
-        item.Product_Category__c,
-        item.Quantity,
-        item.Sqft__c,
-        item.UnitPrice,
-        null,
-        item.Dis_Value__c,
-       // item.After_Disc_Price_Piece__c,
-        item.Calculated_Total_Price__c,   // ✔ FIXED HERE
-        item.UOM__c,
-        null, // imageUrl - no image field on Quote Line; logic kept but value null
-        item.Room_Type__c,
-        item.Disc_Type__c,
-        item.Dis_Value__c,
-        descriptionField,
-        item.Price_Sqft__c
-    ));
-}
+            mapArea.get(area).items.add(p);
+            mapArea.get(area).areaTotal += p.total;
+        }
+        
+        areaGroups = mapArea.values();
+        
+        
+        
+        
 system.debug('this.mrpTotal - this.selectedTotalAmount'+ this.mrpTotal +' -'+ this.selectedTotalAmount);
 this.totalDiscount = this.mrpTotal - this.selectedTotalAmount;
 
@@ -615,6 +638,33 @@ email.setToAddresses(new List<String>{ finalEmail });
         }
     }
 
+    
+    
+    
+    
+    
+    public List<AreaGroupWrapper> areaGroups {get;set;}
+    
+    public class AreaGroupWrapper{
+        public String areaName {get;set;}
+        public List<QuotationLineItem> items {get;set;}
+        public Decimal areaTotal {get;set;}
+        
+        public AreaGroupWrapper(String name){
+            areaName = name;
+            items = new List<QuotationLineItem>();
+            areaTotal = 0;
+        }
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
     // Dummy method 1: Utility to log information
     public static void logInfo(String message) {
         System.debug('INFO: ' + message);

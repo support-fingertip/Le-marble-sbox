@@ -43,6 +43,10 @@
                 <behavior>Readonly</behavior>
                 <field>QuoteLineItemId__c</field>
             </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>Sqft__c</field>
+            </layoutItems>
         </layoutColumns>
         <layoutColumns>
             <layoutItems>

@@ -1,4 +1,9 @@
-trigger Opportunity_Trigger on Opportunity (before insert,before update) {
+trigger Opportunity_Trigger on Opportunity (before insert, before update) {
+    if (Trigger.isBefore) {
+  //      OpportunityTriggerHandler.preventDuplicateOppAccountName(Trigger.new, Trigger.oldMap);
+ 
+    }
+    
 
     Set<Id> accountIds = new Set<Id>();
     for (Opportunity opp : Trigger.new) {
@@ -56,9 +61,5 @@ trigger Opportunity_Trigger on Opportunity (before insert,before update) {
                 }
         }
     }
-    
-    
-    
-    
-    
+
 }

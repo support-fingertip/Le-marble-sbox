@@ -1,17 +1,13 @@
 import { LightningElement, api, wire, track } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-//import getCartLineItemsByDeal from '@salesforce/apex/CreateSOFromQuoteController.getCartLineItemsByDeal';
-//import createSalesConfirmation from '@salesforce/apex/CreateSOFromQuoteController.createSalesConfirmation';
 import getPaymentTypeOptions from '@salesforce/apex/CreateSOFromQuoteController.getPaymentTypeOptions';
-//import getDealInfo from '@salesforce/apex/CreateSOFromQuoteController.getDealInfo';
-//import getActiveBusinessPlaces from '@salesforce/apex/SAPMasterDataService.getActiveBusinessPlaces';
-//import getWarehousesByBPL from '@salesforce/apex/SAPMasterDataService.getWarehousesByBPL';
 import getItemInventoryByWarehouse from '@salesforce/apex/SAPMasterDataService.getItemInventoryByWarehouse';
 import getQuoteInfo from '@salesforce/apex/CreateSOFromQuoteController.getQuoteInfo';
 import getQuoteLineItems from '@salesforce/apex/CreateSOFromQuoteController.getQuoteLineItems';
 import createOrderFromQuote from '@salesforce/apex/CreateSOFromQuoteController.createOrderFromQuote';
 import { NavigationMixin } from 'lightning/navigation';
 import getActiveWarehouses from '@salesforce/apex/CreateSOFromQuoteController.getActiveWarehouses';
+import getBatchStock from '@salesforce/apex/CreateSOFromQuoteController.getBatchStock';
 
 
 
@@ -31,6 +27,7 @@ export default class CreateSOFromQuote extends NavigationMixin(LightningElement)
     @track remarks = '';
     @track credit = false;
     @track isAccountBlocked = false;
+@track isFactoryWarehouse = false;
 
     @api recordId; 
     @track isModalOpen = false;
@@ -52,6 +49,11 @@ export default class CreateSOFromQuote extends NavigationMixin(LightningElement)
         executive: ''
     };
     
+    isBatchModalOpen = false;
+    batchList = [];
+    batchQtyMap = {};
+    selectedOrderItemId;
+
     get hasQuoteItems() {
     return this.isQuoteItemsLoaded &&
            this.quoteLineItems &&
@@ -150,7 +152,8 @@ wiredQuoteInfo({ error, data }) {
             if (data) {
                 this.warehouseOptions = data.map(w => ({
                     label: w.Name,
-                    value: w.Id
+                    value: w.Id,
+                    type: w.Type__c 
                 }));
             } else if (error) {
                 this.showToast('Error', 'Failed to load warehouses', 'error');
@@ -216,6 +219,12 @@ wiredQuoteInfo({ error, data }) {
 
     handleWarehouseChange(event) {
     this.selectedWarehouse = event.detail.value;
+     const selected = this.warehouseOptions.find(
+        w => w.value === this.selectedWarehouse
+    );
+
+    this.isFactoryWarehouse = selected?.type === 'Factory';
+
 }
 
     handleProductSelection(event) {
@@ -384,17 +393,19 @@ wiredQuoteInfo({ error, data }) {
     }
        
     async handleConfirmSale() {
+       
     this.isLoading = true;
     try {
         // 1️Warehouse
         if (!this.selectedWarehouse) {
-    this.showToast('Error', 'Please select a Warehouse', 'error');
-    this.isLoading = false;
-    return;
-}
+            this.showToast('Error', 'Please select a Warehouse', 'error');
+            this.isLoading = false;
+            return;
+        }  
+
      // 2. GET SELECTED PRODUCTS (THIS WAS MISSING)
         const selectedItems = this.quoteLineItems.filter(i => i.isSelected);
-
+       
         // 3. Validate product selection
         if (selectedItems.length === 0) {
             this.showToast('Error', 'Please select at least one product', 'error');
@@ -427,6 +438,22 @@ wiredQuoteInfo({ error, data }) {
             return;
         }
 
+                console.log('433>>');
+        const batchPayload = [];
+        selectedItems.forEach(item => {
+            if (item.batches) {
+                item.batches.forEach(b => {
+                    batchPayload.push({
+                        quoteLineItemId: item.Id,
+                        Eid: b.Eid,
+                        Batch: b.Batch,
+                        warehouseCode: b.warehouseCode,
+                        quantity: b.quantity
+                    });
+                });
+            }
+            });
+  console.log('batchPayload>>'+batchPayload);
         const blockQtyMap = {};
             selectedItems.forEach(item => {
             blockQtyMap[item.Id] = item.BlockQty || 0;
@@ -439,7 +466,8 @@ wiredQuoteInfo({ error, data }) {
     blockQtyMap: blockQtyMap,
     deliveryCommittedDate: this.deliveryCommittedDate,
     remarks: this.remarks,
-    credit : this.credit
+    credit : this.credit,
+    batchJson: JSON.stringify(batchPayload)
 });
         this.showToast(
             'Success',
@@ -516,6 +544,216 @@ showToast(title, message, variant) {
     // Add safe accessors for product name and in stock
     getProductName(item) {
     return item?.Product2?.Name || 'N/A';
+}
+
+
+
+handleViewBatch(event) {
+        if (!this.selectedWarehouse) {
+        this.dispatchEvent(
+            new ShowToastEvent({
+                title: 'Warehouse Not Selected',
+                message: 'Please select the warehouse before viewing batch details.',
+                variant: 'error'
+            })
+        );
+        return; // ⛔ stop execution
+    }
+
+    // existing logic
+    const qliId = event.currentTarget.dataset.id;
+
+    this.selectedQuoteLineItemId = qliId;
+    this.isBatchModalOpen = true;
+
+
+    this.selectedOrderItemId = event.target.dataset.id;
+
+   getBatchStock({
+    orderItemId: this.selectedOrderItemId,
+    warehouse: this.selectedWarehouse
+})
+.then(result => {
+    const quoteItem = this.quoteLineItems.find(
+        i => i.Id === this.selectedOrderItemId
+    );
+
+    const savedBatches = quoteItem?.batches || [];
+
+    // merge saved quantities
+    this.batchList = result.map(b => {
+        const saved = savedBatches.find(sb => sb.Eid === b.Eid);
+        return {
+            ...b,
+            quantity: saved ? saved.quantity : null
+        };
+    });
+
+    // ALSO rebuild batchQtyMap from saved data
+    this.batchQtyMap = {};
+    savedBatches.forEach(b => {
+        this.batchQtyMap[b.Eid] = { ...b };
+    });
+
+    this.isBatchModalOpen = true;
+})
+.catch(error => {
+    console.error(error);
+});
+}
+
+handleBatchQtyChange(event) {
+    const qty = Number(event.target.value);
+    const eid = event.target.dataset.eid;
+
+    if (!eid) return;
+    // find the row from batchList
+    const row = this.batchList.find(b => b.Eid === eid);
+    if (!row) return;
+
+     const quoteItem = this.quoteLineItems.find(
+        i => i.Id === this.selectedOrderItemId
+    );
+
+    if (!quoteItem) return;
+
+    // remove entry if qty is 0 or empty
+    if (!qty || qty <= 0) {
+        delete this.batchQtyMap[eid];
+          this.batchList = this.batchList.map(b =>
+            b.Eid === eid ? { ...b, quantity: null } : b
+        );
+        return;
+    }
+  let totalBatchQty = 0;
+   Object.values(this.batchQtyMap).forEach(b => {
+        if (b.Eid !== eid) {
+            totalBatchQty += b.quantity || 0;
+        }
+    });
+
+    totalBatchQty += qty;
+
+    //  VALIDATION: batch qty > item qty
+    if (totalBatchQty > quoteItem.Quantity) {
+        this.showToast(
+            'Error',
+            `Total batch quantity (${totalBatchQty}) cannot exceed item quantity (${quoteItem.Quantity}).`,
+            'error'
+        );
+
+        // reset input field
+        event.target.value = null;
+        return;
+    }
+
+    // store complete row data
+    this.batchQtyMap[eid] = {
+        Eid: row.Eid,
+        Batch: row.Batch,
+        warehouseCode: row.warehouseCode,
+        quantity: qty,
+        inStock: row.inStock
+    };
+     this.batchList = this.batchList.map(b =>
+        b.Eid === eid
+            ? { ...b, quantity: qty }
+            : b
+    );
+
+    console.log('Batch Qty Map:', JSON.stringify(this.batchQtyMap));
+}
+handleEditBatch(event) {
+    this.selectedOrderItemId = event.currentTarget.dataset.qli;
+    this.isBatchModalOpen = true;
+
+    const quoteItem = this.quoteLineItems.find(
+        i => i.Id === this.selectedOrderItemId
+    );
+
+    if (!quoteItem || !quoteItem.batches) return;
+
+    // rebuild batchList from saved batches
+    this.batchList = quoteItem.batches.map(b => ({
+        ...b
+    }));
+
+    // rebuild batchQtyMap
+    this.batchQtyMap = {};
+    quoteItem.batches.forEach(b => {
+        this.batchQtyMap[b.Eid] = { ...b };
+    });
+}
+
+handleDeleteBatch(event) {
+
+
+    const qliId = event.currentTarget.dataset.qli;
+    const eid = event.currentTarget.dataset.eid;
+
+    this.quoteLineItems = this.quoteLineItems.map(item => {
+        if (item.Id === qliId && item.batches) {
+
+            // remove the selected batch
+            const updatedBatches = item.batches.filter(b => b.Eid !== eid);
+
+            // recalculate Block Qty
+            const updatedBlockQty = updatedBatches.reduce(
+                (sum, b) => sum + (b.quantity || 0),
+                0
+            );
+
+            return {
+                ...item,
+                batches: updatedBatches,
+                BlockQty: updatedBlockQty
+            };
+        }
+        return item;
+    });
+
+    // Optional: clean from batchQtyMap if exists
+    if (this.batchQtyMap[eid]) {
+        delete this.batchQtyMap[eid];
+    }
+
+    this.showToast('Success', 'Batch removed successfully', 'success');
+}
+
+
+closeBatchModal(){
+    this.isBatchModalOpen = false;
+  //  this.batchQtyMap = {};
+}
+
+saveBatchItems() {
+    const batchList = Object.values(this.batchQtyMap);
+
+    const totalBatchQty = batchList.reduce(
+        (sum, b) => sum + (b.quantity || 0),
+        0
+    );
+
+    // attach batches to correct quote item
+    this.quoteLineItems = this.quoteLineItems.map(item => {
+        if (item.Id === this.selectedOrderItemId) {
+            return {
+                ...item,
+                batches: batchList,   //  store only in JS
+                BlockQty: totalBatchQty
+            };
+        }
+        return item;
+    });
+
+    this.closeBatchModal();
+}
+
+
+get backgroundClass() {
+    return this.isBatchModalOpen
+        ? 'blur-background'
+        : '';
 }
 
     /*getProductInStock(item) {
