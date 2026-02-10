@@ -96,10 +96,7 @@ public class QuoteTriggerHandler {
         notification.send(userIds);
     }
 
-public static void handleStatusBasedNotifications(
-    List<Quote> newList,
-    Map<Id, Quote> oldMap
-) {
+public static void handleStatusBasedNotifications( List<Quote> newList, Map<Id, Quote> oldMap) {
     // 1. Find Quotes where approval status changed
     Set<Id> quoteIds = new Set<Id>();
 
