@@ -53,7 +53,7 @@ public class NewQuoteController {
             Product2.Sqft_Piece__c,
             Product2.In_Stock__c
             FROM PricebookEntry
-            WHERE Pricebook2Id = :pb.Id
+            WHERE Pricebook2Id = :pb.Id and UnitPrice >0
             AND IsActive = true
             AND Product2.IsActive = true
             AND Product2.Product_Category__c = :category
@@ -498,6 +498,8 @@ throw new AuraHandledException('Error creating cart: ' + e.getMessage());
         @AuraEnabled public String warehouseCode;
         @AuraEnabled public Decimal inStock;
         @AuraEnabled public Decimal committed;
+        @AuraEnabled public Decimal billable;
+        @AuraEnabled public Decimal reserved;
     }
     
     @AuraEnabled(cacheable=false)
@@ -574,8 +576,13 @@ InStock = String.valueOf(warehouseInfo.get('InStock'));
                                 wrap.warehouseCode = String.valueOf(warehouseInfo.get('WarehouseCode'));
                                 wrap.inStock = (Decimal) warehouseInfo.get('InStock');
                                 wrap.committed = (Decimal) warehouseInfo.get('Committed');
+                                 wrap.reserved = (Decimal) warehouseInfo.get('U_Reserved');
+                                 wrap.billable = (Decimal) warehouseInfo.get('U_Billable');
                                 
-                                resultList.add(wrap);
+                                    
+                                if( wrap.inStock>0){
+                                    resultList.add(wrap);
+                                } 
                                 System.debug(' warehouseInfo: ' + warehouseInfo);
                             }
                         }

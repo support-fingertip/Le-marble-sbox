@@ -1,21 +1,22 @@
 .page-wrapper {
-    padding: 20px;
-      height: 100vh;
-    overflow-y: auto;
-
-    overscroll-behavior: none;
-    -webkit-overflow-scrolling: touch;
-    touch-action: pan-y;
+          padding: 20px;
+    min-height: 100vh;
+    overflow: visible;
+}
+@media (max-width: 768px) {
+    .page-wrapper {
+        height: 100vh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-y: contain;
+    }
 }
 
 :host {
-    overflow: hidden;
     height: 100vh;
+    overflow: hidden;
 }
 .header-card {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     padding: 20px 24px;
     background: linear-gradient(180deg, #ffffff, #f8fafc);
     border-radius: 16px;
@@ -44,9 +45,7 @@
 
 /* Right section */
 .header-right {
-    display: flex;
-    gap: 16px;
-    align-items: center;
+    width: 100%;
 }
 
 .header-field {
@@ -61,16 +60,32 @@
         gap: 16px;
     }
 
-    .header-right {
+      .header-right {
         width: 100%;
-        justify-content: space-between;
+        justify-content: flex-start;
     }
-
     .header-field {
         width: 48%;
     }
 }
 
+@media (max-width: 768px) {
+
+    .cart-content {
+        flex-direction: column;
+    }
+
+    .cart-items {
+        max-height: none;     /* remove restriction */
+        height: auto;
+        overflow: visible;
+    }
+
+    .cart-summary {
+        width: 100%;
+        margin-top: 10px;     /* appears after all line items */
+    }
+}
 
 /* HEADER 
 .header-card {
@@ -134,7 +149,8 @@
 }
 
 .search-input-wrapper {
-    position: relative;
+      position: relative;
+    z-index: 5;
 }
 
 .search-icon {
@@ -966,4 +982,19 @@
 .stock-table-wrapper::-webkit-scrollbar-thumb {
     background: #c9c9c9;
     border-radius: 4px;
+}
+@media (max-width:768px){
+
+    .cart-summary{
+        position: fixed;     /* overlay full screen */
+        left: 0;
+        right: 0;
+        bottom: 0;
+        top: 0;              /* full height */
+        height: 100vh;
+        width: 100%;
+        overflow-y: auto;    /* internal scroll */
+        z-index: 50;
+        border-radius: 0;
+    }
 }

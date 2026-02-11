@@ -69,7 +69,6 @@ wiredAreaPicklist({ data, error }) {
     label: v.label,
     value: v.value
 }));
-        console.log('✅ Area picklist loaded:', JSON.stringify(this.areaOptions));
     } else if (error) {
         console.error('❌ Error loading Area picklist:', error);
     }
@@ -593,6 +592,7 @@ var i=0;
 
         calculatePrices(productIndex) {
             const product = this.selectedProducts [productIndex];
+            console.log(product.isNaturalStone);
      //    alert(JSON.stringify(product));   
             if (product.isNaturalStone) {
                 // Natural Stone calculation
@@ -1179,7 +1179,6 @@ const rowCategory = this.selectedProducts[index].category;
                 showDropdown: i == index
             }));*/
 
-            console.log('this.products>>'+JSON.stringify(this.products));
             this.searchResults = this.products.filter(p => {
                 const matchesSearch =
                     (p.Name || '').toLowerCase().includes(value.toLowerCase()) ||
@@ -1203,10 +1202,16 @@ const rowCategory = this.selectedProducts[index].category;
 
 
 handleSearchResultClick(event) {
+      const productId1 = event.currentTarget.dataset.productId;
+    const rowIndex1 = event.currentTarget.dataset.index;
+
+    console.log('Selected Product Id:', productId1);
+    console.log('Row Index:', rowIndex1);
+
     // find clicked element (works even if inner child was clicked)
     const el = event.target.closest('[data-product-id]');
     if (!el) return;
-
+console.log(el);
     const productId = el.dataset.productId;
     // find the product in the same array you rendered
     const selectedProduct = (this.searchResults || []).find(p => String(p.Id) === String(productId))
@@ -1420,7 +1425,13 @@ handleSearchResultClick(event) {
 
       addRow(event){
         const index = event.target.dataset.index;
-        this.addItemRecord(index);
+    this.addItemRecord(index);
+        setTimeout(() => {
+    const container = this.template.querySelector('[data-id="scrollContainer"]');
+    if (container) {
+        container.scrollTop = container.scrollHeight;
+    }
+}, 50);
     }
 
 
@@ -1589,5 +1600,5 @@ handleSearchResultClick(event) {
             this.draggedIndex = null;
         }
         
-
+        
     }

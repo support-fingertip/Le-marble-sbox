@@ -158,7 +158,8 @@
                                                     <tr>
                                                         <th>Warehouse</th>
                                                         <th>In Stock</th>
-                                                        <th>Committed</th>
+                                                        <th>Reserved</th>
+                                                        <th>billable</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -166,7 +167,9 @@
                                                         <tr key={stk.warehouseCode}>
                                                             <td>{stk.warehouseCode}</td>
                                                             <td>{stk.inStock}</td>
-                                                            <td>{stk.committed}</td>
+                                                            <td>{stk.reserved}</td>
+                                                             <td>{stk.billable}</td>
+
                                                         </tr>
                                                     </template>
                                                 </tbody>
@@ -178,15 +181,6 @@
 
 
                              </template>     
-                           <!--   <span class="stock-status" class:in-stock={item.inStock}>
-                                    <template if:true={item.inStock}>
-                                        In Stock ({item.stockCount})
-                                    </template>
-                                    <template if:false={item.inStock}>
-                                        Out of Stock
-                                    </template>
-                                </span>-->  
-                                
                                     </div>
                                 </div>
 
@@ -199,7 +193,8 @@
                                                         class="search-result-item"
                                                         data-product-id={prod.Id}
                                                         data-index={index}
-                                                        onclick={handleSearchResultClick}>
+                                                        onmousedown={handleSearchResultClick}
+                                                    ontouchstart={handleSearchResultClick}>
                                                     <div class="search-result-name">{prod.Name}</div>
                                                     <div class="search-result-code">Code: {prod.productCode}</div>
                                                 </div>
@@ -241,14 +236,14 @@
                         <!-- Natural Stone branch -->
                         <template if:true={item.isNaturalStone}>
                             <div class="slds-grid slds-wrap slds-gutters">
-                                 <div class="slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8 qty-box">
+                          <!--    <div class="slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8 qty-box">
                                     <lightning-input type="number" label="Unit Price (₹)"
                                                         value={item.msp}
                                                         data-product-id={item.id}
                                                         data-index={index}
                                                         disabled="true">
                                     </lightning-input>
-                                </div>
+                                </div>-->   
 
                                 <div class="slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8 qty-box">
                                     <lightning-input type="number" label="Unit Price (₹)"

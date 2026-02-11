@@ -126,13 +126,15 @@ wiredQuoteInfo({ error, data }) {
         this.quoteLineItems = data.map(item => {
             const quantity = item.Quantity || 0;
             const unitPrice = item.UnitPrice || 0;
+            const taxamt = item.Product2.Tax__c || 0;
 
             return {
                 ...item,
                 isSelected: true,  
                 totalPrice : (quantity * unitPrice).toFixed(2),
              //   totalPrice: quantity * unitPrice, 
-                tax: (quantity * unitPrice) * 0.18, 
+               // tax: (quantity * unitPrice) * 0.18, 
+               tax: (quantity * unitPrice) *(taxamt/100),
                 BlockQty:0,
                 category: item.PricebookEntry?.Product2?.Product_Category__c || 'N/A'
             };

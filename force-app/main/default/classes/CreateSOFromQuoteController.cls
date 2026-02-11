@@ -52,8 +52,10 @@ public static Map<String, Object> getQuoteInfo(Id quoteId) {
                 Quantity,
                 UnitPrice,
                 Product2.Name,
+            	Product2.Tax__c,
                 Product2.ProductCode,
                 Product2.Family,
+            Product2.Product_Category__c,
                 PricebookEntry.Product2.Product_Category__c
             FROM QuoteLineItem
             WHERE QuoteId = :quoteId
@@ -70,7 +72,7 @@ public static Map<String, Object> getQuoteInfo(Id quoteId) {
     // 3. Create Order from Quote
     
     @AuraEnabled
-    public static Id createOrderFromQuote(Id quoteId , Id warehouseId,List<Id> selectedQuoteLineItemIds, Map<Id, Decimal> blockQtyMap, Date deliveryCommittedDate, String remarks,boolean credit, String batchJson) {
+    public static Id createOrderFromQuote(Id quoteId , Id warehouseId,List<Id> selectedQuoteLineItemIds, Map<Id, Decimal> blockQtyMap,Map<Id, String> warehouseCodeMap, Date deliveryCommittedDate, String remarks,boolean credit, String batchJson) {
      
         //  try {
              ///️⃣ Validate warehouse
@@ -284,7 +286,10 @@ ord.State__c    = q.State__c;
                 (blockQtyMap != null && blockQtyMap.containsKey(qli.Id))
                 ? blockQtyMap.get(qli.Id)
                 : 0;
-
+                if(warehouseCodeMap != null && 
+                   warehouseCodeMap.containsKey(qli.Id)) {
+                       oi.Warehouse_Code__c = warehouseCodeMap.get(qli.Id);
+                   }
                 orderItems.add(oi);
             }
 
