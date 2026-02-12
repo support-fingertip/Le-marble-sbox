@@ -126,13 +126,15 @@ wiredQuoteInfo({ error, data }) {
         this.quoteLineItems = data.map(item => {
             const quantity = item.Quantity || 0;
             const unitPrice = item.UnitPrice || 0;
+            const taxamt = item.Product2.Tax__c || 0;
 
             return {
                 ...item,
                 isSelected: true,  
                 totalPrice : (quantity * unitPrice).toFixed(2),
              //   totalPrice: quantity * unitPrice, 
-                tax: (quantity * unitPrice) * 0.18, 
+               // tax: (quantity * unitPrice) * 0.18, 
+               tax: (quantity * unitPrice) *(taxamt/100),
                 BlockQty:0,
                 category: item.PricebookEntry?.Product2?.Product_Category__c || 'N/A'
             };
@@ -195,6 +197,42 @@ wiredQuoteInfo({ error, data }) {
             };
         });
     }
+
+
+    get isBatchEditable() {
+        const quoteItem = this.quoteLineItems.find(
+            i => i.Id === this.selectedOrderItemId
+        );
+
+        if (!quoteItem) return false;
+
+        return quoteItem.category === 'ADHESIVE' || 
+                quoteItem.category === 'TILE';
+    }
+
+    handleWarehouseSelect(event) {
+    const warehouseCode = event.currentTarget.dataset.warehouse;
+
+        this.quoteLineItems = this.quoteLineItems.map(item => {
+            if (item.Id === this.selectedOrderItemId) {
+                return {
+                    ...item,
+                    selectedWarehouseCode: warehouseCode,
+                    batches: []  
+                };
+            }
+            return item;
+        });
+
+        this.showToast(
+            'Success',
+            `Warehouse ${warehouseCode} selected`,
+            'success'
+        );
+
+        this.closeBatchModal();
+    }
+
 
     handleCloseModal() {
         this.isModalOpen = false;
@@ -309,7 +347,7 @@ wiredQuoteInfo({ error, data }) {
         }
     }
 
-    async handleItemWarehouseChange(event) {
+    /*async handleItemWarehouseChange(event) {
         const itemId = event.target.dataset.id;
         const selectedWarehouse = event.detail.value;
         
@@ -339,16 +377,16 @@ wiredQuoteInfo({ error, data }) {
             return item;
         });
         this.groupCartItems();
-    }
+    }*/
 
-    handlePaymentTypeChange(event) {
+  /*  handlePaymentTypeChange(event) {
         this.selectedPaymentType = event.detail.value;
         // Clear credit amount and due date when payment type changes
         if (this.selectedPaymentType !== 'Credit') {
             this.creditAmount = '';
             this.creditDueDate = '';
         }
-    }
+    }*/
 
     handleCreditAmountChange(event) {
         this.creditAmount = event.detail.value;
@@ -426,8 +464,8 @@ wiredQuoteInfo({ error, data }) {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        const selectedDate = new Date(this.deliveryCommittedDate);
-
+       // const selectedDate = new Date(this.deliveryCommittedDate);
+    const selectedDate = new Date(this.deliveryCommittedDate + 'T00:00:00');
         if (selectedDate < today) {
             this.showToast(
                 'Error',
@@ -455,15 +493,21 @@ wiredQuoteInfo({ error, data }) {
             });
   console.log('batchPayload>>'+batchPayload);
         const blockQtyMap = {};
+        const warehouseCodeMap = {};
             selectedItems.forEach(item => {
             blockQtyMap[item.Id] = item.BlockQty || 0;
+            if (item.selectedWarehouseCode) {
+                warehouseCodeMap[item.Id] = item.selectedWarehouseCode;
+            }
         });
+
 
     const orderId = await createOrderFromQuote({
     quoteId: this.recordId,
     warehouseId: this.selectedWarehouse,
     selectedQuoteLineItemIds: selectedItems.map(i => i.Id),
     blockQtyMap: blockQtyMap,
+    warehouseCodeMap: warehouseCodeMap,
     deliveryCommittedDate: this.deliveryCommittedDate,
     remarks: this.remarks,
     credit : this.credit,
@@ -588,7 +632,7 @@ handleViewBatch(event) {
             quantity: saved ? saved.quantity : null
         };
     });
-
+console.log('Batch List:', JSON.stringify(this.batchList));
     // ALSO rebuild batchQtyMap from saved data
     this.batchQtyMap = {};
     savedBatches.forEach(b => {
@@ -647,13 +691,26 @@ handleBatchQtyChange(event) {
         return;
     }
 
+    //Validation: cannot exceed available
+        if (qty > row.inStock) {
+        this.showToast(
+            'Error',
+            `Quantity cannot exceed available stock (${row.inStock})`,
+            'error'
+        );
+        event.target.value = null;
+        return;
+        }
+
     // store complete row data
     this.batchQtyMap[eid] = {
         Eid: row.Eid,
         Batch: row.Batch,
         warehouseCode: row.warehouseCode,
         quantity: qty,
-        inStock: row.inStock
+        inStock: row.inStock,
+        reserved: row.reserved,
+        billable: row.billable
     };
      this.batchList = this.batchList.map(b =>
         b.Eid === eid

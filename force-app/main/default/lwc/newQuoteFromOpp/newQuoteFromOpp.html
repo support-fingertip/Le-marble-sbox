@@ -212,7 +212,7 @@
 
                         <!-- buttons -->
                         <div class="slds-col slds-small-size_1-of-1 slds-medium-size_3-of-12 
-            slds-grid slds-align-middle slds-grid_align-end btn-set">
+                                slds-grid slds-align-middle slds-grid_align-end btn-set">
 
                                 <lightning-button-icon icon-name="utility:add"
                                                         alternative-text="Add"
@@ -227,7 +227,7 @@
                                                         data-index={index}
                                                         onclick={removeRow}>
                                 </lightning-button-icon>
-                            </div>
+                        </div>
                     </div>
 
                     <!-- If product selected show specific inputs -->
@@ -353,7 +353,8 @@
                                                         value={item.quantity}
                                                         data-index={index}
                                                         data-product-id={item.id}
-                                                        onchange={handleQuantityChange}>
+                                                        onchange={handleQuantityChange}
+                                                         onblur={handleQuantityBlur}>
                                     </lightning-input>
                                 </div>
 
@@ -567,7 +568,7 @@
                         <div class="quantity-controls">
                 <!--       <button class="qty-btn" onclick={handleDecrease} data-id={item.id}>-</button>--> 
                         <input type="number" value={item.quantity} min="1" data-id={item.id} data-index={index} data-product-id={item.id}
-                            onchange={handleQuantityChange}   disabled={item.isNaturalStone}/>
+                            onchange={handleQuantityBlur}   disabled={item.isNaturalStone}/>
                         <!--     <button class="qty-btn" onclick={handleIncrease} data-id={item.id}>+</button>--> 
                         </div>
                     </td>
@@ -631,7 +632,7 @@
             </div>
             <div class="charge-row">
                 <label>Round Off (₹)</label>
-                <input type="number" value={roundOff} onchange={handleroundOffChargeChange} />
+                <input type="number" value={roundOff} max="15" min="0" onchange={handleroundOffChargeChange} />
             </div>
 
             </div>

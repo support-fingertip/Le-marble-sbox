@@ -983,18 +983,3 @@
     background: #c9c9c9;
     border-radius: 4px;
 }
-@media (max-width:768px){
-
-    .cart-summary{
-        position: fixed;     /* overlay full screen */
-        left: 0;
-        right: 0;
-        bottom: 0;
-        top: 0;              /* full height */
-        height: 100vh;
-        width: 100%;
-        overflow-y: auto;    /* internal scroll */
-        z-index: 50;
-        border-radius: 0;
-    }
-}

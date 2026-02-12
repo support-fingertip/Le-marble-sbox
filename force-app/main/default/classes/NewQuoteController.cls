@@ -100,7 +100,7 @@ throw new AuraHandledException(e.getMessage());
         
         return [
             SELECT Id, Quantity, UnitPrice, Discount, TotalPrice, 
-           Product2Id, Product2.Name, Product2.Product_Code__c, Product2.MSP__c,   Area__c,
+           Product2Id, Product2.Name, Product2.Product_Code__c, Product2.MSP__c,   Area__c,Product2.Tax__c,Product2.Sqft_Piece__c,
             Product2.Product_Category__c,Sqft__c,
             PricebookEntryId,Description
             FROM OpportunityLineItem
@@ -206,12 +206,7 @@ public static List<Map<String, String>> getAreaPicklistValues() {
                                         system.debug('orderTotal>>'+orderTotal);
                                         system.debug('pbName>>'+pbName);
                                         //      try {
-                                        Pricebook2 pb = [
-                                            SELECT Id
-                                            FROM Pricebook2
-                                            WHERE Name = :pbName
-                                            LIMIT 1
-                                        ];
+                                        Pricebook2 pb = [SELECT Id FROM Pricebook2 WHERE Name = :pbName LIMIT 1 ];
                                         System.debug('Creating cart for customerId: ' + customerId);
                                         System.debug('Cart items count: ' + (cartItems != null ? cartItems.size() : 0));
                                         System.debug('Freight: ' + freightCharge + ', Loading: ' + loadingCharge + ', Unloading: ' + unloadingCharge);
@@ -221,7 +216,7 @@ public static List<Map<String, String>> getAreaPicklistValues() {
                                         Decimal priceLimit = Decimal.valueOf(Label.Quote_Approval_limit); 
                                         
                                         opportunity oppParent=[select id,name,Account.name,Account.BillingStreet,Account.BillingCity,Account.BillingState,Account.BillingCountry,Account.Email__c,Account.Phone,Account.BillingPostalCode,              
-                                                               AddressLine1__c,AddressLine2__c,AddressLine3__c,Corporation__c,Country__c,District__c,Municipality__c,Panchayath__c,State__c,Village__c from Opportunity where id=:customerId];          
+                                                               Contact_Person_Name__c,Contact_Number__c,AddressLine1__c,AddressLine2__c,AddressLine3__c,Corporation__c,Country__c,District__c,Municipality__c,Panchayath__c,State__c,Village__c from Opportunity where id=:customerId];          
                                         
                                         // Create new Cart record
                                         Quote cart = new Quote();
@@ -230,7 +225,8 @@ public static List<Map<String, String>> getAreaPicklistValues() {
                                         cart.Pricebook2Id = pb.id;  
                                         cart.Quote_Category__c=category;
                                         cart.Round_Off__c=roundOff;
-
+                                        cart.Contact_Person_Name__c =oppParent.Contact_Person_Name__c;
+                                        cart.Contact_Person_Number__c=oppParent.Contact_Number__c;
                                         
                                         cart.BillingStreet   = oppParent.Account.BillingStreet;
                                         cart.BillingCity     = oppParent.Account.BillingCity;

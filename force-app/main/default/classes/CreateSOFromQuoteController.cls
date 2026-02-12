@@ -52,8 +52,10 @@ public static Map<String, Object> getQuoteInfo(Id quoteId) {
                 Quantity,
                 UnitPrice,
                 Product2.Name,
+            	Product2.Tax__c,
                 Product2.ProductCode,
                 Product2.Family,
+            Product2.Product_Category__c,
                 PricebookEntry.Product2.Product_Category__c
             FROM QuoteLineItem
             WHERE QuoteId = :quoteId
@@ -70,7 +72,7 @@ public static Map<String, Object> getQuoteInfo(Id quoteId) {
     // 3. Create Order from Quote
     
     @AuraEnabled
-    public static Id createOrderFromQuote(Id quoteId , Id warehouseId,List<Id> selectedQuoteLineItemIds, Map<Id, Decimal> blockQtyMap, Date deliveryCommittedDate, String remarks,boolean credit, String batchJson) {
+    public static Id createOrderFromQuote(Id quoteId , Id warehouseId,List<Id> selectedQuoteLineItemIds, Map<Id, Decimal> blockQtyMap,Map<Id, String> warehouseCodeMap, Date deliveryCommittedDate, String remarks,boolean credit, String batchJson) {
      
         //  try {
              ///️⃣ Validate warehouse
@@ -269,8 +271,25 @@ ord.State__c    = q.State__c;
             q.Status='Accepted';
             q.Sales_Order_Created__c = true;
             update q;
-            
-            
+        
+        Set<String> warehouseCodes = new Set<String>();
+        
+        for (String code : warehouseCodeMap.values()) {
+            if (String.isNotBlank(code)) {
+                warehouseCodes.add(code);
+            }
+        }
+        Map<String, Id> warehouseCodeToIdMap = new Map<String, Id>();
+        
+        if (!warehouseCodes.isEmpty()) {
+            for (Warehouse__c w : [
+                SELECT Id, Warehouse_Code__c
+                FROM Warehouse__c
+                WHERE Warehouse_Code__c IN :warehouseCodes
+            ]) {
+                warehouseCodeToIdMap.put(w.Warehouse_Code__c, w.Id);
+            }
+        }
 
             // Create Order Items
             List<OrderItem> orderItems = new List<OrderItem>();
@@ -280,11 +299,16 @@ ord.State__c    = q.State__c;
                 oi.PricebookEntryId = qli.PricebookEntryId;
                 oi.Quantity         = qli.Quantity;
                 oi.UnitPrice        = qli.UnitPrice;
-                oi.Block_Quantity__c =
-                (blockQtyMap != null && blockQtyMap.containsKey(qli.Id))
-                ? blockQtyMap.get(qli.Id)
-                : 0;
-
+                oi.Block_Quantity__c = (blockQtyMap != null && blockQtyMap.containsKey(qli.Id))? blockQtyMap.get(qli.Id): 0;
+                if(warehouseCodeMap != null && 
+                   warehouseCodeMap.containsKey(qli.Id)) {
+                       oi.Warehouse_Code__c = warehouseCodeMap.get(qli.Id);
+                       
+                       if (warehouseCodeMap.containsKey(oi.Warehouse_Code__c) && warehouseCodeToIdMap.containsKey(oi.Warehouse_Code__c)) {
+                           oi.Warehouse__c = warehouseCodeToIdMap.get(oi.Warehouse_Code__c);
+                       }
+                       
+                   }
                 orderItems.add(oi);
             }
 
@@ -407,13 +431,15 @@ public static List<Map<String, Object>> getBatchStock1(Id orderItemId) {
  */   
     public class WarehouseStockWrapper {
         @AuraEnabled public String warehouseCode;
-        @AuraEnabled public String inStock;
+        @AuraEnabled public string inStock;
         @AuraEnabled public String warehouseName;
         @AuraEnabled public String IsBatchEnable;
-         @AuraEnabled public String Batch;
-         @AuraEnabled public String Eid;
+        @AuraEnabled public String Batch;
+        @AuraEnabled public String Eid;
         @AuraEnabled public decimal quantity;
-         @AuraEnabled public Id quoteLineItemId;
+        @AuraEnabled public Id quoteLineItemId;
+        @AuraEnabled public String billable;
+        @AuraEnabled public String reserved;
         
         
     }
@@ -481,13 +507,17 @@ public static List<Map<String, Object>> getBatchStock1(Id orderItemId) {
                                 Map<String, Object> warehouseInfo = (Map<String, Object>) warehouseObj;
                                 WarehouseStockWrapper wrap = new WarehouseStockWrapper();
                                 wrap.Batch = String.valueOf(warehouseInfo.get('Batch'));
-                                wrap.inStock =  String.valueOf( warehouseInfo.get('BatchStock'));
+                                wrap.inStock = String.valueOf(warehouseInfo.get('Stock'));
                                 wrap.warehouseCode = String.valueOf( warehouseInfo.get('WhsCode'));
                                 wrap.warehouseName = String.valueOf(warehouseInfo.get('WhsName')); 
                                 wrap.IsBatchEnable = String.valueOf(warehouseInfo.get('IsBatchEnable')); 
-                                    wrap.Eid = wrap.warehouseCode+wrap.Batch; 
+                                wrap.reserved = String.valueOf(warehouseInfo.get('Reserved')); 
+                                wrap.billable = String.valueOf(warehouseInfo.get('Billable')); 
+                                
+                                wrap.Eid = wrap.warehouseCode+wrap.Batch; 
                                 if(wrap.IsBatchEnable=='Yes' && wCodes.contains( wrap.warehouseCode)){
                                     resultList.add(wrap);
+                                   
                                 }
                                 System.debug(' warehouseInfo: ' + warehouseInfo);
                             }
@@ -502,7 +532,7 @@ public static List<Map<String, Object>> getBatchStock1(Id orderItemId) {
         } catch (Exception e) {
             System.debug(' Sync failed: ' + e.getMessage() + '\\n' + e.getStackTraceString());
         }
-        System.debug(' InStock: ' + InStock);
+         System.debug(' resultList: ' + resultList);
         return resultList;
         
     }

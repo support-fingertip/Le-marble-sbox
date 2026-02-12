@@ -4,12 +4,12 @@ public class sapIntegration {
     private static final String USERNAME = 'manager';
     private static final String PASSWORD = 'Mgsap12@';
     
-     @AuraEnabled 
+    @AuraEnabled 
     public static list<account> getAccount(){
         return [select id, name,Customer_Number__c from account];	
         
     }
-     public class Sap_comp{
+    public class Sap_comp{
         @auraEnabled public list<string> warehouse{get;set;}
         @auraEnabled public string prof{get;set;}        
     }
@@ -327,18 +327,18 @@ public class sapIntegration {
             if (!shipToAddressFoundAndUpdated && deal.ShippingAddress != null) {
                 bpAddresses.add(new Map<String, Object>{
                     'AddressName' =>'Shipping',
-                       'Street'        => deal.Address_Line1__c,
-                    'City'          => deal.corporation__c,
-                    'State'         => deal.State__c,
-                    'ZipCode'       => '',
-                    'Country'       => deal.Country__c,//IN
-                    'AddressType'   => 'bo_ShipTo',
-                    'AddressName2'  => deal.Address_Line2__c,
-                    'AddressName3'  => deal.Address_Line3__c
+                        'Street'        => deal.Address_Line1__c,
+                        'City'          => deal.corporation__c,
+                        'State'         => deal.State__c,
+                        'ZipCode'       => '',
+                        'Country'       => deal.Country__c,//IN
+                        'AddressType'   => 'bo_ShipTo',
+                        'AddressName2'  => deal.Address_Line2__c,
+                        'AddressName3'  => deal.Address_Line3__c
                         });
             }
             
-          
+            
             
             if (!billToAddressFoundAndUpdated && deal.BillingAddress != null) {
                 bpAddresses.add(new Map<String, Object>{
@@ -416,9 +416,9 @@ public class sapIntegration {
             String docDate = currentDate.year() + '-' + 
                 String.valueOf(currentDate.month()).leftPad(2, '0') + '-' + 
                 String.valueOf(currentDate.day()).leftPad(2, '0');
-            String dueDate = currentDate.addDays(30).year() + '-' + 
-                String.valueOf(currentDate.addDays(30).month()).leftPad(2, '0') + '-' + 
-                String.valueOf(currentDate.addDays(30).day()).leftPad(2, '0');
+            String dueDate = currentDate.addDays(10).year() + '-' + 
+                String.valueOf(currentDate.addDays(10).month()).leftPad(2, '0') + '-' + 
+                String.valueOf(currentDate.addDays(10).day()).leftPad(2, '0');
             String taxDate = docDate;
             String deliveryDate = docDate;
             String endDeliveryDateStr = endDeliveryDate.year() + '-' + 
@@ -475,7 +475,7 @@ public class sapIntegration {
                 throw new AuraHandledException('Failed to create SAP Order: ' + res.getBody());
             }
             else {
-                System.debug('✅ Order created in SAP for: ' + order.Id);
+                System.debug(' Order created in SAP for: ' + order.Id);
                 System.debug('SAP Response Body: ' + res.getBody());
                 
                 try {
@@ -619,7 +619,7 @@ public class sapIntegration {
                         inv.Doc_Entry__c = String.valueOf(item.get('DocEntry'));
                         inv.Doc_Num__c = String.valueOf(item.get('DocNum'));
                         inv.Invoice_Amount__c = integer.valueOf(item.get('DocDate'));
-             //           inv.Invoice_Date__c = (String)item.get('DocDate');
+                        //           inv.Invoice_Date__c = (String)item.get('DocDate');
                         //        CardCode
                         
                         List<Object> documentLines =
@@ -644,11 +644,11 @@ public class sapIntegration {
     }
     
     
-  @AuraEnabled(cacheable=false)  
+    @AuraEnabled(cacheable=false)  
     public static decimal getCustOutstanding(string accountId) {
         
         string bpCode=[select id,Customer_Number__c from account where id=:accountId].Customer_Number__c;
-    //    bpCode='CU0000270';
+        //    bpCode='CU0000270';
         decimal CurrentAccountBalance;
         String sessionId=loginToSAP();
         if(sessionId!=null){  
@@ -662,7 +662,7 @@ public class sapIntegration {
             
             
             String fullUrl = SAP_BASE_URL + '/BusinessPartners('+'\''+bpCode+ '\')';
-                    
+            
             Boolean isError = false;
             String errorMsg = '';
             
@@ -700,13 +700,13 @@ public class sapIntegration {
                     //CurrentAccountBalance
                     Map<String, Object> result =
                         (Map<String, Object>) JSON.deserializeUntyped(responseBody);
-					CurrentAccountBalance = (decimal) result.get('CurrentAccountBalance');
-
+                    CurrentAccountBalance = (decimal) result.get('CurrentAccountBalance');
+                    
                     
                 }
                 else{
-                System.debug(' Failed to fetch outstanding: ' + itemRes.getBody());
-                String errorBody = itemRes.getBody();
+                    System.debug(' Failed to fetch outstanding: ' + itemRes.getBody());
+                    String errorBody = itemRes.getBody();
                     log.Status__c = 'FAILED';
                     log.Error_Message__c = 'Maximum number of callouts has been reached.';
                     if(log.Status__c=='FAILED'){
@@ -716,9 +716,9 @@ public class sapIntegration {
                 
             }
         }
-
+        
         system.debug(CurrentAccountBalance);
-       return CurrentAccountBalance;
+        return CurrentAccountBalance;
         
     }
 }
