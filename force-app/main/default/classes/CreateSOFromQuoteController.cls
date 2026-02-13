@@ -431,7 +431,7 @@ public static List<Map<String, Object>> getBatchStock1(Id orderItemId) {
  */   
     public class WarehouseStockWrapper {
         @AuraEnabled public String warehouseCode;
-        @AuraEnabled public string inStock;
+        @AuraEnabled public decimal inStock;
         @AuraEnabled public String warehouseName;
         @AuraEnabled public String IsBatchEnable;
         @AuraEnabled public String Batch;
@@ -448,7 +448,7 @@ public static List<Map<String, Object>> getBatchStock1(Id orderItemId) {
     public static List<WarehouseStockWrapper> getBatchStock(string orderItemId,string warehouse) {
         System.debug(' warehouse: ' + warehouse);
          list<string>wCodes= new list<string>();
-            if(warehouse!=null){
+            if(warehouse!=null && warehouse!=''){
                     Warehouse__c wc=[select id,Location__c from Warehouse__c where id=:warehouse];
                 list<Warehouse__c>wcList=[select id,name,Warehouse_Code__c,Location__c from Warehouse__c where Location__c =:wc.Location__c];
              
@@ -469,7 +469,8 @@ public static List<Map<String, Object>> getBatchStock1(Id orderItemId) {
             Http http = new Http();
             Map<String, Object> bodyMap = new Map<String, Object>();
             bodyMap.put('ApiKey', 'SKYHSTskb2h82yhdc76512rgsv');
-            bodyMap.put('ProductCode', 'TL02811');
+            bodyMap.put('ProductCode', orderItemId);
+            // TL02811
             String requestBody = JSON.serialize(bodyMap);
  System.debug(' requestBody: ' + requestBody);
                     
@@ -507,17 +508,26 @@ public static List<Map<String, Object>> getBatchStock1(Id orderItemId) {
                                 Map<String, Object> warehouseInfo = (Map<String, Object>) warehouseObj;
                                 WarehouseStockWrapper wrap = new WarehouseStockWrapper();
                                 wrap.Batch = String.valueOf(warehouseInfo.get('Batch'));
-                                wrap.inStock = String.valueOf(warehouseInfo.get('Stock'));
+                             //   wrap.inStock = String.valueOf(warehouseInfo.get('Stock'));
                                 wrap.warehouseCode = String.valueOf( warehouseInfo.get('WhsCode'));
                                 wrap.warehouseName = String.valueOf(warehouseInfo.get('WhsName')); 
                                 wrap.IsBatchEnable = String.valueOf(warehouseInfo.get('IsBatchEnable')); 
                                 wrap.reserved = String.valueOf(warehouseInfo.get('Reserved')); 
                                 wrap.billable = String.valueOf(warehouseInfo.get('Billable')); 
-                                
+                                Object stockVal = warehouseInfo.get('Stock');
+                                wrap.inStock = stockVal != null
+                                    ? Decimal.valueOf(String.valueOf(stockVal))
+                                    : 0;
+
+                                system.debug(wrap.inStock);
                                 wrap.Eid = wrap.warehouseCode+wrap.Batch; 
                                 if(wrap.IsBatchEnable=='Yes' && wCodes.contains( wrap.warehouseCode)){
                                     resultList.add(wrap);
                                    
+                                }
+                   //calling from newQuoteController             
+                                else if(warehouse=='' && wrap.inStock>0){
+                                    resultList.add(wrap);
                                 }
                                 System.debug(' warehouseInfo: ' + warehouseInfo);
                             }

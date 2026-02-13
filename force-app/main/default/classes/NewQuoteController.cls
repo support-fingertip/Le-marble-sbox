@@ -54,7 +54,7 @@ public class NewQuoteController {
             Product2.In_Stock__c
             FROM PricebookEntry
             WHERE Pricebook2Id = :pb.Id and UnitPrice >0
-            AND IsActive = true
+           // AND IsActive = true
             AND Product2.IsActive = true
             AND Product2.Product_Category__c = :category
             ORDER BY Product2.Name ASC
@@ -70,6 +70,7 @@ public class NewQuoteController {
             
             pw.Id = pbe.Product2Id;
             pw.Name = pbe.Product2.Name;
+            system.debug('pw.Name = pbe.Product2.Name'+pbe.Product2.Name);
             pw.productCode = pbe.Product2.Product_Code__c;
             //    pw.customProductCode = pbe.Product2.Product_Code__c;
             pw.category = pbe.Product2.Product_Category__c;
@@ -490,7 +491,7 @@ throw new AuraHandledException('Error creating cart: ' + e.getMessage());
     private static final String USERNAME = 'manager';
     private static final String PASSWORD = 'Mgsap12@';
     
-    public class WarehouseStockWrapper {
+ /*   public class WarehouseStockWrapper {
         @AuraEnabled public String warehouseCode;
         @AuraEnabled public Decimal inStock;
         @AuraEnabled public Decimal committed;
@@ -564,10 +565,7 @@ throw new AuraHandledException('Error creating cart: ' + e.getMessage());
                             
                             for (Object warehouseObj : warehouseInfoList) {
                                 Map<String, Object> warehouseInfo = (Map<String, Object>) warehouseObj;
-                                /*    String whsCode = String.valueOf(warehouseInfo.get('WarehouseCode'));
-if(whsCode==wareHCode){  
-InStock = String.valueOf(warehouseInfo.get('InStock'));
-}*/
+
                                 WarehouseStockWrapper wrap = new WarehouseStockWrapper();
                                 wrap.warehouseCode = String.valueOf(warehouseInfo.get('WarehouseCode'));
                                 wrap.inStock = (Decimal) warehouseInfo.get('InStock');
@@ -595,8 +593,12 @@ InStock = String.valueOf(warehouseInfo.get('InStock'));
         System.debug(' InStock: ' + InStock);
         return resultList;
         
-    }
+    }*/
     
+      @AuraEnabled(cacheable=false)
+    public static List<CreateSOFromQuoteController.WarehouseStockWrapper> checkLiveStock(string itemcode) {
+ 	return CreateSOFromQuoteController.getBatchStock(itemcode, '');
+    }
     @AuraEnabled
     public static String createCartLineItem(String cartId, Map<String, Object> item) {
         try {

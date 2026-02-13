@@ -46,7 +46,7 @@
         <div class="header-card slds-grid slds-wrap slds-grid_vertical-align-center">   
             <!-- Left -->
             <div class="header-left  slds-col slds-size_1-of-1 slds-large-size_2-of-3">
-                <h1 class="header-title">Add Quote Line Items</h1>
+                <h1 class="header-title">Add Quote Line Items.</h1>
                 <p class="header-sub">
                     Select a Price Book and start adding products
                 </p>
@@ -157,6 +157,7 @@
                                                 <thead>
                                                     <tr>
                                                         <th>Warehouse</th>
+                                                        <th>Batch</th>
                                                         <th>In Stock</th>
                                                         <th>Reserved</th>
                                                         <th>billable</th>
@@ -166,6 +167,7 @@
                                                     <template for:each={item.stockList} for:item="stk">
                                                         <tr key={stk.warehouseCode}>
                                                             <td>{stk.warehouseCode}</td>
+                                                            <td>{stk.Batch}</td>
                                                             <td>{stk.inStock}</td>
                                                             <td>{stk.reserved}</td>
                                                              <td>{stk.billable}</td>
@@ -386,7 +388,7 @@
                                     </div>
 
                                      <div class="field-box slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
-                                        <lightning-input type="number" label="MRP"
+                                        <lightning-input type="number" label="MRP/Sqft"
                                                             value={item.msp}
                                                             disabled><!--(After Tax)-->
                                         </lightning-input>

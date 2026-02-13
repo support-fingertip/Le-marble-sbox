@@ -10,8 +10,8 @@
     <aura:attribute name="matchacc" type="Account[]" default="[]"/>
     <aura:handler name="change" value="{!v.searchText2}" action="{!c.searchText2}"></aura:handler>
     <aura:attribute name="Accounts" type="Object[]" default="[]"/>
-    <aura:attribute name="WarehouseList" type="String[]"  />
-    <aura:attribute name="Warehouse" type="String"  />
+    <aura:attribute name="itemsList" type="String[]"  />
+    <aura:attribute name="item" type="String"  />
     <aura:attribute name="selectedStatus" type="String"  />
      <aura:attribute name="userProfile" type="User"/>
     
@@ -75,8 +75,8 @@
             </center>
         </aura:if>  -->
         <aura:if isTrue="{!(v.selectedType=='Stock')}">
-            <lightning:select name="todayPlan"  label="Warehouse"  value="{!v.Warehouse}">
-                <aura:iteration items="{!v.WarehouseList}" var="value">
+            <lightning:select name="todayPlan"  label="Item"  value="{!v.Warehouse}">
+                <aura:iteration items="{!v.itemsList}" var="value">
                     <option value="{!value}" selected="{!value == ''}">{!value}</option>
                 </aura:iteration>
             </lightning:select>

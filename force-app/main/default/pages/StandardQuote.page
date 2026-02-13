@@ -481,7 +481,7 @@ L E &nbsp; M A R B L E &nbsp; G A L L E R Y &nbsp; P V T. &nbsp; L T D.
                             
                             <tr>
                                 <td style="font-weight:bold;">Ship To</td>
-                                <td><apex:outputText value="{!Quote.AddressLine1__c}" rendered="{!NOT(ISBLANK(Quote.AddressLine1__c	))}"/><br/>
+                                <td><apex:outputText value="{!Quote.AddressLine1__c}" rendered="{!NOT(ISBLANK(Quote.AddressLine1__c ))}"/><br/>
                                     <apex:outputText value="{!Quote.AddressLine2__c}" rendered="{!NOT(ISBLANK(Quote.AddressLine2__c))}"/>
                                     <!--    <apex:outputText value=", {!Quote.AddressLine3__c}" rendered="{!NOT(ISBLANK(Quote.AddressLine3__c))}"/> -->
                                     <apex:outputPanel rendered="{!NOT(ISBLANK(Quote.AddressLine3__c))}">
@@ -601,8 +601,18 @@ item.afterDiscPrice
                                     <td style="border:1px solid #cfcfcf; text-align:center; font-weight:normal;">{!item.roomType}</td>
                                     <td style="border:1px solid #cfcfcf; text-align:center; font-weight:normal;">{!item.sqft}</td>
                                     <td style="border:1px solid #cfcfcf; text-align:center; font-weight:normal;">{!item.quantity}</td>
-                                    <td style="border:1px solid #cfcfcf; text-align:center; font-weight:normal;">{!item.unitPrice}</td>
-                                    <td style="border:1px solid #cfcfcf; text-align:center; font-weight:normal;">{!item.afterDiscPrice}</td>
+                                    <td style="border:1px solid #cfcfcf; text-align:center; font-weight:normal;"><apex:outputText value="{0, number, ##,##0.00}">
+                                        <apex:param value="{!item.unitPrice}" />
+                                    </apex:outputText></td>
+                                    <td style="border:1px solid #cfcfcf; text-align:center; font-weight:normal;"> <apex:outputText rendered="{!item.discountType == 'Percentage'}">
+                                            {!item.discountValue}% (₹ {!ROUND(item.discountAmountInRupees,2)})
+                                        </apex:outputText>
+                                    
+                                        <apex:outputText rendered="{!item.discountType == 'Amount'}">
+                                            ₹ {!item.discountValue}
+                                        </apex:outputText>
+                                    
+                                    </td>
                                     <td style="border:1px solid #cfcfcf; text-align:center; font-weight:normal;">{!item.total}</td>
                                     <td style="border:1px solid #cfcfcf;"></td>
                                 </tr>

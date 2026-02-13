@@ -10,20 +10,20 @@ public class sapIntegration {
         
     }
     public class Sap_comp{
-        @auraEnabled public list<string> warehouse{get;set;}
+        @auraEnabled public list<string> items{get;set;}
         @auraEnabled public string prof{get;set;}        
     }
     @auraEnabled
-    public static Sap_comp getWarehouses(){
+    public static Sap_comp getitems(){
         Sap_comp wr=new Sap_comp();
         
-        list<string> warehouses= new list<string>();
-        for(warehouse__c p:[select id,name from warehouse__c]){
-            warehouses.add(p.name);
+        list<string> items1= new list<string>();
+        for(product2 p:[select id,name from product2 where isactive=true]){
+            items1.add(p.name);
         }
         string prf= [SELECT Id, Name, Profile.Name FROM User WHERE Id = :UserInfo.getUserId()].Profile.Name;
         system.debug(prf);
-        wr.warehouse=warehouses;
+        wr.items=items1;
         wr.prof=prf;
         return wr;
     }
@@ -71,11 +71,12 @@ public class sapIntegration {
             Account deal = [
                 SELECT Customer_Number__c, Name, Email__c, Phone, Secondary_Phone__c,Type,
                 Address_Line1__c, Address_Line2__c,Address_Line3__c,Corporation__c,Municipality__c,Panchayath__c,Village__c,State__c,Country__c,Description,District__c,GST_Number__c,Owner_Name__c,
-                ShippingState,ShippingCountry, ShippingCity,ShippingStreet,ShippingAddress,BillingAddress,ShippingPostalCode,
-                BillingState,BillingCountry, BillingCity,BillingStreet,BillingPostalCode FROM Account
+                ShippingState,ShippingCountry, ShippingCity,ShippingStreet,ShippingAddress,BillingAddress,ShippingPostalCode,Customer_Type__c,
+                BillingState,BillingCountry, BillingCity,BillingStreet,BillingPostalCode,ownerId FROM Account
                 WHERE Id = :dealId
                 LIMIT 1
             ];
+            String ownerName = [SELECT Id,name FROM User WHERE id=:deal.ownerId].name; 
             notification.setTitle('Account :'+deal.Name);
             String NotificationBody =  'Account Name : ' + Account.Name +'\nAccount created by : ' + deal.Owner_Name__c;
             
@@ -128,6 +129,7 @@ public class sapIntegration {
                 return;
             }
             
+           string bCountryCode= getCountryCode(deal.BillingCountry);
             // Build BPAddresses[]
             List<Map<String, Object>> bpAddresses = new List<Map<String, Object>>();
             String uniqueSuffix = String.valueOf(DateTime.now().getTime());
@@ -153,7 +155,7 @@ public class sapIntegration {
                     'City'          => deal.BillingCity,
                     'State'         =>  deal.BillingState,//KL
                     'ZipCode'       => deal.BillingPostalcode,
-                    'Country'       => deal.billingcountry,//IN
+                    'Country'       => bCountryCode!=null?bCountryCode:'',//IN
                     'AddressType'   => 'bo_BillTo',
                     'AddressName2'  => deal.Address_Line2__c,
                     'AddressName3'  => deal.Address_Line3__c
@@ -162,7 +164,7 @@ public class sapIntegration {
             
             // Create Business Partner payload
             Map<String, Object> bpPayload = new Map<String, Object>{
-                'CardCode'       => deal.Customer_Number__c,
+                	'CardCode'       => deal.Customer_Number__c,
                     'CardName'       => deal.Name,
                     'CardType'       => 'cCustomer',
                     'Currency'       => 'INR',
@@ -171,8 +173,10 @@ public class sapIntegration {
                     'Phone2'         => deal.Secondary_Phone__c,
                     'CardForeignName'=> deal.Name,
                     'Notes'          => deal.Description,
-                    'BPAddresses'    => bpAddresses
-                    };
+                    'BPAddresses'    => bpAddresses,
+                    'U_EMP_CODE'     => ownerName,
+                    'U_BPType' 		 =>  deal.Customer_Type__c
+                  };
                         
                         HttpRequest bpRequest = new HttpRequest();
             bpRequest.setEndpoint('https://lemrg.hstconnect.in:50000/b1s/v1/BusinessPartners');
@@ -295,6 +299,7 @@ public class sapIntegration {
             
             Boolean shipToAddressFoundAndUpdated = false;
             Boolean billToAddressFoundAndUpdated = false;
+            string bCountryCode= getCountryCode(deal.BillingCountry);
             
             for (Map<String, Object> existingAddr : bpAddresses) {
                 String addrName = (String)existingAddr.get('AddressName');
@@ -316,7 +321,7 @@ public class sapIntegration {
                     existingAddr.put('City', deal.BillingCity);
                     existingAddr.put('State', deal.BillingState);
                     existingAddr.put('ZipCode', deal.BillingPostalCode);
-                    existingAddr.put('Country', deal.BillingCountry);
+                    existingAddr.put('Country',  bCountryCode!=null?bCountryCode:'');
                     existingAddr.put('AddressType', 'bo_BillTo');
                     existingAddr.put('AddressName2', deal.Address_Line2__c);
                     existingAddr.put('AddressName3', deal.Address_Line3__c);
@@ -396,7 +401,25 @@ public class sapIntegration {
         }
     }
     
-    
+    public static String getCountryCode(String countryLabel) {
+        if (String.isBlank(countryLabel) || countryLabel==null) {
+            return null;
+        }
+        String input = countryLabel.trim().toLowerCase();
+        Schema.DescribeFieldResult dfr =
+            Account.Country__c.getDescribe();
+        
+        for (Schema.PicklistEntry ple : dfr.getPicklistValues()) {
+            if (ple.getLabel() != null &&
+            ple.getLabel().trim().toLowerCase() == input) {
+                
+                return ple.getValue(); // API name (Country Code)
+            }
+            
+        }
+        return null;
+    }
+
     
     public static void sendOrderToSAP(Order order) {
         

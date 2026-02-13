@@ -19,7 +19,7 @@
     navigateToComponent : function(component, event, helper) {
         var CustName= component.get('v.customerName'); 
         var typ= component.get('v.selectedType');
-        var warehouse= component.get('v.warehouse');
+        var item= component.get('v.item');
         if ((CustName!=undefined && CustName!='')|| typ=='Stock'){
             var componentName = "c:showOutstandingComp"; 
             
@@ -53,7 +53,7 @@
         component.set('v.fromDate','');
         component.set('v.ToDate','');
         component.set('v.customerName','');  
-        var sit= component.get('v.WarehouseList');  
+        var sit= component.get('v.itemsList');  
 
     },
     refreshOutstandingData: function(component, event, helper) {
