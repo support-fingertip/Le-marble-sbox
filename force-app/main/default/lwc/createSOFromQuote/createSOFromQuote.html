@@ -277,7 +277,7 @@
                                            <td>
                                                 <template if:false={isFactoryWarehouse}>
                                                     <lightning-button
-                                                        label="View Batch"
+                                                        label="Check Stock"
                                                         variant="brand-outline"
                                                         data-id={item.Id}
                                                         onclick={handleViewBatch}>
@@ -397,7 +397,11 @@
                         <th>Warehouse</th>
                         <th>Batch</th>
                         <th>Available Qty</th>
-                        <th>Enter Qty</th>
+                        <th>Billable</th>
+                        <th>Reserved</th>
+                        <template if:true={isBatchEditable}>
+                            <th>Enter Qty</th>
+                        </template>
                     </tr>
                 </thead>
                 <tbody>
@@ -406,6 +410,9 @@
                             <td>{b.warehouseCode}</td>
                             <td>{b.Batch}</td>
                             <td>{b.inStock}</td>
+                            <td>{b.billable}</td>
+                            <td>{b.reserved}</td>
+                        <template if:true={isBatchEditable}>
                             <td>
                                 <lightning-input
                                     type="number"
@@ -415,6 +422,19 @@
                                     onchange={handleBatchQtyChange}>
                                 </lightning-input>
                             </td>
+                            </template>
+
+                            <template if:false={isBatchEditable}>
+                            <td>
+                                <lightning-button
+                                    label="Select"
+                                    variant="brand-outline"
+                                    data-warehouse={b.warehouseCode}
+                                    onclick={handleWarehouseSelect}>
+                                </lightning-button>
+                            </td>
+                        </template>
+
                         </tr>
                     </template>
                 </tbody>

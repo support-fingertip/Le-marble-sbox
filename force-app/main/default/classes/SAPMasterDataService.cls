@@ -47,7 +47,7 @@ public with sharing class SAPMasterDataService {
             req.setMethod('GET');
             req.setHeader('Cookie', 'B1SESSION=' + sessionId);
             req.setHeader('Content-Type', 'application/json');
-            
+         system.debug(req);   
             Http http = new Http();
             HttpResponse res = http.send(req);
             System.debug('Warehouse Response Status: ' + res.getStatusCode());

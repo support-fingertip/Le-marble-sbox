@@ -86,7 +86,7 @@ public with sharing class QuotationController {
                 this.mrpTotal += item.Without_Discount_Total_Price__c;
             }
             String descriptionField = null;
-            if (item.Product_Category__c == 'NATURAL STONE') {
+            if (item.Product_Category__c == 'N.STONE') {
                 descriptionField = item.Description__c;
                 this.hasNaturalStone = true;
             }

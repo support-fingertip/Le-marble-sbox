@@ -1,5 +1,5 @@
 public with sharing class QuotePdfController {
-	
+    
     public List<QuotationLineItem> products { get; set; }
     public Quote cart { get; set; } // now holds Quote record instead of Cart__c
     public Decimal totalDiscount { get; set; }
@@ -153,7 +153,7 @@ public with sharing class QuotePdfController {
             else if (item.Product_Category__c == 'FITTINGS') {
                 hasFittings = true;
             }
-            else if (item.Product_Category__c == 'NATURAL STONE') {
+            else if (item.Product_Category__c == 'N.STONE') {
                 hasNaturalStone = true;
             }
             else if (item.Product_Category__c == 'BATHING SOLUTIONS') {
@@ -240,12 +240,21 @@ this.mrpTotal += item.Without_Discount_Total_Price__c;
                 this.mrpTotal += item.UnitPrice*item.Quantity;
             }
             String descriptionField = null;
-            if (item.Product_Category__c == 'NATURAL STONE') {
+            if (item.Product_Category__c == 'N.STONE') {
                 descriptionField = item.Description;
             }
             
             System.debug('Processing item: ' + item.Product2.Name);
-            
+          Decimal discountAmount = 0;
+
+                if (item.Disc_Type__c == 'Percentage' && 
+                    item.Dis_Value__c != null &&
+                    item.UnitPrice != null &&
+                    item.Quantity != null) {
+                
+                    Decimal originalTotal = item.UnitPrice * item.Quantity;
+                    discountAmount = (originalTotal * item.Dis_Value__c) / 100;
+                }
             products.add(new QuotationLineItem(
                 item.Product2.Name,
                 item.Product_Category__c,
@@ -262,7 +271,8 @@ this.mrpTotal += item.Without_Discount_Total_Price__c;
                 item.Disc_Type__c,
                 item.Dis_Value__c,
                 descriptionField,
-                item.Price_Sqft__c
+                item.Price_Sqft__c,
+                discountAmount
             ));
         }
         
@@ -504,6 +514,8 @@ email.setToAddresses(new List<String>{ finalEmail });
         public Decimal discountValue { get; set; }
         public String descriptionField { get; set; }  // NATURAL STONE description
         public Decimal priceSqft { get; set; }
+        public Decimal discountAmountInRupees { get; set; }
+
 
         public QuotationLineItem(
             String description,
@@ -520,7 +532,9 @@ email.setToAddresses(new List<String>{ finalEmail });
             String discountType,
             Decimal discountValue,
             String descriptionField,
-            Decimal priceSqft
+            Decimal priceSqft,
+            Decimal discountAmountInRupees
+
         ) {
             this.description = description;
             this.category = category;
@@ -552,6 +566,8 @@ email.setToAddresses(new List<String>{ finalEmail });
             this.discountValue = discountValue;
             this.descriptionField = descriptionField;
             this.priceSqft = priceSqft;
+            this.discountAmountInRupees = discountAmountInRupees;
+
         }
     }
 

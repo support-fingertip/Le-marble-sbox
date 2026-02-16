@@ -199,7 +199,11 @@ wiredAreaPicklist({ data, error }) {
                 this.priceNames = [
                     { label: 'Select Pricebook', value: 'select' },
                     ...data.map(priceName => ({
-                        label: priceName,
+                        
+                         label:
+                    priceName === 'Standard Price Book'
+                        ? 'RETAIL/MRP'
+                        : priceName,
                         value: priceName
                     }))
                 ];
@@ -386,8 +390,10 @@ var i=0;
                     roomType: item.Area__c,
                     requiredSqft: item.Sqft__c,
                     pricePerSqft: 0,
+                    Tax:item.Product2.Tax__c || 0,
                     afterDiscPriceSqft: 0,
                     sqft: item.Sqft__c, sqm: 0,
+                    sqftPerPiece:item.Product2.Sqft_Piece__c || 0,
                     pricebookEntryId: item.PricebookEntryId,
                      isNaturalStone: item.Product2.Product_Category__c === 'NATURAL STONE',
                      isTile:item.Product2.Product_Category__c === 'TILE',
@@ -486,9 +492,23 @@ var i=0;
 
 
         handleQuantityChange(event) {
+            const idx = event.target.dataset.index;
+            const quantity = parseInt(event.target.value) || 0;
+
+            // ONLY update quantity → no re-render storm
+            this.selectedProducts[idx].quantity = quantity;
+        }
+
+        handleQuantityBlur(event) {
             const productId = event.target.dataset.productId;
             const idx = event.target.dataset.index;
             const quantity = parseInt(event.target.value) || 0;
+             this.selectedProducts[idx].quantity = quantity;
+        console.log('productId'+productId); 
+        console.log('idx'+idx); 
+        console.log('quantity'+quantity); 
+        console.log('this.selectedProducts[idx].quantity ' +this.selectedProducts[idx].quantity); 
+
             this.updateProduct(productId, 'quantity', quantity,idx);
 
             // Find the product and update sqft/requiredSqft/sqm if it's a tile
@@ -888,9 +908,19 @@ this.recalculateOrderTotal();
         this.recalculateOrderTotal();
     }
     handleroundOffChargeChange(event) {
-        this.roundOff = parseFloat(event.target.value) || 0;
-        this.recalculateOrderTotal();
-    }
+            let value = Number(event.target.value) || 0;
+
+        if (value > 15) {
+            value = 15;
+        }
+
+        if (value < 0) {
+            value = 0;
+        }
+        this.roundOff = value;
+
+            this.recalculateOrderTotal();
+        }
 
    async handleConfirm(event) {
         try {

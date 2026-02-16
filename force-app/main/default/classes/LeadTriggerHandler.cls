@@ -31,7 +31,7 @@ public class LeadTriggerHandler {
             
             // Auto-fill Company (Standard required field)
             // Auto-fill Company ONLY for B2C
-            if (ls.Customer_Type__c == 'B2C') {
+            if (ls.Customer_Type__c != 'B2B') {
                 String fullName = '';
                 if (String.isNotBlank(ls.FirstName)) fullName += ls.FirstName;
                 if (String.isNotBlank(ls.LastName))  fullName += (fullName != '' ? ' ' : '') + ls.LastName;
@@ -95,7 +95,7 @@ public class LeadTriggerHandler {
             }
             
             // Auto-fill Company ONLY for B2C
-            if (ls.Customer_Type__c == 'B2C') {
+            if (ls.Customer_Type__c != 'B2B') {
                 String fullName = '';
                 if (String.isNotBlank(ls.FirstName)) fullName += ls.FirstName;
                 if (String.isNotBlank(ls.LastName))  fullName += (fullName != '' ? ' ' : '') + ls.LastName;
@@ -180,12 +180,16 @@ public class LeadTriggerHandler {
                 leadEmailMap.put(newLead.ConvertedAccountId, newLead.Email); 
             }
             
+            String fullName = '';
+            if (String.isNotBlank(newLead.Salutation)) fullName += newLead.Salutation;
+             if (String.isNotBlank(newLead.FirstName))  fullName += (fullName != '' ? ' ' : '') + newLead.FirstName;
+            if (String.isNotBlank(newLead.LastName))  fullName += (fullName != '' ? ' ' : '') + newLead.LastName;
             
             // Build Full Name
-            String sal = (newLead.Salutation != null) ? newLead.Salutation + '. ' : '';
+          /*  String sal = (newLead.Salutation != null) ? newLead.Salutation + '. ' : '';
             String fname = (newLead.FirstName != null) ? newLead.FirstName + ' ' : '';
             String lname = (newLead.LastName != null) ? newLead.LastName : '';
-            String fullName = sal + fname + lname;
+            String fullName = sal + fname + lname;*/
             String company = (newLead.Company != null) ? newLead.Company : '';
             
             // LEAD UNQUALIFIED NOTIFICATION (to Admin/Manager as per BRD)

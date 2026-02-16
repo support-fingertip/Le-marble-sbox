@@ -6,11 +6,11 @@ public class OpportunityItemHandler {
         Map<String, String> categoryToGroup = new Map<String, String>{
             'SANITARY'      => 'PG SANITARY',
                 'ROOF TILES'    => 'ROOF TILES',
-                'ADHESIVES'     => 'ADHESIVES',
+                'ADHESIVE'     => 'ADHESIVES',
                 'FITTINGS'      => 'FITTINGS',
-                'GLASS BRICK'   => 'GLASS BRICK',
+                'GLSBRK'   => 'GLASS BRICK',
                 'LIGHTS'        => 'LIGHTS',
-                'NATURAL STONE' => 'NATURAL STONE',
+                'N.STONE' => 'NATURAL STONE',
                 'TILE'          => 'TILE'
                 };
                     

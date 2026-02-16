@@ -109,7 +109,14 @@ public class SAPProductIntegration implements Schedulable {
                      prod.ProductCode = String.valueOf(item.get('ItemCode'));
                     prod.Name = String.valueOf(item.get('ItemName'));
                     prod.Brand__c = (String)item.get('U_Brand');
-                 //   prod.IsActive=true;
+                    string vali=(String)item.get('Valid');
+                    if(vali=='tYES'){
+                         prod.IsActive=true;
+                    }
+                    else if(vali=='tNO'){
+                      prod.IsActive=false;   
+                    }
+                   
                     // Get product category from Series service
                     Integer series = (Integer)item.get('Series');
                     if (series != null) {
@@ -125,7 +132,7 @@ public class SAPProductIntegration implements Schedulable {
                             string priceList = (priceMap.containsKey('PriceList') && priceMap.get('PriceList') != null) ? string.valueOf(String.valueOf(priceMap.get('PriceList'))) : '';
                             Decimal price = getDecimal(priceMap, 'Price');
                             System.debug('Product: ' + prod.Product_Code__c + ', PriceList: ' + priceList + ', Price: ' + price);
-                            if (priceList == '2') {
+                            if (priceList == '1') {
                                 prod.MSP__c = price;
                             }
 
@@ -145,7 +152,9 @@ public class SAPProductIntegration implements Schedulable {
                     prod.Size__c = (String)item.get('U_Size');
                     prod.Sqft_Piece__c = item.get('U_SquareFt') != null ? String.valueOf(item.get('U_SquareFt')) : null;
                     prod.Tax__c = getDecimal(item, 'U_TaxRate');
-                   prod.UOM__c = (String)item.get('InventoryUOM');
+                    prod.UOM__c = (String)item.get('InventoryUOM');
+                    prod.U_ProductName__c = (String)item.get('U_ProductName');
+                    
                     allRecords.add(prod);
                 }
 

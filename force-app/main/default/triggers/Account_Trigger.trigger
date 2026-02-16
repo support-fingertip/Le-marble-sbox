@@ -10,7 +10,7 @@ trigger Account_Trigger on Account (before insert, before update,after insert, a
     if(Trigger.isAfter && Trigger.isInsert){
         for (Account deal : Trigger.new) {
             //stopped creating in prod
-    //        sapIntegration.createBusinessPartner(deal.Id);
+            sapIntegration.createBusinessPartner(deal.Id);
         }
     }
       if(Trigger.isAfter && Trigger.isUpdate){
@@ -37,7 +37,7 @@ trigger Account_Trigger on Account (before insert, before update,after insert, a
                 oldDeal.Address_Line3__c != newDeal.Address_Line3__c 
             ) {
                 //stopped creating in prod
-       //      System.enqueueJob(new SAPAccountSyncQueue(newDeal.Id));
+             System.enqueueJob(new SAPAccountSyncQueue(newDeal.Id));
             }
             
         }

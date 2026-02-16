@@ -54,7 +54,7 @@ public class NewQuoteController {
             Product2.In_Stock__c
             FROM PricebookEntry
             WHERE Pricebook2Id = :pb.Id and UnitPrice >0
-            AND IsActive = true
+           // AND IsActive = true
             AND Product2.IsActive = true
             AND Product2.Product_Category__c = :category
             ORDER BY Product2.Name ASC
@@ -70,6 +70,7 @@ public class NewQuoteController {
             
             pw.Id = pbe.Product2Id;
             pw.Name = pbe.Product2.Name;
+            system.debug('pw.Name = pbe.Product2.Name'+pbe.Product2.Name);
             pw.productCode = pbe.Product2.Product_Code__c;
             //    pw.customProductCode = pbe.Product2.Product_Code__c;
             pw.category = pbe.Product2.Product_Category__c;
@@ -100,7 +101,7 @@ throw new AuraHandledException(e.getMessage());
         
         return [
             SELECT Id, Quantity, UnitPrice, Discount, TotalPrice, 
-           Product2Id, Product2.Name, Product2.Product_Code__c, Product2.MSP__c,   Area__c,
+           Product2Id, Product2.Name, Product2.Product_Code__c, Product2.MSP__c,   Area__c,Product2.Tax__c,Product2.Sqft_Piece__c,
             Product2.Product_Category__c,Sqft__c,
             PricebookEntryId,Description
             FROM OpportunityLineItem
@@ -206,12 +207,7 @@ public static List<Map<String, String>> getAreaPicklistValues() {
                                         system.debug('orderTotal>>'+orderTotal);
                                         system.debug('pbName>>'+pbName);
                                         //      try {
-                                        Pricebook2 pb = [
-                                            SELECT Id
-                                            FROM Pricebook2
-                                            WHERE Name = :pbName
-                                            LIMIT 1
-                                        ];
+                                        Pricebook2 pb = [SELECT Id FROM Pricebook2 WHERE Name = :pbName LIMIT 1 ];
                                         System.debug('Creating cart for customerId: ' + customerId);
                                         System.debug('Cart items count: ' + (cartItems != null ? cartItems.size() : 0));
                                         System.debug('Freight: ' + freightCharge + ', Loading: ' + loadingCharge + ', Unloading: ' + unloadingCharge);
@@ -221,7 +217,7 @@ public static List<Map<String, String>> getAreaPicklistValues() {
                                         Decimal priceLimit = Decimal.valueOf(Label.Quote_Approval_limit); 
                                         
                                         opportunity oppParent=[select id,name,Account.name,Account.BillingStreet,Account.BillingCity,Account.BillingState,Account.BillingCountry,Account.Email__c,Account.Phone,Account.BillingPostalCode,              
-                                                               AddressLine1__c,AddressLine2__c,AddressLine3__c,Corporation__c,Country__c,District__c,Municipality__c,Panchayath__c,State__c,Village__c from Opportunity where id=:customerId];          
+                                                               Contact_Person_Name__c,Contact_Number__c,AddressLine1__c,AddressLine2__c,AddressLine3__c,Corporation__c,Country__c,District__c,Municipality__c,Panchayath__c,State__c,Village__c from Opportunity where id=:customerId];          
                                         
                                         // Create new Cart record
                                         Quote cart = new Quote();
@@ -230,7 +226,8 @@ public static List<Map<String, String>> getAreaPicklistValues() {
                                         cart.Pricebook2Id = pb.id;  
                                         cart.Quote_Category__c=category;
                                         cart.Round_Off__c=roundOff;
-
+                                        cart.Contact_Person_Name__c =oppParent.Contact_Person_Name__c;
+                                        cart.Contact_Person_Number__c=oppParent.Contact_Number__c;
                                         
                                         cart.BillingStreet   = oppParent.Account.BillingStreet;
                                         cart.BillingCity     = oppParent.Account.BillingCity;
@@ -494,7 +491,7 @@ throw new AuraHandledException('Error creating cart: ' + e.getMessage());
     private static final String USERNAME = 'manager';
     private static final String PASSWORD = 'Mgsap12@';
     
-    public class WarehouseStockWrapper {
+ /*   public class WarehouseStockWrapper {
         @AuraEnabled public String warehouseCode;
         @AuraEnabled public Decimal inStock;
         @AuraEnabled public Decimal committed;
@@ -568,10 +565,7 @@ throw new AuraHandledException('Error creating cart: ' + e.getMessage());
                             
                             for (Object warehouseObj : warehouseInfoList) {
                                 Map<String, Object> warehouseInfo = (Map<String, Object>) warehouseObj;
-                                /*    String whsCode = String.valueOf(warehouseInfo.get('WarehouseCode'));
-if(whsCode==wareHCode){  
-InStock = String.valueOf(warehouseInfo.get('InStock'));
-}*/
+
                                 WarehouseStockWrapper wrap = new WarehouseStockWrapper();
                                 wrap.warehouseCode = String.valueOf(warehouseInfo.get('WarehouseCode'));
                                 wrap.inStock = (Decimal) warehouseInfo.get('InStock');
@@ -599,8 +593,12 @@ InStock = String.valueOf(warehouseInfo.get('InStock'));
         System.debug(' InStock: ' + InStock);
         return resultList;
         
-    }
+    }*/
     
+      @AuraEnabled(cacheable=false)
+    public static List<CreateSOFromQuoteController.WarehouseStockWrapper> checkLiveStock(string itemcode) {
+ 	return CreateSOFromQuoteController.getBatchStock(itemcode, '');
+    }
     @AuraEnabled
     public static String createCartLineItem(String cartId, Map<String, Object> item) {
         try {
