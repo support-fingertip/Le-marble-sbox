@@ -40,8 +40,41 @@ public class QuoteTriggerHandler {
     // 🔹 Existing task logic (unchanged)
     public static void handleAfterSave(List<Quote> newList,Map<Id, Quote> oldMap,Boolean isInsert) {
         Set<Id> acceptedQuoteIds = new Set<Id>();
-
+        Set<Id> ownerIds = new Set<Id>();
+        Map<Id, User> ownerMap = new Map<Id, User>();
+        
+        if(isInsert){
+            for(Quote q : newList){
+                if(q.OwnerId != null){
+                    ownerIds.add(q.OwnerId);
+                }
+            }
+        }  
+           if(!ownerIds.isEmpty()){
+            ownerMap = new Map<Id, User>(
+                [SELECT Id, ManagerId FROM User WHERE Id IN :ownerIds AND ManagerId != null]
+        
+            );
+        }
+       
         for (Quote q : newList) {
+                if(isInsert && q.OwnerId != null){
+        User owner = ownerMap.get(q.OwnerId);
+             if(owner != null && owner.ManagerId != null){
+                 Set<String> managerIds = new Set<String>{
+                        String.valueOf(owner.ManagerId)
+                    };
+                    sendManagerNotification(
+                        managerIds,
+                        'Quote Creation Notification',
+                        'A new quote "' + q.Name + '" has been created.',
+                        q.Id
+                    );
+                }
+            }
+        
+        
+
             Quote oldQ = oldMap != null ? oldMap.get(q.Id) : null;
 
             if (oldQ != null && ( (oldQ.Status != q.Status && (q.Status == 'Accepted' || q.Status == 'Denied') ) || (oldQ.Approval_Status__c != q.Approval_Status__c && q.Approval_Status__c == 'Revised')))
@@ -49,6 +82,10 @@ public class QuoteTriggerHandler {
                 acceptedQuoteIds.add(q.Id);
             }
         }
+       
+        
+       
+
 
         if (acceptedQuoteIds.isEmpty()) return;
 
@@ -95,6 +132,33 @@ public class QuoteTriggerHandler {
 
         notification.send(userIds);
     }
+    
+    public static void sendManagerNotification(
+    Set<String> userIds,
+    String title,
+    String body,
+    Id quoteId) {
+
+    if (userIds.isEmpty()) return;
+
+    CustomNotificationType notificationType = [
+        SELECT Id
+        FROM CustomNotificationType
+        WHERE DeveloperName = 'Quote_Created_Manager_Notification'
+        LIMIT 1
+    ];
+
+    Messaging.CustomNotification notification =
+        new Messaging.CustomNotification();
+
+    notification.setNotificationTypeId(notificationType.Id);
+    notification.setTitle(title);
+    notification.setBody(body);
+    notification.setTargetId(quoteId);
+
+    notification.send(userIds);
+}
+
 
 public static void handleStatusBasedNotifications( List<Quote> newList, Map<Id, Quote> oldMap) {
     // 1. Find Quotes where approval status changed
@@ -197,7 +261,7 @@ public static void handleStatusBasedNotifications( List<Quote> newList, Map<Id, 
     public static void handleCustomerAcceptedNotification(List<Quote> newList,Map<Id, Quote> oldMap) {
     Set<Id> oppIds = new Set<Id>();
     Map<Id, Quote> acceptedQuotes = new Map<Id, Quote>();
-	Set<Id> ownIds = new Set<Id>();
+    Set<Id> ownIds = new Set<Id>();
     // 1. Detect status change
     for (Quote q : newList) {
         Quote oldQ = oldMap.get(q.Id);

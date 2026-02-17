@@ -44,7 +44,11 @@ export default class NewDeliveryPlan extends LightningElement {
     @track vehicleNumber;
     @track vehicleNumberOptions = [];
     @api recordId;
-
+today;
+  connectedCallback() {
+        // YYYY-MM-DD (required by lightning-input type="date")
+        this.today = new Date().toISOString().split('T')[0];
+    }
     vehicleTypeToNumbers = {
         BOLERO: [
             'KL 11 AV 5223', 'KL 11 AQ 805', 'KL 11 AM 949'
@@ -263,14 +267,24 @@ async loadRemarksFromSalesOrder() {
     }
 
     handleDateChange(event) {
-        this.deliveryDate = event.target.value;
+        const selectedDate = event.target.value;
+
+        if (selectedDate < this.today) {
+            event.target.setCustomValidity('Past dates are not allowed');
+            event.target.reportValidity();
+            this.deliveryDate = null;
+            return;
+        }
+            event.target.setCustomValidity('');
+
+        this.deliveryDate = selectedDate;
         this.validateForm();
     }
 
     handleDriverChange(event) {
-    this.selectedDriver = event.detail.value;
-    this.validateForm();
-}
+        this.selectedDriver = event.detail.value;
+        this.validateForm();
+    }
 
     handleVehicleChange(event) {
     this.selectedVehicle = event.detail.value;
@@ -313,7 +327,7 @@ handleUnloadingChargeAmountChange(event) {
         this.vehicleNumber = event.target.value;
     }
 
-    validateForm() {
+    validateForm() {    
         const hasSelectedProducts = this.availableProducts.some(product => product.selected);
         const hasValidQuantities = this.availableProducts.every(product => 
             !product.selected || (product.deliveryQuantity > 0 && product.deliveryQuantity <= product.Quantity)

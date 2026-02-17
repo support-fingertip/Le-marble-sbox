@@ -75,6 +75,18 @@
                 <behavior>Readonly</behavior>
                 <field>SAP_Sync_Status__c</field>
             </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>POC_Name__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>POC_Number__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>POC_Email__c</field>
+            </layoutItems>
         </layoutColumns>
         <layoutColumns>
             <layoutItems>
@@ -202,6 +214,10 @@
                     <showTitle>true</showTitle>
                     <size>SMALL</size>
                 </reportChartComponent>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>Category_Interest__c</field>
             </layoutItems>
         </layoutColumns>
         <style>OneColumn</style>

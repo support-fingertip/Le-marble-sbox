@@ -430,7 +430,7 @@
                                 <td style="border: 1px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 15px;">{!counter}</td>
                                 <td style="border: 1px solid #000; padding: 8px; text-align: left; font-weight: bold; font-size: 15px; word-break: break-word; white-space: normal;">
                                     {!item.description}
-                                    <apex:outputText rendered="{!item.category = 'NATURAL STONE' && NOT(ISBLANK(item.descriptionField))}" 
+                                    <apex:outputText rendered="{!item.category = 'N.STONE' && NOT(ISBLANK(item.descriptionField))}" 
                                                      value=" - {!item.descriptionField}"/>
                                 </td>
                                 <td style="border: 1px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 15px;">{!item.roomType}</td>

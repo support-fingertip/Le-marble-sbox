@@ -152,7 +152,7 @@
                 </h3>
                 <div class="slds-form">
                   <div class="slds-form-element">
-                    <lightning-input type="date" label="Delivery Date" value={deliveryDate} onchange={handleDateChange} class="custom-input"></lightning-input>
+                    <lightning-input type="date" label="Delivery Date" value={deliveryDate} min={today} onchange={handleDateChange} class="custom-input"></lightning-input>
                   </div>
                   <div class="slds-form-element">
                     <lightning-input type="time" label="Delivery Time" value={deliveryTime} onchange={handleDeliveryTimeChange} class="custom-input"></lightning-input>

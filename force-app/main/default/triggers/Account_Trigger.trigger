@@ -27,14 +27,23 @@ trigger Account_Trigger on Account (before insert, before update,after insert, a
                 oldDeal.BillingPostalCode != newDeal.BillingPostalCode ||
                 oldDeal.BillingState != newDeal.BillingState ||
                 oldDeal.BillingCountry != newDeal.BillingCountry ||
-                oldDeal.ShippingStreet != newDeal.ShippingStreet ||
-                oldDeal.ShippingCity != newDeal.BillingCity ||
-                oldDeal.ShippingPostalCode != newDeal.BillingPostalCode ||
-                oldDeal.ShippingState != newDeal.ShippingState ||
-                oldDeal.ShippingCountry != newDeal.ShippingCountry ||
+                oldDeal.BillingPostalCode != newDeal.BillingPostalCode ||
+                
+                oldDeal.GST_Type__c != newDeal.GST_Type__c ||
+                oldDeal.GST_Number__c != newDeal.GST_Number__c ||
+                
                 oldDeal.Address_Line1__c != newDeal.Address_Line1__c ||
                 oldDeal.Address_Line2__c != newDeal.Address_Line2__c ||
-                oldDeal.Address_Line3__c != newDeal.Address_Line3__c 
+                oldDeal.Address_Line3__c != newDeal.Address_Line3__c ||
+                
+                oldDeal.corporation__c != newDeal.corporation__c ||
+                oldDeal.State__c != newDeal.State__c ||
+                oldDeal.State__c != newDeal.State__c ||
+                oldDeal.country__c != newDeal.country__c ||
+                 oldDeal.POC_Name__c != newDeal.POC_Name__c 
+                
+
+                
             ) {
                 //stopped creating in prod
              System.enqueueJob(new SAPAccountSyncQueue(newDeal.Id));

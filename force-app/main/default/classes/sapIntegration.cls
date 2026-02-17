@@ -10,24 +10,25 @@ public class sapIntegration {
         
     }
     public class Sap_comp{
-        @auraEnabled public list<string> items{get;set;}
+        @auraEnabled public list<product2> items{get;set;}
         @auraEnabled public string prof{get;set;}        
     }
     @auraEnabled
     public static Sap_comp getitems(){
         Sap_comp wr=new Sap_comp();
         
-        list<string> items1= new list<string>();
-        for(product2 p:[select id,name from product2 where isactive=true]){
-            items1.add(p.name);
-        }
+
         string prf= [SELECT Id, Name, Profile.Name FROM User WHERE Id = :UserInfo.getUserId()].Profile.Name;
         system.debug(prf);
-        wr.items=items1;
+        wr.items=[select id,name,Product_Code__c from product2 where isactive=true];
         wr.prof=prf;
         return wr;
     }
+    @AuraEnabled(cacheable=false)
     
+    public static List<CreateSOFromQuoteController.WarehouseStockWrapper> getStockFromSAP(string itemcode) {
+        return CreateSOFromQuoteController.getBatchStock(itemcode, '');
+    }  
     
     private static String loginToSAP() {
         HttpRequest req = new HttpRequest();
@@ -71,12 +72,12 @@ public class sapIntegration {
             Account deal = [
                 SELECT Customer_Number__c, Name, Email__c, Phone, Secondary_Phone__c,Type,
                 Address_Line1__c, Address_Line2__c,Address_Line3__c,Corporation__c,Municipality__c,Panchayath__c,Village__c,State__c,Country__c,Description,District__c,GST_Number__c,Owner_Name__c,
-                ShippingState,ShippingCountry, ShippingCity,ShippingStreet,ShippingAddress,BillingAddress,ShippingPostalCode,Customer_Type__c,
+                ShippingState,ShippingCountry, ShippingCity,ShippingStreet,ShippingAddress,BillingAddress,ShippingPostalCode,Customer_Type__c,GST_Type__c,POC_Name__c,POC_Number__c,
                 BillingState,BillingCountry, BillingCity,BillingStreet,BillingPostalCode,ownerId FROM Account
                 WHERE Id = :dealId
                 LIMIT 1
             ];
-            String ownerName = [SELECT Id,name FROM User WHERE id=:deal.ownerId].name; 
+            String ownerSAPCode = [SELECT Id,name,SAP_Emp_Code__c FROM User WHERE id=:deal.ownerId].SAP_Emp_Code__c; 
             notification.setTitle('Account :'+deal.Name);
             String NotificationBody =  'Account Name : ' + Account.Name +'\nAccount created by : ' + deal.Owner_Name__c;
             
@@ -133,49 +134,88 @@ public class sapIntegration {
             // Build BPAddresses[]
             List<Map<String, Object>> bpAddresses = new List<Map<String, Object>>();
             String uniqueSuffix = String.valueOf(DateTime.now().getTime());
+          string gstT='';    
+          if(deal.Customer_Type__c=='B2B'){
+                gstT= 'gstRegularTDSISD';
+            }
+            String part1 = '';
+            String part2 = '';
+            String part3 = '';
+            
+            if(deal.BillingStreet!=null){     
+                List<String> parts = deal.BillingStreet.split(',');
+                
+                if (parts.size() >= 1) {
+                    part1 = parts[0].trim();
+                }
+                
+                if (parts.size() >= 2) {
+                    part2 = parts[1].trim();
+                }
+                
+                if (parts.size() > 2) {
+                    for (Integer i = 2; i < parts.size(); i++) {
+                        if (part3 != '') {
+                            part3 += ', ';
+                        }
+                        part3 += parts[i].trim();
+                    }
+                }
+            } 
             
             // Ship To address from Address__ fields
             Map<String, Object> shipToAddress = new Map<String, Object>{
-                'AddressName'   => 'Shipping',
-                    'Street'        => deal.Address_Line1__c,
-                    'City'          => deal.corporation__c,
-                    'State'         => deal.State__c,
+                'AddressName'   => deal.name,
+                    'Street'        => deal.Address_Line3__c!=null? deal.Address_Line3__c:'',
+                    'City'          => deal.corporation__c!=null? deal.corporation__c:'',
+                     'County'         => deal.district__c!=null? deal.district__c:'',   
+                    'State'         => deal.State__c!=null? deal.State__c:'',
                     'ZipCode'       => '',
-                    'Country'       => deal.Country__c,//IN
+                    'Country'       => deal.country__c!=null? deal.country__c:'', //IN
                     'AddressType'   => 'bo_ShipTo',
-                    'AddressName2'  => deal.Address_Line2__c,
-                    'AddressName3'  => deal.Address_Line3__c
+                    'AddressName2'  => deal.Address_Line1__c!=null? deal.Address_Line1__c:'',
+                    'AddressName3'  => deal.Address_Line2__c!=null? deal.Address_Line2__c:'',
+                     'GstType'  =>  gstT,
+                     'GSTIN'  =>  deal.GST_Number__c!=null? deal.GST_Number__c:'',
+                          'U_Contact' =>  deal.POC_Name__c!=''? deal.POC_Name__c:''+ deal.POC_Number__c!=''?  ' - '+deal.POC_Number__c:''
                     };
                         bpAddresses.add(shipToAddress);
             
             // Bill To address from Billing_Address__ fields
             Map<String, Object> billToAddress = new Map<String, Object>{
-                'AddressName'   => 'Billing',
-                    'Street'        => deal.Billingstreet,
-                    'City'          => deal.BillingCity,
-                    'State'         =>  deal.BillingState,//KL
-                    'ZipCode'       => deal.BillingPostalcode,
-                    'Country'       => bCountryCode!=null?bCountryCode:'',//IN
+                'AddressName'   => deal.name,
+                    'Street'        => part3,
+                    'City'          => deal.BillingCity!=null? deal.BillingCity:'',
+                    'State'         => deal.BillingState!=null? deal.BillingState:'',//KL 
+                    'ZipCode'       => deal.BillingPostalcode!=null? deal.BillingPostalcode:'',
+                    'Country'       =>  bCountryCode!=null? bCountryCode:'',//IN
                     'AddressType'   => 'bo_BillTo',
-                    'AddressName2'  => deal.Address_Line2__c,
-                    'AddressName3'  => deal.Address_Line3__c
+                    'AddressName2'  => part1,
+                    'AddressName3'  => part2,
+                     'GSTIN'  =>  deal.GST_Number__c!=null? deal.GST_Number__c:'',
+                           'GstType'  =>  gstT,
+                         'U_Contact' =>  deal.POC_Name__c!=null? deal.POC_Name__c:''+ deal.POC_Number__c!=null?  ' - '+deal.POC_Number__c:''
                     };
                         bpAddresses.add(billToAddress);
-            
+          
+          
             // Create Business Partner payload
             Map<String, Object> bpPayload = new Map<String, Object>{
-                	'CardCode'       => deal.Customer_Number__c,
-                    'CardName'       => deal.Name,
+                	'CardCode'       => deal.Customer_Number__c!=null? deal.Customer_Number__c:'',
+                    'CardName'       => deal.Name!=null? deal.Name:'',
                     'CardType'       => 'cCustomer',
-                    'Currency'       => 'INR',
-                    'EmailAddress'   => deal.Email__c,
-                    'Phone1'         => deal.Phone,
-                    'Phone2'         => deal.Secondary_Phone__c,
-                    'CardForeignName'=> deal.Name,
-                    'Notes'          => deal.Description,
+                    'Currency'       => deal.BillingCountry=='India'? 'INR':'',
+                    'EmailAddress'   => deal.Email__c!=null? deal.Email__c:'',
+                    'Phone1'         => deal.Phone!=null? deal.Phone:'',
+                    'Phone2'         => deal.Secondary_Phone__c!=null? deal.Secondary_Phone__c:'',
+                    'CardForeignName'=> deal.Name!=null? deal.Name:'',
+                    'Notes'          => deal.Description!=null? deal.Description:'',
                     'BPAddresses'    => bpAddresses,
-                    'U_EMP_CODE'     => ownerName,
-                    'U_BPType' 		 =>  deal.Customer_Type__c
+                    'SalesPersonCode'     =>  ownerSAPCode!=null? ownerSAPCode:'',
+                    'U_BPType' 		 =>  deal.Customer_Type__c!=null? deal.Customer_Type__c:''
+                        
+                      
+               //     'U_Contact' =>  deal.POC_Name__c!=null? deal.POC_Name__c:''
                   };
                         
                         HttpRequest bpRequest = new HttpRequest();
@@ -240,17 +280,19 @@ public class sapIntegration {
         Apex_Log__c log = new Apex_Log__c();
         
         try {
+            
             Account deal = [
                 SELECT Customer_Number__c, Name, Email__c, Phone, Secondary_Phone__c,Type,
-                Address_Line1__c, Address_Line2__c,Address_Line3__c,Corporation__c,Municipality__c,Panchayath__c,Village__c,State__c,Country__c,Description,District__c,GST_Number__c,
-                ShippingState,ShippingCountry, ShippingCity,ShippingStreet,ShippingAddress,BillingAddress,ShippingPostalCode,
+                Address_Line1__c, Address_Line2__c,Address_Line3__c,Corporation__c,Municipality__c,Panchayath__c,Village__c,State__c,Country__c,Description,District__c,GST_Number__c,POC_Number__c,
+                ShippingState,ShippingCountry, ShippingCity,ShippingStreet,ShippingAddress,BillingAddress,ShippingPostalCode,GST_Type__c,POC_Name__c,Account.OwnerId, Account.Customer_Type__c,
                 BillingState,BillingCountry, BillingCity,BillingStreet,BillingPostalCode FROM Account
                 WHERE Id = :dealId
                 LIMIT 1
             ];
             log.Request_Type__c ='Account Update -'+deal.Customer_Number__c;
             Http http = new Http();
-            
+          String ownerSAPCode = [SELECT Id,name,SAP_Emp_Code__c FROM User WHERE id=:deal.ownerId].SAP_Emp_Code__c; 
+   
             // Login to SAP
             HttpRequest loginRequest = new HttpRequest();
             loginRequest.setEndpoint('https://lemrg.hstconnect.in:50000/b1s/v1/Login');
@@ -300,77 +342,133 @@ public class sapIntegration {
             Boolean shipToAddressFoundAndUpdated = false;
             Boolean billToAddressFoundAndUpdated = false;
             string bCountryCode= getCountryCode(deal.BillingCountry);
+        string gstT='';
+            
+            
+            if(deal.Customer_Type__c=='B2B'){
+                gstT= 'gstRegularTDSISD';
+            }  	
+            
+            String part1 = '';
+            String part2 = '';
+            String part3 = '';
+            
+            if(deal.BillingStreet!=null){     
+                List<String> parts = deal.BillingStreet.split(',');
+                
+                if (parts.size() >= 1) {
+                    part1 = parts[0].trim();
+                }
+                
+                if (parts.size() >= 2) {
+                    part2 = parts[1].trim();
+                }
+                
+                if (parts.size() > 2) {
+                    for (Integer i = 2; i < parts.size(); i++) {
+                        if (part3 != '') {
+                            part3 += ', ';
+                        }
+                        part3 += parts[i].trim();
+                    }
+                }
+            } 
             
             for (Map<String, Object> existingAddr : bpAddresses) {
-                String addrName = (String)existingAddr.get('AddressName');
+                String addrName = (String)existingAddr.get('AddressType');
                 
-                if (deal.ShippingAddress != null && addrName == 'Shipping') {
-                    existingAddr.put('Street', deal.ShippingStreet!=null?deal.ShippingStreet:'');
-                    existingAddr.put('City', deal.ShippingCity!=null?deal.ShippingCity:'');
-                    existingAddr.put('State',  deal.ShippingState!=null?deal.ShippingState:'');
-                    existingAddr.put('ZipCode', deal.shippingPostalCode!=null?deal.shippingPostalCode:'');
-                    existingAddr.put('Country', deal.ShippingCountry!=null?deal.ShippingCountry:'');
+                if ( addrName == 'bo_ShipTo') {
+                     existingAddr.put('AddressName', deal.Name);                       
+                    existingAddr.put('Street', deal.Address_Line3__c!=null?deal.Address_Line3__c:'');
+                    existingAddr.put('City', deal.corporation__c!=null?deal.corporation__c:'');
+                    existingAddr.put('County',  deal.district__c!=null?deal.district__c:'');
+                     existingAddr.put('State',  deal.State__c!=null?deal.State__c:'');
+                    existingAddr.put('ZipCode', '');
+                    existingAddr.put('Country', deal.country__c!=null?deal.country__c:'');
                     existingAddr.put('AddressType', 'bo_ShipTo');
-                    existingAddr.put('AddressName2',  deal.Address_Line2__c!=null?deal.Address_Line2__c:'');
-                    existingAddr.put('AddressName3', deal.Address_Line3__c!=null?deal.Address_Line3__c:'');
+                    existingAddr.put('AddressName2',  deal.Address_Line1__c!=null?deal.Address_Line1__c:'');
+                    existingAddr.put('AddressName3', deal.Address_Line2__c!=null?deal.Address_Line2__c:'');
+                     existingAddr.put('U_Contact', deal.POC_Name__c!=null?deal.POC_Name__c:''+ deal.POC_Number__c!=''?  ' - '+deal.POC_Number__c:'');
+                     existingAddr.put('GSTIN',  deal.GST_Number__c!=null?deal.GST_Number__c:'');
+                    existingAddr.put('GstType', gstT);
                     shipToAddressFoundAndUpdated = true;
                 }
                 
-                if (deal.BillingAddress != null && addrName == 'Billing') {
-                    existingAddr.put('Street', deal.BillingStreet);
-                    existingAddr.put('City', deal.BillingCity);
-                    existingAddr.put('State', deal.BillingState);
-                    existingAddr.put('ZipCode', deal.BillingPostalCode);
-                    existingAddr.put('Country',  bCountryCode!=null?bCountryCode:'');
+               
+                
+                if (deal.BillingAddress != null && addrName == 'bo_BillTo') {
+                    existingAddr.put('AddressName', deal.Name);     
+                    existingAddr.put('Street', part3);
+                    existingAddr.put('City', deal.BillingCity!=null?deal.BillingCity:'');
+                    existingAddr.put('State',  deal.BillingState!=null?deal.BillingState:'');
+                    existingAddr.put('ZipCode', deal.BillingPostalCode!=null?deal.BillingPostalCode:'');
+                    existingAddr.put('Country', bCountryCode!=null?bCountryCode:'');                    
                     existingAddr.put('AddressType', 'bo_BillTo');
-                    existingAddr.put('AddressName2', deal.Address_Line2__c);
-                    existingAddr.put('AddressName3', deal.Address_Line3__c);
+                    existingAddr.put('AddressName2',  part1);
+                    existingAddr.put('AddressName3', part2);
+                    existingAddr.put('GSTIN',  deal.GST_Number__c!=null?deal.GST_Number__c:'');
+                    existingAddr.put('GstType', gstT);
+                    existingAddr.put('U_Contact', deal.POC_Name__c!=null?deal.POC_Name__c:''+ deal.POC_Number__c!=null?  ' - '+deal.POC_Number__c:'');
                     billToAddressFoundAndUpdated = true;
                 }
             }
             
-            if (!shipToAddressFoundAndUpdated && deal.ShippingAddress != null) {
+            if (!shipToAddressFoundAndUpdated ) {
                 bpAddresses.add(new Map<String, Object>{
-                    'AddressName' =>'Shipping',
-                        'Street'        => deal.Address_Line1__c,
-                        'City'          => deal.corporation__c,
-                        'State'         => deal.State__c,
-                        'ZipCode'       => '',
-                        'Country'       => deal.Country__c,//IN
-                        'AddressType'   => 'bo_ShipTo',
-                        'AddressName2'  => deal.Address_Line2__c,
-                        'AddressName3'  => deal.Address_Line3__c
+                 
+                          'AddressName'   => deal.Name,
+                    'Street'        => deal.Address_Line3__c!=null? deal.Address_Line3__c:'',
+                    'City'          => deal.corporation__c!=null? deal.corporation__c:'',
+                    'County'         => deal.district__c!=null? deal.district__c:'',   
+                    'State'         => deal.State__c!=null? deal.State__c:'',
+                    'ZipCode'       => '',
+                    'Country'       => deal.country__c!=null? deal.country__c:'', //IN
+                    'AddressType'   => 'bo_ShipTo',
+                    'AddressName2'  => deal.Address_Line1__c!=null? deal.Address_Line1__c:'',
+                    'AddressName3'  => deal.Address_Line2__c!=null? deal.Address_Line2__c:'',
+ 					'GSTIN'  =>  deal.GST_Number__c!=null? deal.GST_Number__c:'',
+                 	'GstType'  =>  gstT,
+    				'U_Contact' =>  deal.POC_Name__c!=''? deal.POC_Name__c:''+ deal.POC_Number__c!=''?  ' - '+deal.POC_Number__c:''
+                        
                         });
-            }
-            
+            }				
             
             
             if (!billToAddressFoundAndUpdated && deal.BillingAddress != null) {
                 bpAddresses.add(new Map<String, Object>{
-                    'AddressName' => 'Billing',
-                        'Street' => deal.BillingStreet,
-                        'City' => deal.BillingCity,
-                        'State' => deal.BillingState,
-                        'ZipCode' => deal.BillingPostalCode,
-                        'Country' => deal.BillingCountry,
-                        'AddressType' => 'bo_BillTo',
-                        'AddressName2' => deal.Address_Line2__c,
-                        'AddressName3' => deal.Address_Line3__c
+                    'AddressName' => deal.Name,
+                    'Street'        => part3,
+                    'City'          => deal.BillingCity!=null? deal.BillingCity:'',
+                    'State'         => deal.BillingState!=null? deal.BillingState:'',//KL 
+                    'ZipCode'       => deal.BillingPostalcode!=null? deal.BillingPostalcode:'',
+                    'Country'       =>  bCountryCode!=null? bCountryCode:'',//IN
+                    'AddressType'   => 'bo_BillTo',
+                    'AddressName2'  => part1,
+                    'AddressName3'  => part2,
+ 					'GSTIN'  =>  deal.GST_Number__c!=null? deal.GST_Number__c:'',
+                  	'GstType'  =>  gstT,
+                    'U_Contact' =>  deal.POC_Name__c!=null? deal.POC_Name__c:''+ deal.POC_Number__c!=null?  ' - '+deal.POC_Number__c:''
                         
                         });
             }
-            
+          
+                system.debug(JSON.serialize(bpAddresses));   
             // Update BP payload with the final list of addresses
             Map<String, Object> updatePayload = new Map<String, Object>{
-                'Currency'       => 'INR',
-                    'EmailAddress'   => deal.Email__c,
+                'Currency'       => deal.BillingCountry=='India'? 'INR':'',
+                    'EmailAddress'   => deal.Email__c!=null? deal.Email__c:'',
                     'Phone1'         => deal.Phone,
-                    'Phone2'         => deal.Secondary_Phone__c,
+                    'Phone2'         => deal.Secondary_Phone__c!=null? deal.Secondary_Phone__c:'',
                     'CardForeignName'=> deal.Name,
-                    'Notes'          => deal.Description,
-                    'BPAddresses'    => bpAddresses
+                    'Notes'          => deal.Description!=null? deal.Description:'',
+                    'BPAddresses'    => bpAddresses,
+	                'SalesPersonCode'     =>  ownerSAPCode!=null? ownerSAPCode:'',
+                    'U_BPType' 		 =>  deal.Customer_Type__c!=null? deal.Customer_Type__c:''
+                //        'GstType'  =>  gstT
+               //     
+
                     };
-                        
+        system.debug(JSON.serialize(updatePayload));                
                         HttpRequest patchRequest = new HttpRequest();
             patchRequest.setEndpoint('https://lemrg.hstconnect.in:50000/b1s/v1/BusinessPartners(\'' + deal.Customer_Number__c + '\')');
             patchRequest.setMethod('PATCH');
@@ -630,7 +728,8 @@ public class sapIntegration {
                     } 
                     list<invoice__c> invList= new list<invoice__c>();
                     
-                    
+                    List<Invoice_Item__c> invItemList = new List<Invoice_Item__c>();
+					Set<String> docEntrySet = new Set<String>();
                     
                     Map<String, Object> json = (Map<String, Object>) JSON.deserializeUntyped(itemRes.getBody());
                     List<Object> items = (List<Object>) json.get('value');
@@ -640,24 +739,66 @@ public class sapIntegration {
                         Invoice__c inv = new Invoice__c();
                         
                         inv.Doc_Entry__c = String.valueOf(item.get('DocEntry'));
+                         docEntrySet.add(inv.Doc_Entry__c);
                         inv.Doc_Num__c = String.valueOf(item.get('DocNum'));
-                        inv.Invoice_Amount__c = integer.valueOf(item.get('DocDate'));
-                        //           inv.Invoice_Date__c = (String)item.get('DocDate');
-                        //        CardCode
-                        
+                        if(item.get('DocDate') != null){
+                            inv.Invoice_Date__c = 
+                                Date.valueOf(String.valueOf(item.get('DocDate')));
+                        }
+
+                        inv.Invoice_Amount__c = Decimal.valueOf(String.valueOf(item.get('DocTotal')));
+                        inv.Comments__c= String.valueOf(item.get('Comments'));
+                        inv.Account_Code__c= String.valueOf(item.get('CardCode'));
+                        inv.SalesPersonCode__c= String.valueOf(item.get('SalesPersonCode'));
+                        inv.Cancel_Status__c= String.valueOf(item.get('CancelStatus'));
+                        inv.Total_Discount__c =     Decimal.valueOf(String.valueOf(item.get('TotalDiscount')));
+
+                    invList.add(inv);    
                         List<Object> documentLines =
                             (List<Object>) item.get('DocumentLines');
                         
                         if (documentLines != null) {  
                             for (Object lineObj : documentLines) {
                                 Map<String, Object> line = (Map<String, Object>) lineObj;
-                                
+                                Invoice_Item__c invItem = new Invoice_Item__c(); 
                                 Integer lineNum = (Integer) line.get('LineNum');
+                                invItem.Line_No__c = inv.Doc_Entry__c +' '+lineNum;
+                                invItem.Item_Code__c = String.valueOf(line.get('ItemCode'));
+                                invItem.Line_Total__c = (decimal) line.get('LineTotal');
+                                invItem.Price__c = (decimal) line.get('Price');
+                                invItem.Price_After_VAT__c= (decimal) line.get('PriceAfterVAT');
+                            //    invItem.Product__c= String.valueOf(line.get('CancelStatus'));
+                                invItem.Quantity__c= (decimal) line.get('Quantity');
+                                if(item.get('ShipDate') != null){
+                                    invItem.Ship_Date__c =
+                                        Date.valueOf(String.valueOf(item.get('ShipDate')));
+                                }
+                                invItem.Tax_Amount__c= (decimal) line.get('TaxTotal');
+                                invItem.Unit_Price__c= (decimal) line.get('UnitPrice');
+                                invItem.Warehouse_Code__c= String.valueOf(line.get('WarehouseCode'));
+                                invItem.Invoice_No__c = String.valueOf(line.get('DocEntry'));
+                                invItemList.add(invItem);
                             }
                         }
                     }
                     
+                    Database.upsert(invList, Invoice__c.Doc_Entry__c, false);
                     
+                   // Query to get Ids for relationship
+                    Map<String, Id> invoiceMap = new Map<String, Id>();
+                    for (Invoice__c i : [ SELECT Id, Doc_Entry__c  FROM Invoice__c WHERE Doc_Entry__c IN :docEntrySet ]) {
+                        invoiceMap.put(i.Doc_Entry__c, i.Id);
+                    }
+                    
+                    for (Invoice_Item__c itemRec : invItemList) {
+                        
+                        String parentKey =  itemRec.Invoice_No__c;
+                        
+                        if(invoiceMap.containsKey(parentKey)){
+                            itemRec.Invoice__c = invoiceMap.get(parentKey);
+                        }
+                    }
+                    Database.upsert(invItemList, Invoice_Item__c.Line_No__c, false);
                 } 
             }
             

@@ -10,7 +10,7 @@ public class OpportunityItemHandler {
                 'FITTINGS'      => 'FITTINGS',
                 'GLSBRK'   => 'GLASS BRICK',
                 'LIGHTS'        => 'LIGHTS',
-                'NATURAL STONE' => 'NATURAL STONE',
+                'N.STONE' => 'NATURAL STONE',
                 'TILE'          => 'TILE'
                 };
                     

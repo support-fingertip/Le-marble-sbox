@@ -389,7 +389,7 @@ lineItem.MSP__c = safeDecimalConversion(item.get('msp'));
                                             try {
                                                 insert lineItems;
                                                 if(priceLimit < orderTotal){      
-                                                    checkAndSubmitForApproval(cart,orderTotal);
+     //17/02/2026      no need the auto approval                               //          checkAndSubmitForApproval(cart,orderTotal);
                                                 }  
                                                 List<Quote> quotesToUpdate = [
                                                     SELECT Id, Approval_Status__c 
@@ -464,7 +464,7 @@ throw new AuraHandledException('Error creating cart: ' + e.getMessage());
         }
     }
     
-    public static void checkAndSubmitForApproval(quote newQuotes, decimal grandTotal){
+  /*  public static void checkAndSubmitForApproval(quote newQuotes, decimal grandTotal){
         Decimal priceLimit = Decimal.valueOf(Label.Quote_Approval_limit); 
         
         List<Approval.ProcessSubmitRequest> requests = new List<Approval.ProcessSubmitRequest>();
@@ -480,7 +480,7 @@ throw new AuraHandledException('Error creating cart: ' + e.getMessage());
         for(Approval.ProcessSubmitRequest req : requests){
             Approval.ProcessResult result = Approval.process(req);
         }
-    }
+    }*/
     
     private static final String SAP_BASE_URL = 'https://lemrg.hstconnect.in:50000/b1s/v1';
     private static final String LOGIN_URL = SAP_BASE_URL + '/Login';

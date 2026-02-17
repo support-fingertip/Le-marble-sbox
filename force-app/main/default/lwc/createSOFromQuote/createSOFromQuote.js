@@ -606,6 +606,7 @@ handleViewBatch(event) {
 
     // existing logic
     const qliId = event.currentTarget.dataset.id;
+    const prodCode = event.currentTarget.dataset.code;
 
     this.selectedQuoteLineItemId = qliId;
     this.isBatchModalOpen = true;
@@ -614,7 +615,7 @@ handleViewBatch(event) {
     this.selectedOrderItemId = event.target.dataset.id;
 
    getBatchStock({
-    orderItemId: this.selectedOrderItemId,
+    orderItemId: prodCode,
     warehouse: this.selectedWarehouse
 })
 .then(result => {

@@ -255,7 +255,7 @@
                                             checked={item.isSelected}
                                             onchange={handleProductSelection}>
                                         </lightning-input>
-                                    </td>
+                                        </td>
                                             <td class="product-cell">{item.Product2.Name}</td>
                                             <td>{item.Quantity}</td>
                                             <template if:false={isFactoryWarehouse}>
@@ -280,6 +280,7 @@
                                                         label="Check Stock"
                                                         variant="brand-outline"
                                                         data-id={item.Id}
+                                                        data-code={item.Product2.Product_Code__c}
                                                         onclick={handleViewBatch}>
                                                     </lightning-button>
                                                 </template>
@@ -410,8 +411,20 @@
                             <td>{b.warehouseCode}</td>
                             <td>{b.Batch}</td>
                             <td>{b.inStock}</td>
-                            <td>{b.billable}</td>
-                            <td>{b.reserved}</td>
+                            <td>
+                                <lightning-formatted-number
+                                    value={b.billable}
+                                    minimum-fraction-digits="2"
+                                    maximum-fraction-digits="2">
+                                </lightning-formatted-number>
+                            </td>
+                            <td>
+                                <lightning-formatted-number
+                                    value={b.reserved}
+                                    minimum-fraction-digits="2"
+                                    maximum-fraction-digits="2">
+                                </lightning-formatted-number>
+                            </td>
                         <template if:true={isBatchEditable}>
                             <td>
                                 <lightning-input

@@ -153,7 +153,7 @@ public with sharing class QuotePdfController {
             else if (item.Product_Category__c == 'FITTINGS') {
                 hasFittings = true;
             }
-            else if (item.Product_Category__c == 'NATURAL STONE') {
+            else if (item.Product_Category__c == 'N.STONE') {
                 hasNaturalStone = true;
             }
             else if (item.Product_Category__c == 'BATHING SOLUTIONS') {
@@ -240,26 +240,21 @@ this.mrpTotal += item.Without_Discount_Total_Price__c;
                 this.mrpTotal += item.UnitPrice*item.Quantity;
             }
             String descriptionField = null;
-            if (item.Product_Category__c == 'NATURAL STONE') {
+            if (item.Product_Category__c == 'N.STONE') {
                 descriptionField = item.Description;
             }
             
             System.debug('Processing item: ' + item.Product2.Name);
           Decimal discountAmount = 0;
 
-            if (item.Disc_Type__c == 'Percentage' && 
-                item.Dis_Value__c != null) {
-            
-                // If product is SQFT based
-                if (item.Price_Sqft__c != null) {
-                    discountAmount = (item.Price_Sqft__c * item.Dis_Value__c) / 100;
+                if (item.Disc_Type__c == 'Percentage' && 
+                    item.Dis_Value__c != null &&
+                    item.UnitPrice != null &&
+                    item.Quantity != null) {
+                
+                    Decimal originalTotal = item.UnitPrice * item.Quantity;
+                    discountAmount = (originalTotal * item.Dis_Value__c) / 100;
                 }
-                // If product is NO based
-                else if (item.UnitPrice != null) {
-                    discountAmount = (item.UnitPrice * item.Dis_Value__c) / 100;
-                }
-            }
-                        
             products.add(new QuotationLineItem(
                 item.Product2.Name,
                 item.Product_Category__c,

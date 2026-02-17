@@ -54,6 +54,7 @@ public static Map<String, Object> getQuoteInfo(Id quoteId) {
                 Product2.Name,
             	Product2.Tax__c,
                 Product2.ProductCode,
+            Product2.Product_Code__c,
                 Product2.Family,
             Product2.Product_Category__c,
                 PricebookEntry.Product2.Product_Category__c
@@ -134,7 +135,7 @@ public static Map<String, Object> getQuoteInfo(Id quoteId) {
 
 
 
-        // 3️⃣ Fetch Warehouse Manager  ✅ PUT IT HERE
+        // Fetch Warehouse Manager  PUT IT HERE
         Warehouse__c wh = [
             SELECT Id, Warehouse_Manager__c
             FROM Warehouse__c
@@ -174,7 +175,7 @@ if (deliveryCommittedDate < Date.today()) {
         Id,
         Quantity,
         UnitPrice,
-        PricebookEntryId,
+        PricebookEntryId,Product2.Product_Code__c,
         PricebookEntry.Product2.Product_Category__c
     FROM QuoteLineItem
     WHERE Id IN :selectedQuoteLineItemIds
@@ -521,7 +522,7 @@ public static List<Map<String, Object>> getBatchStock1(Id orderItemId) {
 
                                 system.debug(wrap.inStock);
                                 wrap.Eid = wrap.warehouseCode+wrap.Batch; 
-                                if(wrap.IsBatchEnable=='Yes' && wCodes.contains( wrap.warehouseCode)){
+                                if(wrap.IsBatchEnable=='Yes' && wCodes.contains( wrap.warehouseCode) && wrap.inStock>0){
                                     resultList.add(wrap);
                                    
                                 }

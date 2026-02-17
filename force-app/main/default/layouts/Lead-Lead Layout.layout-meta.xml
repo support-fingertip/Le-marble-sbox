@@ -184,6 +184,10 @@
                 <behavior>Edit</behavior>
                 <field>Remarks__c</field>
             </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>Check_List_Items__c</field>
+            </layoutItems>
         </layoutColumns>
         <style>OneColumn</style>
     </layoutSections>

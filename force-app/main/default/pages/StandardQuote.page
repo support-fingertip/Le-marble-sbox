@@ -604,12 +604,18 @@ item.afterDiscPrice
                                     <td style="border:1px solid #cfcfcf; text-align:center; font-weight:normal;"><apex:outputText value="{0, number, ##,##0.00}">
                                         <apex:param value="{!item.unitPrice}" />
                                     </apex:outputText></td>
-                                    <td style="border:1px solid #cfcfcf; text-align:center; font-weight:normal;"> <apex:outputText rendered="{!item.discountType == 'Percentage'}">
-                                            {!item.discountValue}% (₹ {!ROUND(item.discountAmountInRupees,2)})
+                                    <td style="border:1px solid #cfcfcf; text-align:center; font-weight:normal;">
+
+                                        <!-- If Percentage -->
+                                        <apex:outputText rendered="{!item.discountType == 'Percentage'}"
+                                                         value="{0, number, ##,##0.00}">
+                                            <apex:param value="{!item.discountAmountInRupees}" />
                                         </apex:outputText>
                                     
-                                        <apex:outputText rendered="{!item.discountType == 'Amount'}">
-                                            ₹ {!item.discountValue}
+                                        <!-- If Amount -->
+                                        <apex:outputText rendered="{!item.discountType == 'Amount'}"
+                                                         value="{0, number, ##,##0.00}">
+                                            <apex:param value="{!item.discountValue}" />
                                         </apex:outputText>
                                     
                                     </td>

@@ -169,8 +169,20 @@
                                                             <td>{stk.warehouseCode}</td>
                                                             <td>{stk.Batch}</td>
                                                             <td>{stk.inStock}</td>
-                                                            <td>{stk.reserved}</td>
-                                                             <td>{stk.billable}</td>
+                                                            <td>
+                                                                <lightning-formatted-number
+                                                                    value={stk.reserved}
+                                                                    minimum-fraction-digits="2"
+                                                                    maximum-fraction-digits="2">
+                                                                </lightning-formatted-number>
+                                                            </td>
+                                                             <td>
+                                                                <lightning-formatted-number
+                                                                    value={stk.billable}
+                                                                    minimum-fraction-digits="2"
+                                                                    maximum-fraction-digits="2">
+                                                                </lightning-formatted-number>
+                                                             </td>
 
                                                         </tr>
                                                     </template>
