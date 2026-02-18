@@ -259,8 +259,8 @@ wiredAreaPicklist({ data, error }) {
             return this.filteredProducts.some(product => product.quantity > 0);
         }
 
-        get showDiscountSection() {
-         return this.selectedPB !== 'MSP';
+        get showMRPSection() {
+         return this.selectedPB !== 'RETAIL/MRP';
         }
        // get isCategoryDisabled() {
        //     return !this.selectedPB; // disable when selectedPB is false

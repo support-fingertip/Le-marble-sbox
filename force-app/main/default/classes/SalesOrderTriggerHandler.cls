@@ -71,6 +71,6 @@ public class SalesOrderTriggerHandler {
         }
     }*/
     
-    
+   public static Boolean isRunning = false;  
     
 }

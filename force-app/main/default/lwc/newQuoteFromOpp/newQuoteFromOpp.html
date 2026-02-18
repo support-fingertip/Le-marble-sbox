@@ -398,13 +398,13 @@
                                         </lightning-input>
 
                                     </div>
-
+                                    <template if:true={showMRPSection}>
                                      <div class="field-box slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
                                         <lightning-input type="number" label="MRP/Sqft"
                                                             value={item.msp}
                                                             disabled><!--(After Tax)-->
                                         </lightning-input>
-                                    </div>
+                                    </div></template>
 
                                     <div class="field-box slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
                                         <lightning-input type="number" label="Unit Price "
@@ -479,12 +479,13 @@
                                 <!-- </template>-->
                                 <!-- Unit Price (After Tax) for non-tile -->
                                 <template if:false={item.isTile}>
+                                    <template if:true={showMRPSection}>
                                      <div class="field-box slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
                                         <lightning-input type="number" label="MRP"
                                                             value={item.msp}
                                                             disabled><!--(After Tax)-->
                                         </lightning-input>
-                                    </div>
+                                    </div></template>
                                     <div class="qty-box slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
                                         <lightning-input type="number" label="Unit Price"
                                                             value={item.unitPriceAfterTax}

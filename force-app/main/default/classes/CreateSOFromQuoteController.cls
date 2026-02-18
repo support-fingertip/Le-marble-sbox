@@ -208,6 +208,7 @@ if (deliveryCommittedDate < Date.today()) {
 
             ord.EffectiveDate = Date.today();
             ord.Status = 'Draft';
+        ord.Order_status__c = 'Draft';
 			ord.credit__c=credit;
 
         
@@ -354,6 +355,7 @@ ord.State__c    = q.State__c;
         }
         if(ord.credit__c==false){
             ord.Status = 'Approved';
+             ord.order_Status__c = 'Approved';
             update ord;
         }
             return ord.Id;

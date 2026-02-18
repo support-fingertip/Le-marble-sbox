@@ -520,60 +520,43 @@ public class sapIntegration {
 
     
     public static void sendOrderToSAP(Order order) {
+           Order ord = [SELECT id,name,OrderNumber,Order_Owner__c,account.name,account.Customer_Number__c,account.Customer_Type__c,Warehouse__r.Warehouse_Code__c//, BranchLocation__c,  
+                FROM Order WHERE Id = :order.id LIMIT 1 ];
+         
+         List<Apex_Log__c> logList = new List<Apex_Log__c>();
+        Apex_Log__c log = new Apex_Log__c();
         
+          CustomNotificationType notificationType = [SELECT Id, DeveloperName
+                                                   FROM CustomNotificationType
+                                                   WHERE DeveloperName='Sales_Order_Notification'];
+        Messaging.CustomNotification notification = new Messaging.CustomNotification();
+        notification.setNotificationTypeId(notificationType.Id);
+        notification.setTargetId(order.id);
+        String adminUserId = [SELECT Id FROM User WHERE Profile.Name = 'System Administrator' and isactive=true LIMIT 1].Id;
+        Set<String> addressee = new Set<String>();
+        if(adminUserId!=null){
+            addressee.add(adminUserId); 
+        }
+        addressee.add(UserInfo.getUserId());
+        system.debug('Order '+ord);
+        
+        notification.setTitle('Order :'+ord.OrderNumber);
+        String NotificationBody =  'Order Id : ' + ord.Name +'\nOrder created by : ' + ord.account.name;
+        if( ord.account.name != null )
+        {
+            NotificationBody += '\nCustomer Name : ' + ord.account.name ;
+        }
+
+
         String sessionId=loginToSAP();
         if(sessionId!=null){              
             
-            Order ord = [
-                SELECT id,account.Customer_Number__c,account.Customer_Type__c,Warehouse__r.Warehouse_Code__c//, BranchLocation__c,  
-                FROM Order WHERE Id = :order.id LIMIT 1 ];
             
+           
+            log.Request_Type__c ='Order -'+ord.OrderNumber;
+           
             
-            // Get current date and calculate delivery dates
-            Date currentDate = Date.today();
-            Date endDeliveryDate = currentDate.addDays(2);
-            
-            // Format dates for SAP in YYYY-MM-DD format
-            String docDate = currentDate.year() + '-' + 
-                String.valueOf(currentDate.month()).leftPad(2, '0') + '-' + 
-                String.valueOf(currentDate.day()).leftPad(2, '0');
-            String dueDate = currentDate.addDays(10).year() + '-' + 
-                String.valueOf(currentDate.addDays(10).month()).leftPad(2, '0') + '-' + 
-                String.valueOf(currentDate.addDays(10).day()).leftPad(2, '0');
-            String taxDate = docDate;
-            String deliveryDate = docDate;
-            String endDeliveryDateStr = endDeliveryDate.year() + '-' + 
-                String.valueOf(endDeliveryDate.month()).leftPad(2, '0') + '-' + 
-                String.valueOf(endDeliveryDate.day()).leftPad(2, '0');
-            
-            String deliveryTime = '12:00:59';
-            String endDeliveryTime = '12:00:59';
-            
-            // Get U_TYPE from Order Type__c field
-            String uType;
-            if(ord.account.Customer_Type__c == 'B2B'){
-                uType= 'PROJECT';
-            } 
-            else {
-                uType= 'RETAIL';
-            } 
-            
-            Map<String, Object> body = new Map<String, Object>{
-                'CardCode' => ord.account.Customer_Number__c != null ? ord.account.Customer_Number__c.trim() : '',
-                    'DocDate' => docDate,
-                    'DocDueDate' => dueDate,
-                    'DocCurrency' => 'INR',
-                    'BPL_IDAssignedToInvoice' => '3',
-                    'U_To_Delivery_date' => deliveryDate,
-                    'U_DELIVERY_TIME' => deliveryTime,
-                    'StartDeliveryDate' => deliveryDate,
-                    'StartDeliveryTime' => deliveryTime,
-                    'EndDeliveryDate' => endDeliveryDateStr,
-                    'EndDeliveryTime' => endDeliveryTime,
-                    'U_TYPE' => uType,
-                    'U_Approval' => 'Y',
-                    'DocumentLines' => getDocumentLines(ord)
-                    };
+       SAPOrderPayload body= buildPayload(ord);
                         
                         System.debug('Full SAP payload: ' + JSON.serialize(body));
             
@@ -586,16 +569,24 @@ public class sapIntegration {
             
             Http http = new Http();
             HttpResponse res = http.send(req);
-            
+             log.Request__c =SAP_BASE_URL + '/Orders /n'+JSON.serialize(body); 
             if (res.getStatusCode() != 201) {
                 System.debug(' Failed to create SAP Order: ' + res.getBody());
+                
                 String errorBody = res.getBody();
+                log.Status__c = 'FAILED';
+                log.Error_Message__c = 'Failed to create SAP Order:  Statuscode: '+res.getStatusCode()+'/n'+errorBody ;
+				 logList.add(log);
                 if (errorBody.contains('OITW.Locked') || errorBody.contains('warehouse is locked')) {
                     //                return null;
                 }
-                throw new AuraHandledException('Failed to create SAP Order: ' + res.getBody());
+                
+          //      throw new AuraHandledException('Failed to create SAP Order: ' + res.getBody());
             }
             else {
+                
+                 log.status__c='SUCCESS';
+                log.response__c= 'Status code : '+res.getStatusCode() +' Response body: '+ res.getBody();
                 System.debug(' Order created in SAP for: ' + order.Id);
                 System.debug('SAP Response Body: ' + res.getBody());
                 
@@ -621,56 +612,234 @@ public class sapIntegration {
                             'DocNum' => sapDocNum
                             };
                                 ord.SAP_Doc_Num__c= sapDocNum;
+                    ord.Order_status__c= 'Sent to SAP';
                     update ord;
+                    notification.setTitle('Order Created in SAP');
+                    notification.setBody(NotificationBody);   
+                    
+                     logList.add(log);
                     //                return result;
                 } catch (Exception e) {
+                     log.status__c='FAILED';
+                    log.response__c= 'Status code : '+res.getStatusCode() +' Response body: '+ res.getBody();
+                    log.Error_Message__c = 'Status code : '+res.getStatusCode()+ ' Error: Callout failed. Please review the response for additional details.';
+                    logList.add(log);
+            		  notification.setBody('Error: '+e.getMessage());   
                     System.debug('❌ Error parsing SAP response: ' + e.getMessage());
                     System.debug('Response that caused error: ' + res.getBody());
                     //                return null;
                 }
             }
+
+           
+        }
+        else{
+           notification.setBody('Error While sending Order:No access token generated ');   
+                
+        
+        log.status__c='FAILED';
+        log.Error_Message__c = 'Token not generated';
+            
+        }
+        if(logList.size()>0){
+            insert logList;
+        }
+        try {
+            notification.send(addressee);
+            
+        }
+        catch (Exception e) {
+            System.debug('Problem sending notification: ' + e.getMessage());
+            
         }
     }
     
     
-    private static List<Object> getDocumentLines(Order order) {
-        List<OrderItem> lines = [
-            SELECT Product2.Product_Code__c, Quantity, UnitPrice,ListPrice,
-            Product2.Product_Category__c, TotalPrice,Sale_Price__c,Disc_Type__c,Dis_Value__c,After_Disc_Price_Sqft__c
-            //  Disc_Type__c, Dis_Value__c, After_Disc_Price_Piece__c, Product_Tax__c, UOM__c, Warehouse__c, Price_Sqft__c,    BPL_IDAssignedToInvoice__c,
-            FROM OrderItem  WHERE OrderId = :order.Id
-            //AND Item_Chosen__c = TRUE
-        ];
+    
+    public class SAPOrderPayload {
+
+        public String CardCode;
+        public String DocDate;
+        public String DocDueDate;
+        public String TaxDate;
+        public String DocCurrency;
+        public String BPL_IDAssignedToInvoice;
         
-        List<Object> docLines = new List<Object>();
+        public String U_To_Delivery_date;
+        public String StartDeliveryDate;
+        public String StartDeliveryTime;
+        public String EndDeliveryDate;
         
-        for (OrderItem line : lines) {
-            if (line.Product2 == null || String.isBlank(line.Product2.Product_Code__c)) continue;
-            
-            // Calculate unit price before tax
-            //            Decimal taxRate = (line.Product_Tax__c != null) ? (line.Product_Tax__c / 100) : 0;
-            Decimal unitPriceAfterTax = line.UnitPrice != null ? line.UnitPrice : 0;
-            //            Decimal unitPriceBeforeTax = taxRate > 0 ? (unitPriceAfterTax / (1 + taxRate)) : unitPriceAfterTax;
-            Decimal unitPriceBeforeTax =line.ListPrice != null ? line.ListPrice : 0;
-            // Calculate price field value based on product category and discount
-            Decimal priceFieldValue = unitPriceBeforeTax;
-            
-            priceFieldValue= line.After_Disc_Price_Sqft__c;
-            
-            Map<String, Object> docLine = new Map<String, Object>{
-                'ItemCode' => line.Product2.Product_Code__c,
-                    'Quantity' => line.Quantity,
-                    'WarehouseCode' => Order.Warehouse__r.Warehouse_Code__c!=null?Order.Warehouse__r.Warehouse_Code__c:'',
-                        'UnitPrice' => unitPriceBeforeTax.setScale(2),
-                        'Price' => priceFieldValue   //.setScale(2)
-                        };
-                            
-                            docLines.add(docLine);
+        public String EndDeliveryTime;
+        public String U_TYPE;
+        public String U_Approval;
+        public String U_DELIVERY_TIME;
+
+        
+        public List<DocumentLine> DocumentLines;
+    }  
+        public class DocumentLine {
+            public String ItemCode;
+            public Decimal Quantity;
+            public String WarehouseCode;
+            public Decimal UnitPrice;
+            public String TaxCode;
+            public Decimal Price;
+            public List<BatchNumber> BatchNumbers;
         }
         
-        return docLines;
-    }
+        public class BatchNumber {
+            public String BatchNumber;
+            public Decimal Quantity;
+        }
     
+    public static SAPOrderPayload buildPayload(order order) {
+ //       String sessionId=loginToSAP();
+                    SAPOrderPayload payload = new SAPOrderPayload();
+
+   //     if(sessionId!=null){              
+            
+            Order ord = [
+                SELECT id,account.Customer_Number__c,account.Customer_Type__c,Warehouse__r.Warehouse_Code__c//, BranchLocation__c,  
+                FROM Order WHERE Id = :order.id LIMIT 1 ];
+                Date currentDate = Date.today();
+            Date endDeliveryDate = currentDate.addDays(2);
+            
+            // Format dates for SAP in YYYY-MM-DD format
+            String docDate = currentDate.year() + '-' + 
+                String.valueOf(currentDate.month()).leftPad(2, '0') + '-' + 
+                String.valueOf(currentDate.day()).leftPad(2, '0');
+            String dueDate = currentDate.addDays(10).year() + '-' + 
+                String.valueOf(currentDate.addDays(10).month()).leftPad(2, '0') + '-' + 
+                String.valueOf(currentDate.addDays(10).day()).leftPad(2, '0');
+            String taxDate = docDate;
+            String deliveryDate = docDate;
+            String endDeliveryDateStr = endDeliveryDate.year() + '-' + 
+                String.valueOf(endDeliveryDate.month()).leftPad(2, '0') + '-' + 
+                String.valueOf(endDeliveryDate.day()).leftPad(2, '0');
+            
+            String deliveryTime = '12:00:59';
+            String endDeliveryTime = '12:00:59';
+            
+            // Get U_TYPE from Order Type__c field
+            String uType;
+            if(ord.account.Customer_Type__c == 'B2B'){
+                uType= 'PROJECT';
+            } 
+            else {
+                uType= 'RETAIL';
+            }
+            
+            payload.CardCode = ord.account.Customer_Number__c;
+            payload.DocDate = docDate;
+            payload.DocDueDate = dueDate;
+        //    payload.TaxDate = payload.DocDate;
+            payload.DocCurrency = 'INR';
+            payload.BPL_IDAssignedToInvoice = '3';
+            payload.U_To_Delivery_date=deliveryDate;
+        payload.U_DELIVERY_TIME=deliveryTime;
+            payload.StartDeliveryDate=deliveryDate;
+			payload.StartDeliveryTime=deliveryTime;
+            payload.EndDeliveryDate=endDeliveryDateStr;
+            payload.EndDeliveryTime=endDeliveryTime;
+            payload.U_TYPE=uType;
+            payload.U_Approval='Y';
+            
+            payload.DocumentLines  = new List<DocumentLine>(); 
+            
+            
+            
+            List<OrderItem> orderItems = [ SELECT Id,Quantity,PricebookEntry.Product2.Product_Code__c,Warehouse__r.Warehouse_Code__c,After_Disc_Price_Sqft__c,ListPrice,UnitPrice FROM OrderItem WHERE OrderId = :ord.Id ];//,Tax_Code__c
+            
+            Map<Id, List<Order_Batch_Item__c>> batchByItem = new Map<Id, List<Order_Batch_Item__c>>();
+            
+            for (Order_Batch_Item__c b : [SELECT Order_Product__c, Batch__c,Quantity__c, Warehouse_Code__c FROM Order_Batch_Item__c  WHERE Order_Product__c IN :orderItems ]) {
+                if (!batchByItem.containsKey(b.Order_Product__c)) {
+                    batchByItem.put(b.Order_Product__c, new List<Order_Batch_Item__c>());
+                }
+                batchByItem.get(b.Order_Product__c).add(b);
+            }
+            
+       //️⃣ Build DocumentLines (GROUP BY WAREHOUSE)
+        for (OrderItem oi : orderItems) {
+
+            if (!batchByItem.containsKey(oi.Id)) {
+                
+                Decimal unitPriceAfterTax = oi.UnitPrice != null ? oi.UnitPrice : 0;
+                Decimal unitPriceBeforeTax =oi.ListPrice != null ? oi.ListPrice : 0;
+                Decimal priceFieldValue = unitPriceBeforeTax;
+                priceFieldValue= oi.After_Disc_Price_Sqft__c;
+                
+                DocumentLine dl = new DocumentLine();
+                dl.ItemCode = oi.PricebookEntry.Product2.Product_Code__c;
+                dl.WarehouseCode = oi.Warehouse__r.Warehouse_Code__c;
+                dl.UnitPrice = unitPriceBeforeTax.setScale(2);
+                //   dl.Quantity = oi.Quantity;
+                dl.Price = priceFieldValue;
+                //     dl.TaxCode = oi.Tax_Code__c;
+                dl.BatchNumbers = new List<BatchNumber>();
+                
+                
+                
+                payload.documentLines.add(dl);
+                continue;
+                
+            }
+
+            // warehouse → batches
+            Map<String, List<Order_Batch_Item__c>> warehouseMap = new Map<String, List<Order_Batch_Item__c>>();
+
+            for (Order_Batch_Item__c b : batchByItem.get(oi.Id)) {
+                if (!warehouseMap.containsKey(b.Warehouse_Code__c)) {
+                    warehouseMap.put(b.Warehouse_Code__c, new List<Order_Batch_Item__c>());
+                }
+                warehouseMap.get(b.Warehouse_Code__c).add(b);
+            }
+
+            // Create one DocumentLine per warehouse
+            for (String wh : warehouseMap.keySet()) {
+                
+                Decimal unitPriceAfterTax = oi.UnitPrice != null ? oi.UnitPrice : 0;
+                Decimal unitPriceBeforeTax =oi.ListPrice != null ? oi.ListPrice : 0;
+                Decimal priceFieldValue = unitPriceBeforeTax;
+                priceFieldValue= oi.After_Disc_Price_Sqft__c;
+                
+                DocumentLine dl = new DocumentLine();
+                dl.ItemCode = oi.PricebookEntry.Product2.Product_Code__c;
+                dl.WarehouseCode = wh;
+                dl.UnitPrice = unitPriceBeforeTax.setScale(2);
+             //   dl.Quantity = oi.Quantity;
+                dl.Price = priceFieldValue;
+                //     dl.TaxCode = oi.Tax_Code__c;
+                dl.BatchNumbers = new List<BatchNumber>();
+                
+                
+          //      docLines.add(docLine);
+            
+                
+                
+                Decimal totalQty = 0;
+
+                for (Order_Batch_Item__c b : warehouseMap.get(wh)) {
+                    BatchNumber bn = new BatchNumber();
+                    bn.BatchNumber = b.Batch__c;
+                    bn.Quantity = b.Quantity__c;
+
+                    dl.BatchNumbers.add(bn);
+                    totalQty += b.Quantity__c;
+                }
+
+                dl.Quantity = totalQty;
+                payload.DocumentLines.add(dl);
+            }
+            
+            
+            
+        } system.debug('payload>>'+JSON.serialize(payload));
+ //       }
+            return payload;
+    }
+
     
     
     public static void getInvoiceMaster() {

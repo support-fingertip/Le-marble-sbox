@@ -141,6 +141,14 @@
         <enabled>false</enabled>
     </classAccesses>
     <classAccesses>
+        <apexClass>InvoiceMasterQueueable</apexClass>
+        <enabled>false</enabled>
+    </classAccesses>
+    <classAccesses>
+        <apexClass>InvoiceMasterScheduler</apexClass>
+        <enabled>false</enabled>
+    </classAccesses>
+    <classAccesses>
         <apexClass>LeadThankYouEmailHelper</apexClass>
         <enabled>false</enabled>
     </classAccesses>
@@ -1629,6 +1637,11 @@
         <readable>false</readable>
     </fieldPermissions>
     <fieldPermissions>
+        <editable>false</editable>
+        <field>Integration_Config__mdt.Enable_Invoice_Master__c</field>
+        <readable>false</readable>
+    </fieldPermissions>
+    <fieldPermissions>
         <editable>true</editable>
         <field>Invoice_Item__c.Invoice_No__c</field>
         <readable>true</readable>
@@ -2321,6 +2334,11 @@
     <fieldPermissions>
         <editable>false</editable>
         <field>Order.Order_Owner__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Order.Order_Status__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
@@ -3356,6 +3374,9 @@
     </layoutAssignments>
     <layoutAssignments>
         <layout>Idea-Idea Layout</layout>
+    </layoutAssignments>
+    <layoutAssignments>
+        <layout>Integration_Config__mdt-Integration Config Layout</layout>
     </layoutAssignments>
     <layoutAssignments>
         <layout>Invoice_Item__c-Invoice Item Layout</layout>
