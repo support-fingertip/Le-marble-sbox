@@ -370,22 +370,10 @@ System.debug('Final products list size: ' + this.products.size());
     }
 
     @AuraEnabled
-    public static void sendQuotationEmail(
-        Id cartId,
-        List<String> selectedItemIds,
-        String toEmail,
-        String subject,
-        String body,
-        String quotationBlob
-    ) {
+    public static void sendQuotationEmail(Id cartId,List<String> selectedItemIds, String toEmail,String subject, String body,String quotationBlob ) {
    //     try {
             // cartId is Quote Id now
-            Quote quoteRecord = [
-                SELECT Id, Name, QuoteToName, Email,ownerId,status
-                FROM Quote
-                WHERE Id = :cartId
-                LIMIT 1
-            ];
+            Quote quoteRecord = [SELECT Id, Name, QuoteToName, Email,ownerId,status FROM Quote WHERE Id = :cartId LIMIT 1];
 
            String finalEmail;
 

@@ -77,6 +77,7 @@ public class sapIntegration {
                 WHERE Id = :dealId
                 LIMIT 1
             ];
+            addressee.add(deal.ownerId);
             String ownerSAPCode = [SELECT Id,name,SAP_Emp_Code__c FROM User WHERE id=:deal.ownerId].SAP_Emp_Code__c; 
             notification.setTitle('Account :'+deal.Name);
             String NotificationBody =  'Account Name : ' + Account.Name +'\nAccount created by : ' + deal.Owner_Name__c;
@@ -131,13 +132,15 @@ public class sapIntegration {
             }
             
            string bCountryCode= getCountryCode(deal.BillingCountry);
+		String bStateCode = getStateCode(deal.BillingState);
             // Build BPAddresses[]
             List<Map<String, Object>> bpAddresses = new List<Map<String, Object>>();
             String uniqueSuffix = String.valueOf(DateTime.now().getTime());
           string gstT='';    
           if(deal.Customer_Type__c=='B2B'){
-                gstT= 'gstRegularTDSISD';
-            }
+             //   gstT= 'gstRegularTDSISD';
+          gstT= deal.GST_Type__c;  
+          }
             String part1 = '';
             String part2 = '';
             String part3 = '';
@@ -165,16 +168,16 @@ public class sapIntegration {
             
             // Ship To address from Address__ fields
             Map<String, Object> shipToAddress = new Map<String, Object>{
-                'AddressName'   => deal.name,
-                    'Street'        => deal.Address_Line3__c!=null? deal.Address_Line3__c:'',
-                    'City'          => deal.corporation__c!=null? deal.corporation__c:'',
+                'AddressName'   => deal.Address_Line1__c!=null? deal.Address_Line1__c:'',
+                    'Street'        => deal.Corporation__c!=null? deal.Corporation__c +', ':'' + deal.Municipality__c!=null? deal.Municipality__c+', ':'' + deal.Panchayath__c!=null? deal.Panchayath__c:'',
+                    'City'          => deal.Village__c!=null? deal.Village__c:'',
                      'County'         => deal.district__c!=null? deal.district__c:'',   
                     'State'         => deal.State__c!=null? deal.State__c:'',
                     'ZipCode'       => '',
                     'Country'       => deal.country__c!=null? deal.country__c:'', //IN
                     'AddressType'   => 'bo_ShipTo',
-                    'AddressName2'  => deal.Address_Line1__c!=null? deal.Address_Line1__c:'',
-                    'AddressName3'  => deal.Address_Line2__c!=null? deal.Address_Line2__c:'',
+                    'AddressName2'  => deal.Address_Line2__c!=null? deal.Address_Line2__c:'',
+                    'AddressName3'  => deal.Address_Line3__c!=null? deal.Address_Line3__c:'',
                      'GstType'  =>  gstT,
                      'GSTIN'  =>  deal.GST_Number__c!=null? deal.GST_Number__c:'',
                           'U_Contact' =>  deal.POC_Name__c!=''? deal.POC_Name__c:''+ deal.POC_Number__c!=''?  ' - '+deal.POC_Number__c:''
@@ -186,7 +189,7 @@ public class sapIntegration {
                 'AddressName'   => deal.name,
                     'Street'        => part3,
                     'City'          => deal.BillingCity!=null? deal.BillingCity:'',
-                    'State'         => deal.BillingState!=null? deal.BillingState:'',//KL 
+                    'State'         => bStateCode!=null? bStateCode:'',//KL 
                     'ZipCode'       => deal.BillingPostalcode!=null? deal.BillingPostalcode:'',
                     'Country'       =>  bCountryCode!=null? bCountryCode:'',//IN
                     'AddressType'   => 'bo_BillTo',
@@ -334,19 +337,40 @@ public class sapIntegration {
             } else {
                 System.debug(LoggingLevel.ERROR, 'Failed to retrieve BP for update: ' + getResponse.getBody());
                 
+                Map<String, Object> errorWrapper = (Map<String, Object>) JSON.deserializeUntyped(getResponse.getBody());
                 
-                return;
+                if (errorWrapper.containsKey('error')) {
+                    Map<String, Object> errorObj =(Map<String, Object>) errorWrapper.get('error');
+                    
+                 //   Integer errorCode = (Integer) errorObj.get('code');
+                    
+                    Map<String, Object> messageObj =
+                        (Map<String, Object>) errorObj.get('message');
+                    
+                    String errorMessage = (String) messageObj.get('value');
+                    
+                    //  EXACT MATCH CHECK
+                    if (//errorCode == -2028 &&
+                        errorMessage != null &&
+                        errorMessage.contains('No matching records found')) {
+                            System.enqueueJob(new CreateBusinessPartnerQueueable(deal.Id));
+                            return;
+                            
+                        }
+                }
                 
             }
             
             Boolean shipToAddressFoundAndUpdated = false;
             Boolean billToAddressFoundAndUpdated = false;
             string bCountryCode= getCountryCode(deal.BillingCountry);
+            string stateCode= getStateCode(deal.BillingState);
         string gstT='';
             
             
             if(deal.Customer_Type__c=='B2B'){
-                gstT= 'gstRegularTDSISD';
+                //gstT= 'gstRegularTDSISD';
+                gstT= deal.GST_Type__c; 
             }  	
             
             String part1 = '';
@@ -378,16 +402,16 @@ public class sapIntegration {
                 String addrName = (String)existingAddr.get('AddressType');
                 
                 if ( addrName == 'bo_ShipTo') {
-                     existingAddr.put('AddressName', deal.Name);                       
-                    existingAddr.put('Street', deal.Address_Line3__c!=null?deal.Address_Line3__c:'');
-                    existingAddr.put('City', deal.corporation__c!=null?deal.corporation__c:'');
+                     existingAddr.put('AddressName', deal.Address_Line1__c!=null? deal.Address_Line1__c:'');                       
+                    existingAddr.put('Street', deal.Corporation__c!=null? deal.Corporation__c +', ':'' + deal.Municipality__c!=null? deal.Municipality__c+', ':'' + deal.Panchayath__c!=null? deal.Panchayath__c:'');
+                    existingAddr.put('City', deal.Village__c!=null? deal.Village__c:'');
                     existingAddr.put('County',  deal.district__c!=null?deal.district__c:'');
                      existingAddr.put('State',  deal.State__c!=null?deal.State__c:'');
                     existingAddr.put('ZipCode', '');
                     existingAddr.put('Country', deal.country__c!=null?deal.country__c:'');
                     existingAddr.put('AddressType', 'bo_ShipTo');
-                    existingAddr.put('AddressName2',  deal.Address_Line1__c!=null?deal.Address_Line1__c:'');
-                    existingAddr.put('AddressName3', deal.Address_Line2__c!=null?deal.Address_Line2__c:'');
+                    existingAddr.put('AddressName2',  deal.Address_Line2__c!=null?deal.Address_Line2__c:'');
+                    existingAddr.put('AddressName3', deal.Address_Line3__c!=null?deal.Address_Line3__c:'');
                      existingAddr.put('U_Contact', deal.POC_Name__c!=null?deal.POC_Name__c:''+ deal.POC_Number__c!=''?  ' - '+deal.POC_Number__c:'');
                      existingAddr.put('GSTIN',  deal.GST_Number__c!=null?deal.GST_Number__c:'');
                     existingAddr.put('GstType', gstT);
@@ -400,7 +424,7 @@ public class sapIntegration {
                     existingAddr.put('AddressName', deal.Name);     
                     existingAddr.put('Street', part3);
                     existingAddr.put('City', deal.BillingCity!=null?deal.BillingCity:'');
-                    existingAddr.put('State',  deal.BillingState!=null?deal.BillingState:'');
+                    existingAddr.put('State',  stateCode!=null?stateCode:'');
                     existingAddr.put('ZipCode', deal.BillingPostalCode!=null?deal.BillingPostalCode:'');
                     existingAddr.put('Country', bCountryCode!=null?bCountryCode:'');                    
                     existingAddr.put('AddressType', 'bo_BillTo');
@@ -415,17 +439,16 @@ public class sapIntegration {
             
             if (!shipToAddressFoundAndUpdated ) {
                 bpAddresses.add(new Map<String, Object>{
-                 
-                          'AddressName'   => deal.Name,
-                    'Street'        => deal.Address_Line3__c!=null? deal.Address_Line3__c:'',
-                    'City'          => deal.corporation__c!=null? deal.corporation__c:'',
+                    'AddressName'   => deal.Address_Line1__c!=null? deal.Address_Line1__c:'',
+                    'Street'        => deal.Corporation__c!=null? deal.Corporation__c +', ':'' + deal.Municipality__c!=null? deal.Municipality__c+', ':'' + deal.Panchayath__c!=null? deal.Panchayath__c:'',
+                    'City'          => deal.Village__c!=null? deal.Village__c:'',
                     'County'         => deal.district__c!=null? deal.district__c:'',   
                     'State'         => deal.State__c!=null? deal.State__c:'',
                     'ZipCode'       => '',
                     'Country'       => deal.country__c!=null? deal.country__c:'', //IN
                     'AddressType'   => 'bo_ShipTo',
-                    'AddressName2'  => deal.Address_Line1__c!=null? deal.Address_Line1__c:'',
-                    'AddressName3'  => deal.Address_Line2__c!=null? deal.Address_Line2__c:'',
+                    'AddressName2'  => deal.Address_Line2__c!=null? deal.Address_Line2__c:'',
+                    'AddressName3'  => deal.Address_Line3__c!=null? deal.Address_Line3__c:'',
  					'GSTIN'  =>  deal.GST_Number__c!=null? deal.GST_Number__c:'',
                  	'GstType'  =>  gstT,
     				'U_Contact' =>  deal.POC_Name__c!=''? deal.POC_Name__c:''+ deal.POC_Number__c!=''?  ' - '+deal.POC_Number__c:''
@@ -439,7 +462,7 @@ public class sapIntegration {
                     'AddressName' => deal.Name,
                     'Street'        => part3,
                     'City'          => deal.BillingCity!=null? deal.BillingCity:'',
-                    'State'         => deal.BillingState!=null? deal.BillingState:'',//KL 
+                    'State'         => stateCode!=null? stateCode:'',//KL 
                     'ZipCode'       => deal.BillingPostalcode!=null? deal.BillingPostalcode:'',
                     'Country'       =>  bCountryCode!=null? bCountryCode:'',//IN
                     'AddressType'   => 'bo_BillTo',
@@ -504,8 +527,26 @@ public class sapIntegration {
             return null;
         }
         String input = countryLabel.trim().toLowerCase();
+        Schema.DescribeFieldResult dfr = Account.Country__c.getDescribe();
+        
+        for (Schema.PicklistEntry ple : dfr.getPicklistValues()) {
+            if (ple.getLabel() != null &&
+            ple.getLabel().trim().toLowerCase() == input) {
+                
+                return ple.getValue(); // API name (Country Code)
+            }
+            
+        }
+        return null;
+    }
+
+      public static String getStateCode(String stateLabel) {
+        if (String.isBlank(stateLabel) || stateLabel==null) {
+            return null;
+        }
+        String input = stateLabel.trim().toLowerCase();
         Schema.DescribeFieldResult dfr =
-            Account.Country__c.getDescribe();
+            Account.State__c.getDescribe();
         
         for (Schema.PicklistEntry ple : dfr.getPicklistValues()) {
             if (ple.getLabel() != null &&
@@ -519,9 +560,9 @@ public class sapIntegration {
     }
 
     
-    public static void sendOrderToSAP(Order order) {
+    public static void sendOrderToSAP(id order) {
            Order ord = [SELECT id,name,OrderNumber,Order_Owner__c,account.name,account.Customer_Number__c,account.Customer_Type__c,Warehouse__r.Warehouse_Code__c//, BranchLocation__c,  
-                FROM Order WHERE Id = :order.id LIMIT 1 ];
+                FROM Order WHERE Id = :order LIMIT 1 ];
          
          List<Apex_Log__c> logList = new List<Apex_Log__c>();
         Apex_Log__c log = new Apex_Log__c();
@@ -531,7 +572,7 @@ public class sapIntegration {
                                                    WHERE DeveloperName='Sales_Order_Notification'];
         Messaging.CustomNotification notification = new Messaging.CustomNotification();
         notification.setNotificationTypeId(notificationType.Id);
-        notification.setTargetId(order.id);
+        notification.setTargetId(ord.id);
         String adminUserId = [SELECT Id FROM User WHERE Profile.Name = 'System Administrator' and isactive=true LIMIT 1].Id;
         Set<String> addressee = new Set<String>();
         if(adminUserId!=null){
@@ -587,7 +628,7 @@ public class sapIntegration {
                 
                  log.status__c='SUCCESS';
                 log.response__c= 'Status code : '+res.getStatusCode() +' Response body: '+ res.getBody();
-                System.debug(' Order created in SAP for: ' + order.Id);
+                System.debug(' Order created in SAP for: ' + ord.Id);
                 System.debug('SAP Response Body: ' + res.getBody());
                 
                 try {
@@ -666,14 +707,17 @@ public class sapIntegration {
         public String BPL_IDAssignedToInvoice;
         
         public String U_To_Delivery_date;
-        public String StartDeliveryDate;
-        public String StartDeliveryTime;
-        public String EndDeliveryDate;
+      //  public String StartDeliveryDate;
+        //public String StartDeliveryTime;
+        //public String EndDeliveryDate;
         
-        public String EndDeliveryTime;
+       // public String EndDeliveryTime;
         public String U_TYPE;
         public String U_Approval;
         public String U_DELIVERY_TIME;
+        
+        public String SalesPersonCode;
+        public String DocumentsOwner;
 
         
         public List<DocumentLine> DocumentLines;
@@ -685,6 +729,7 @@ public class sapIntegration {
             public Decimal UnitPrice;
             public String TaxCode;
             public Decimal Price;
+            public Decimal U_ReservedQTY;
             public List<BatchNumber> BatchNumbers;
         }
         
@@ -699,11 +744,15 @@ public class sapIntegration {
 
    //     if(sessionId!=null){              
             
-            Order ord = [
-                SELECT id,account.Customer_Number__c,account.Customer_Type__c,Warehouse__r.Warehouse_Code__c//, BranchLocation__c,  
+            Order ord = [ SELECT id,account.Customer_Number__c,opportunityId,account.Customer_Type__c,Warehouse__r.Warehouse_Code__c,ownerid//, BranchLocation__c,  
                 FROM Order WHERE Id = :order.id LIMIT 1 ];
-                Date currentDate = Date.today();
-            Date endDeliveryDate = currentDate.addDays(2);
+        
+        string oppowner=[select id from opportunity where id=:ord.opportunityId].ownerid;
+        
+        string oppOwnId=[select id, SAP_Emp_Code__c from user where id=:oppowner].SAP_Emp_Code__c;
+        string ordOwnId=[select id, SAP_Emp_Code__c from user where id=:ord.ownerid].SAP_Emp_Code__c;
+        Date currentDate = Date.today();
+        Date endDeliveryDate = currentDate.addDays(2);
             
             // Format dates for SAP in YYYY-MM-DD format
             String docDate = currentDate.year() + '-' + 
@@ -738,13 +787,15 @@ public class sapIntegration {
             payload.BPL_IDAssignedToInvoice = '3';
             payload.U_To_Delivery_date=deliveryDate;
         payload.U_DELIVERY_TIME=deliveryTime;
-            payload.StartDeliveryDate=deliveryDate;
-			payload.StartDeliveryTime=deliveryTime;
-            payload.EndDeliveryDate=endDeliveryDateStr;
-            payload.EndDeliveryTime=endDeliveryTime;
+   //         payload.StartDeliveryDate=deliveryDate;
+	//		payload.StartDeliveryTime=deliveryTime;
+      //      payload.EndDeliveryDate=endDeliveryDateStr;
+        //    payload.EndDeliveryTime=endDeliveryTime;
             payload.U_TYPE=uType;
             payload.U_Approval='Y';
-            
+        
+            payload.SalesPersonCode=oppOwnId;
+            payload.DocumentsOwner=ordOwnId;
             payload.DocumentLines  = new List<DocumentLine>(); 
             
             
@@ -829,6 +880,7 @@ public class sapIntegration {
                     totalQty += b.Quantity__c;
                 }
 
+                dl.U_ReservedQTY = totalQty;
                 dl.Quantity = totalQty;
                 payload.DocumentLines.add(dl);
             }

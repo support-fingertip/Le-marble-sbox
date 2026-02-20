@@ -32,6 +32,10 @@
                 <behavior>Edit</behavior>
                 <field>Warehouse_Code__c</field>
             </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>Block_Quantity__c</field>
+            </layoutItems>
         </layoutColumns>
         <layoutColumns>
             <layoutItems>

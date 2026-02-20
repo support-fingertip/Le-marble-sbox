@@ -33,6 +33,10 @@
         <enabled>false</enabled>
     </classAccesses>
     <classAccesses>
+        <apexClass>CreateBusinessPartnerQueueable</apexClass>
+        <enabled>false</enabled>
+    </classAccesses>
+    <classAccesses>
         <apexClass>CreatePurchaseOrderInSAP</apexClass>
         <enabled>false</enabled>
     </classAccesses>
@@ -318,6 +322,10 @@
     </classAccesses>
     <classAccesses>
         <apexClass>SalesOrderTriggerHandler</apexClass>
+        <enabled>false</enabled>
+    </classAccesses>
+    <classAccesses>
+        <apexClass>SendOrderToSAPQueueable</apexClass>
         <enabled>false</enabled>
     </classAccesses>
     <classAccesses>
@@ -2466,6 +2474,11 @@
     <fieldPermissions>
         <editable>false</editable>
         <field>Order_Batch_Item__c.Batch__c</field>
+        <readable>false</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>Order_Batch_Item__c.Block_Quantity__c</field>
         <readable>false</readable>
     </fieldPermissions>
     <fieldPermissions>

@@ -246,7 +246,7 @@ public static List<Map<String, String>> getAreaPicklistValues() {
                                         cart.District__c= oppParent.District__c;
                                         cart.State__c= oppParent.State__c;
                                         cart.Country__c= oppParent.country__c;
-          
+          								cart.ExpirationDate=system.today().addDays(14);
                                         
                                         // Set other fields
                                         cart.Freight_Charge__c = freightCharge != null ? freightCharge : 0;

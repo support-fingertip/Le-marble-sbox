@@ -81,45 +81,11 @@ public static Map<String, Object> getQuoteInfo(Id quoteId) {
             throw new AuraHandledException('Please select a Warehouse');
         }
             // Fetch Quote
-         Quote q = [
-    SELECT Id,
-           AccountId,
-           OpportunityId,
-           Pricebook2Id,
-           Sales_Order_Created__c,
+         Quote q = [SELECT Id, AccountId, OpportunityId,
+           Pricebook2Id,  Sales_Order_Created__c, Freight_Charge__c, Loading_Charge__c,Unloading_Charge__c,ContactId,Contact.Name,Contact.Phone,BillingStreet,BillingCity, BillingState, BillingPostalCode,
+           BillingCountry,ShippingStreet, ShippingCity, ShippingState, ShippingPostalCode, ShippingCountry, AddressLine1__c, AddressLine2__c, AddressLine3__c, District__c, State__c, Country__c FROM Quote WHERE Id = :quoteId LIMIT 1];
 
-           Freight_Charge__c,
-           Loading_Charge__c,
-           Unloading_Charge__c,
-
-           ContactId,
-           Contact.Name,
-           Contact.Phone,
-
-           BillingStreet,
-           BillingCity,
-           BillingState,
-           BillingPostalCode,
-           BillingCountry,
-
-           ShippingStreet,
-           ShippingCity,
-           ShippingState,
-           ShippingPostalCode,
-           ShippingCountry,
-           AddressLine1__c, AddressLine2__c, AddressLine3__c,
-           District__c, State__c, Country__c
-    FROM Quote
-    WHERE Id = :quoteId
-    LIMIT 1
-];
-
-        Account acc = [
-            SELECT BillingStreet, BillingCity, BillingState, BillingPostalCode, BillingCountry
-            FROM Account
-            WHERE Id = :q.AccountId
-            LIMIT 1
-        ];
+        Account acc = [ SELECT BillingStreet, BillingCity, BillingState, BillingPostalCode, BillingCountry FROM Account  WHERE Id = :q.AccountId LIMIT 1];
 
         Contact con;
         List<Contact> conList = [
@@ -331,12 +297,8 @@ ord.State__c    = q.State__c;
             
             for (WarehouseStockWrapper bw : batches) {
                 
-                if (
-                    bw == null ||
-                    bw.quantity == null ||
-                    bw.quantity <= 0 ||
-                    !qliToOrderItemMap.containsKey(bw.quoteLineItemId)
-                ) {
+                if (bw == null || bw.quantity == null ||
+                    bw.quantity <= 0 ||!qliToOrderItemMap.containsKey(bw.quoteLineItemId)) {
                     continue;
                 }
                 
@@ -345,7 +307,8 @@ ord.State__c    = q.State__c;
                     Eid__c           = bw.Eid,
                     Batch__c         = bw.Batch,
                     Warehouse_Code__c = bw.warehouseCode, // if exists
-                    Quantity__c      = bw.quantity
+                    Quantity__c      = bw.quantity,
+                    Block_Quantity__c = bw.blkQty
                 ));
             }
             
@@ -383,7 +346,7 @@ ord.State__c    = q.State__c;
     ];
     }
     
-    @AuraEnabled
+  /*  @AuraEnabled
     public static void saveBatchItems( Id orderItemId, List<Object> batchList) {
         System.debug('batchList >> ' + batchList);
         
@@ -399,7 +362,8 @@ ord.State__c    = q.State__c;
                     Order_Product__c = orderItemId,
                     Eid__c = w.Eid,
                     Quantity__c = w.quantity,
-                    Batch__c = w.Batch
+                    Batch__c = w.Batch,
+                    Block_Quantity__c = w.blkQty
                 ));
             }
         }
@@ -409,7 +373,7 @@ ord.State__c    = q.State__c;
         }
     }
 
-    
+    */
     
 
     private static final String SERIES_SERVICE_URL = 'https://lemrg.hstconnect.in:8081/salesforce/api/Get_BatchStock';
@@ -440,6 +404,7 @@ public static List<Map<String, Object>> getBatchStock1(Id orderItemId) {
         @AuraEnabled public String Batch;
         @AuraEnabled public String Eid;
         @AuraEnabled public decimal quantity;
+         @AuraEnabled public decimal blkQty;
         @AuraEnabled public Id quoteLineItemId;
         @AuraEnabled public String billable;
         @AuraEnabled public String reserved;
@@ -472,8 +437,8 @@ public static List<Map<String, Object>> getBatchStock1(Id orderItemId) {
             Http http = new Http();
             Map<String, Object> bodyMap = new Map<String, Object>();
             bodyMap.put('ApiKey', 'SKYHSTskb2h82yhdc76512rgsv');
-            bodyMap.put('ProductCode', orderItemId);
-            // TL02811
+            bodyMap.put('ProductCode', 'TL02811');
+            // TL02811   orderItemId
             String requestBody = JSON.serialize(bodyMap);
  System.debug(' requestBody: ' + requestBody);
                     
