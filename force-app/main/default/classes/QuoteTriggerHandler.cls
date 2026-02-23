@@ -76,7 +76,7 @@ q.Email = oppToEmail.get(q.OpportunityId);
                 
                 Quote oldQ = oldMap != null ? oldMap.get(q.Id) : null;
                 
-                if (oldQ != null && ( (oldQ.Status != q.Status && (q.Status == 'Accepted' || q.Status == 'Denied') ) || (oldQ.Approval_Status__c != q.Approval_Status__c && q.Approval_Status__c == 'Revised')))
+                if (oldQ != null && ( (oldQ.Status != q.Status && (q.Status == 'Accepted' || q.Status == 'Denied') ) || (oldQ.Customer_Accepted__c != q.Customer_Accepted__c && (q.Customer_Accepted__c == true))|| (oldQ.Approval_Status__c != q.Approval_Status__c && q.Approval_Status__c == 'Revised')))
                 {
                     acceptedQuoteIds.add(q.Id);
                 }
@@ -108,11 +108,7 @@ q.Email = oppToEmail.get(q.OpportunityId);
     }
     
     
-    public static void sendNotification(
-        Set<String> userIds,
-        String title,
-        String body,
-        Id quoteId) {
+    public static void sendNotification(Set<String> userIds,String title, String body, Id quoteId) {
             if (userIds.isEmpty()) return;
             
             CustomNotificationType notificationType = [
@@ -133,20 +129,11 @@ q.Email = oppToEmail.get(q.OpportunityId);
             notification.send(userIds);
         }
     
-    public static void sendManagerNotification(
-        Set<String> userIds,
-        String title,
-        String body,
-        Id quoteId) {
+    public static void sendManagerNotification( Set<String> userIds, String title,String body, Id quoteId) {
             
             if (userIds.isEmpty()) return;
             
-            CustomNotificationType notificationType = [
-                SELECT Id
-                FROM CustomNotificationType
-                WHERE DeveloperName = 'Quote_Created_Manager_Notification'
-                LIMIT 1
-            ];
+            CustomNotificationType notificationType = [ SELECT Id FROM CustomNotificationType WHERE DeveloperName = 'Quote_Created_Manager_Notification' LIMIT 1];
             
             Messaging.CustomNotification notification =
                 new Messaging.CustomNotification();
@@ -286,13 +273,7 @@ q.Email = oppToEmail.get(q.OpportunityId);
         
         Map<Id, List<User>> managerToCoordinators = new Map<Id, List<User>>();
         
-        for (User u : [
-            SELECT Id, ManagerId
-            FROM User
-            WHERE ManagerId IN :managerIds
-            AND Profile.Name = 'Coordinator'
-            AND IsActive = true
-        ]) {
+        for (User u : [ SELECT Id, ManagerId FROM User WHERE ManagerId IN :managerIds AND Profile.Name = 'Coordinator' AND IsActive = true ]) {
             if (!managerToCoordinators.containsKey(u.ManagerId)) {
                 managerToCoordinators.put(u.ManagerId, new List<User>());
             }
@@ -313,29 +294,18 @@ q.Email = oppToEmail.get(q.OpportunityId);
             
             
             Opportunity opp = oppMap.get(q.OpportunityId);
-            String customerName =
-                (opp != null && opp.Account != null)
-                ? opp.Account.Name
-                : 'Customer';
+            String customerName =(opp != null && opp.Account != null)? opp.Account.Name: 'Customer';
             
             Set<String> coordinatorIds = new Set<String>();
             for (User u : coordinators) {
                 coordinatorIds.add(u.Id);
             }
             
-            sendNotification(
-                coordinatorIds,
-                'Quote Accepted',
-                customerName + ' has accepted the quote',
-                q.Id
-            );
+            sendNotification( coordinatorIds,'Quote Accepted',customerName + ' has accepted the quote', q.Id );
         }
     }
     
-    public static void handleApprovalOwnerNotification(
-        List<Quote> newList,
-        Map<Id, Quote> oldMap
-    ) {
+    public static void handleApprovalOwnerNotification(List<Quote> newList,Map<Id, Quote> oldMap) {
         
         Set<Id> quoteIds = new Set<Id>();
         

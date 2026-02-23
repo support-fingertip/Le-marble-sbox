@@ -111,7 +111,7 @@ public class OpportunityItemHandler {
         
         // 2. Query QuoteLineItems
         Map<Id, QuoteLineItem> qliMap = new Map<Id, QuoteLineItem>([
-            SELECT Id,Area__c,MSP__c,Disc_Type__c,Dis_Value__c,Sqft__c
+            SELECT Id,Area__c,MSP__c,Disc_Type__c,Dis_Value__c,Sqft__c,Room_Type__c
             FROM QuoteLineItem
             WHERE Id IN :qliIds
         ]);
@@ -122,6 +122,7 @@ public class OpportunityItemHandler {
                 Id qliId = (Id) oli.QuoteLineItemId__c;
                 if (qliMap.containsKey(qliId)) {
                   oli.Area__c = qliMap.get(qliId).Area__c;
+                    oli.Room_Type__c = qliMap.get(qliId).Room_Type__c;
                     oli.MSP__c = qliMap.get(qliId).MSP__c;
                     oli.Disc_Type__c = qliMap.get(qliId).Disc_Type__c;
                     oli.Dis_Value__c = qliMap.get(qliId).Dis_Value__c;

@@ -11,7 +11,7 @@ trigger SalesOrderContactTrigger on Order (after update) {
 
         Order newRec = Trigger.new[i];
         Order oldRec = Trigger.old[i];
-
+system.debug('newRec.Status>>'+newRec.Status + '   ---   '+ newRec.SAP_Doc_Num__c);
         if (newRec.Status == 'Approved' && oldRec.Status != 'Approved' && newRec.SAP_Doc_Num__c==null) {
 
             System.enqueueJob(

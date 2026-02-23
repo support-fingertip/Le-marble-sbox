@@ -152,6 +152,16 @@ public class LeadTriggerHandler {
         Set<Id> accountIds = new Set<Id>();
         Map<Id, String> leadEmailMap = new Map<Id, String>();
         
+          for (Lead newLead : leadList) {
+               Lead oldLead = oldMap.get(newLead.Id);
+            if (oldLead == null) continue;
+
+           if (newLead.Status == 'Unqualified' && oldLead.Status != 'Unqualified') {
+                unLeads.add(newLead);
+                ownerIds.add(newLead.OwnerId);
+            }
+               
+          }
 
  
         Map<Id, User> ownerMap = new Map<Id, User>( [SELECT Id, ManagerId FROM User WHERE Id IN :ownerIds AND ManagerId != null] );
@@ -170,10 +180,6 @@ public class LeadTriggerHandler {
             Lead oldLead = oldMap.get(newLead.Id);
             if (oldLead == null) continue;
             
-            if (newLead.Status == 'Unqualified' && oldLead.Status != 'Unqualified') {
-                unLeads.add(newLead);
-                ownerIds.add(newLead.OwnerId);
-            }
             
             if (newLead.IsConverted == true && oldLead.IsConverted == false && newLead.Email != null) {
                 accountIds.add(newLead.ConvertedAccountId);
@@ -194,11 +200,12 @@ public class LeadTriggerHandler {
             
             // LEAD UNQUALIFIED NOTIFICATION (to Admin/Manager as per BRD)
             if (newLead.Status == 'Unqualified' && oldLead.Status != 'Unqualified') {
+                 System.debug(' sending unqualified notification: ');
                 try {
                     Set<String> managerIds = new Set<String>();
                     managerIds.add(ownerMap.get(newLead.OwnerId).ManagerId);
                     managerIds.add(newLead.OwnerId);
-                    
+                     System.debug('managerIds )'+managerIds);
                     Messaging.CustomNotification noti = new Messaging.CustomNotification();
                     noti.setTitle('Lead Marked as Unqualified');
                     noti.setBody('Lead "' + fullName + '" (' + company + ') has been marked as Unqualified.');

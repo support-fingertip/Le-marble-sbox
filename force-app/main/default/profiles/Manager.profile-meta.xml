@@ -425,6 +425,11 @@
     </fieldPermissions>
     <fieldPermissions>
         <editable>true</editable>
+        <field>Account.Communication_Channel__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
         <field>Account.Corporation__c</field>
         <readable>true</readable>
     </fieldPermissions>
@@ -516,6 +521,11 @@
     <fieldPermissions>
         <editable>true</editable>
         <field>Account.Payment_terms__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Account.Pin_Code__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
@@ -1920,6 +1930,11 @@
     </fieldPermissions>
     <fieldPermissions>
         <editable>true</editable>
+        <field>Lead.Pin_Code__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
         <field>Lead.Product_Category__c</field>
         <readable>true</readable>
     </fieldPermissions>
@@ -2130,6 +2145,11 @@
     </fieldPermissions>
     <fieldPermissions>
         <editable>true</editable>
+        <field>Opportunity.Pin_Code__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
         <field>Opportunity.Product_Category__c</field>
         <readable>true</readable>
     </fieldPermissions>
@@ -2201,6 +2221,11 @@
     <fieldPermissions>
         <editable>false</editable>
         <field>OpportunityLineItem.QuoteLineItemId__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>OpportunityLineItem.Room_Type__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
@@ -2356,6 +2381,11 @@
     <fieldPermissions>
         <editable>false</editable>
         <field>Order.Pending_Quantity__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Order.Pin_Code__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
@@ -2871,6 +2901,11 @@
     <fieldPermissions>
         <editable>true</editable>
         <field>Quote.Loading_Charge__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Quote.Pin_Code__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>

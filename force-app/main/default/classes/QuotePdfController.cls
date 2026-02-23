@@ -42,7 +42,7 @@ public with sharing class QuotePdfController {
          Freight_Charge__c, Loading_Charge__c, Unloading_Charge__c,Round_Off__c,
         Total_Amount1__c, Subtotal, TotalPrice, GrandTotal, Discount,
         Email, Phone, Fax,
-        QuoteToName, QuoteToAddress,createddate,
+        QuoteToName, QuoteToAddress,createddate,Contact_Person_Name__c,Contact_Person_Number__c,
         BillingAddress, ShippingAddress,
         Owner.Name, Owner.Title, Owner.Email,
         Owner.Phone,
@@ -90,7 +90,7 @@ public with sharing class QuotePdfController {
                        Sqft__c, Price_Sqft__c, After_Disc_Price_Sqft__c,
                        Total_Price__c, Price__c, Unit_Price__c, UOM__c,
                        After_Disc_Price_Piece__c, Dis_Value__c,
-                       Room_Type__c, Disc_Type__c,UnitPrice,
+                       Room_Type__c, Disc_Type__c,UnitPrice,Area__c,
                        Description, Without_Discount_Total_Price__c,
                        Calculated_Total_Price__c 
                 FROM QuoteLineItem
@@ -102,7 +102,7 @@ public with sharing class QuotePdfController {
                        Sqft__c, Price_Sqft__c, After_Disc_Price_Sqft__c,
                        Total_Price__c, Price__c, Unit_Price__c, UOM__c,
                        After_Disc_Price_Piece__c, Dis_Value__c,UnitPrice,
-                       Room_Type__c, Disc_Type__c,
+                       Room_Type__c, Disc_Type__c,Area__c,
                        Description, Without_Discount_Total_Price__c,
                        Calculated_Total_Price__c 
                 FROM QuoteLineItem

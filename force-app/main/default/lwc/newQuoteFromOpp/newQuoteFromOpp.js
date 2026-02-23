@@ -350,6 +350,7 @@ wiredAreaPicklist({ data, error }) {
                 discType: 'Amount',
                 discValue: 0,
                 roomType: '',
+                 areaDesc: '',
                 requiredSqft: 0,
                 pricePerSqft: 0,
                 afterDiscPriceSqft: 0,
@@ -357,7 +358,9 @@ wiredAreaPicklist({ data, error }) {
                 pricebookEntryId:'',
                  isNaturalStone: false,
                  isTile:false,
-                showDropdown: false
+                showDropdown: false,
+                isActive: true,
+                 rowClass: 'item-card active'
             };
 
             this.selectedProducts = [...this.selectedProducts, cartItem1];
@@ -388,6 +391,7 @@ var i=0;
                     discType: item.Disc_Type__c,
                     discValue: item.Dis_Value__c || 0,
                     roomType: item.Area__c,
+                        areaDesc: item.Room_Type__c,
                     requiredSqft: item.Sqft__c,
                     pricePerSqft: 0,
                     Tax:item.Product2.Tax__c || 0,
@@ -395,9 +399,12 @@ var i=0;
                     sqft: item.Sqft__c, sqm: 0,
                     sqftPerPiece:item.Product2.Sqft_Piece__c || 0,
                     pricebookEntryId: item.PricebookEntryId,
-                     isNaturalStone: item.Product2.Product_Category__c === 'NATURAL STONE',
+                        isNaturalStone: item.Product2.Product_Category__c === 'N.STONE',
                      isTile:item.Product2.Product_Category__c === 'TILE',
-                    showDropdown: false
+                    showDropdown: false,
+                isActive: false,
+                rowClass: 'item-card'
+                    
                 };
 
                 this.selectedProducts = [...this.selectedProducts, cartItem];
@@ -411,6 +418,22 @@ var i=0;
             this.useMRP = event.target.checked;
         }
 
+
+
+
+        handleRowClick(event) {
+            const clickedIndex = Number(event.currentTarget.dataset.index);
+
+            this.selectedProducts = this.selectedProducts.map((item, index) => {
+                const isActive = index === clickedIndex;
+
+                return {
+                    ...item,
+                    isActive,
+                    rowClass: isActive ? 'item-card active' : 'item-card'
+                };
+                });
+        }
 
       /*  updateProductUnitPrices() {
             if (!this.products || !this.pbEntryMap) return;
@@ -460,7 +483,8 @@ var i=0;
                 description: '',
                 discType: 'Amount',
                 discValue: 0,
-                roomType: '',
+                roomType: '', 
+                areaDesc: '',
                 requiredSqft: 0,
                 pricePerSqft: 0,
                 afterDiscPriceSqft: 0,
@@ -469,7 +493,9 @@ var i=0;
                 pricebookEntryId: '',
                 isNaturalStone: false,
                 isTile: false,
-                showDropdown: false
+                showDropdown: false,
+                isActive: false,
+                rowClass: 'item-card'
             };
 
             // Insert new row at same position
@@ -592,23 +618,27 @@ var i=0;
             }
         }
 
-        updateProduct(productId, field, value, idx) {
-    const productIndex = idx;
+    updateProduct(productId, field, value, idx) {
+        const productIndex = idx;
 
-    if (productIndex !== -1) {
-        this.selectedProducts[productIndex][field] = value;
+        if (productIndex !== -1) {
+            this.selectedProducts[productIndex][field] = value;
 
-        const product = this.selectedProducts[productIndex];
+            const product = this.selectedProducts[productIndex];
 
-        // ✅ KEY MUST USE Area/RoomType, not any random field value
+          /*  const areaVal = (field === 'roomType') ? value
+                : product.roomType + (field === 'areaDesc')
+                ? value: product.areaDesc;*/
+                
+            // ✅ KEY MUST USE Area/RoomType, not any random field value
         const areaVal = (field === 'roomType') ? value : product.roomType;
         const newKey = `${product.id || ''}_${areaVal || 'default'}_${product.description || ''}`;
         product.compositeKey = newKey;
 
-        this.calculatePrices(productIndex);
-        this.selectedProducts = [...this.selectedProducts];
+            this.calculatePrices(productIndex);
+            this.selectedProducts = [...this.selectedProducts];
+        }
     }
-}
 
         calculatePrices(productIndex) {
             const product = this.selectedProducts [productIndex];
@@ -1004,10 +1034,13 @@ this.recalculateOrderTotal();
                     discount: item.discValue,
                     totalPrice: item.totalPrice,
                     roomType: item.roomType,
+                    areaDesc: item.areaDesc,
                     description: item.description,
                     requiredSqft: item.requiredSqft,
                     pricebookEntryId: item.pricebookEntryId,
-                     showDropdown: false
+                     showDropdown: false,
+                 isActive: false,
+                rowClass: 'item-card'
                 };
             });
 
@@ -1269,8 +1302,8 @@ console.log(el);
         updated[this.activeRowIndex].name = selectedProduct.Name;
         updated[this.activeRowIndex].code = selectedProduct.productCode;
         updated[this.activeRowIndex].category = selectedProduct.category || '';
-        updated[this.activeRowIndex].isNaturalStone= selectedProduct.category === 'NATURAL STONE';
-        updated[this.activeRowIndex].quantity= selectedProduct.category === 'NATURAL STONE' ? 1:0;
+        updated[this.activeRowIndex].isNaturalStone= selectedProduct.category === 'N.STONE';
+        updated[this.activeRowIndex].quantity= selectedProduct.category === 'N.STONE' ? 1:0;
 
         updated[this.activeRowIndex].isTile= selectedProduct.category === 'TILE';
         
@@ -1356,6 +1389,14 @@ console.log(el);
     this.updateProduct(productId, 'roomType', value, idx);
 }
 
+
+handleAreaDesChange(event) {
+    const productId = event.target.dataset.productId;
+    const idx = event.target.dataset.index;
+    const value = event.detail.value;   
+
+    this.updateProduct(productId, 'areaDesc', value, idx);
+}
 
     // Add new method for handling natural stone unit price changes
     handleNaturalStoneUnitPriceChange(event) {
@@ -1453,16 +1494,18 @@ console.log(el);
 
 
 
-      addRow(event){
-        const index = event.target.dataset.index;
-    this.addItemRecord(index);
-        setTimeout(() => {
-    const container = this.template.querySelector('[data-id="scrollContainer"]');
-    if (container) {
-        container.scrollTop = container.scrollHeight;
-    }
-}, 50);
-    }
+        addRow(event){
+             event.stopPropagation();
+            const index = event.target.dataset.index;
+            this.addItemRecord(index);
+           /* setTimeout(() => {
+            const container = this.template.querySelector('[data-id="scrollContainer"]');
+            if (container) {
+                container.scrollTop = container.scrollHeight;
+            }
+            }, 50);*/
+            
+        }
 
 
         removeRow(event) {
@@ -1489,12 +1532,20 @@ console.log(el);
     }
 
 
-        addItemRecord(index) {
-        let items = [...this.selectedProducts];
-  //      if (index === -1) {
+    addItemRecord(index) {
+            let items = this.selectedProducts.map(item => {
+        return {
+            ...item,
+            isActive: false,
+            rowClass: 'item-card'
+        };
+    });
+
+      //  let items = [...this.selectedProducts];
+        //      if (index === -1) {
 
           const newItem = {
-   compositeKey: `${Date.now()}_${Math.random()}`,
+        compositeKey: `${Date.now()}_${Math.random()}`,
             lineNo:index+1,
                     id: '',
                     
@@ -1510,6 +1561,7 @@ console.log(el);
                     discType: 'Amount',
                     discValue: 0,
                     roomType: '',
+                    areaDesc: '',
                     requiredSqft: 0,
                     pricePerSqft: 0,
                     afterDiscPriceSqft: 0,
@@ -1517,7 +1569,9 @@ console.log(el);
                     pricebookEntryId:'',
                      isNaturalStone: false,
                       isTile: false,
-                    showDropdown: false
+                    showDropdown: false,
+                isActive: true,
+                rowClass: 'item-card active'
             };
 
             console.log('length>>'+items.length+'>>'+index );
@@ -1534,9 +1588,9 @@ console.log(el);
 
             this.updateLineNumbers();
 
-            }
+    }
 
-            updateLineNumbers() {
+     updateLineNumbers() {
                 this.selectedProducts = this.selectedProducts.map((item, index) => {
                     return { 
                         ...item, 
@@ -1591,11 +1645,11 @@ console.log(el);
         }
        
         buildCategoryList(selectedValue) {
-    return this.categories.map(cat => ({
-        ...cat,
-        isSelected: cat.value === selectedValue
-    }));
-}
+        return this.categories.map(cat => ({
+            ...cat,
+            isSelected: cat.value === selectedValue
+        }));
+    }
         get afterDiscPriceLabel() {
             console.log('this.selectedCategory>>>>>>'+this.selectedCategory);
             return this.selectedCategory === 'TILE'

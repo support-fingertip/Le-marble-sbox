@@ -983,3 +983,7 @@
     background: #c9c9c9;
     border-radius: 4px;
 }
+.item-card.active {
+    border: 2px solid #0176d3;
+    background: #f3f9ff;
+}

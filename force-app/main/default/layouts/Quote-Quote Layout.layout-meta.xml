@@ -111,6 +111,10 @@
                 <behavior>Readonly</behavior>
                 <field>PriceBook__c</field>
             </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>Pin_Code__c</field>
+            </layoutItems>
         </layoutColumns>
         <layoutColumns>
             <layoutItems>

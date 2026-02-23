@@ -122,4 +122,136 @@
         max-width: 70%;
         width: 70%;
     }
+
+    /* ================= MOBILE ITEM CARD STYLES ================= */
+
+.mobile-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.mobile-card {
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 14px;
+    border: 1px solid #d8dde6;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.mobile-card lightning-input {
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.mobile-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    padding: 3px 0;
+}
+
+.mobile-row .label {
+    font-weight: 600;
+    color: #444;
+}
+
+.mobile-row .price {
+    font-weight: bold;
+    color: #1a237e;
+}
+
+/* ================= MOBILE MODAL OPTIMIZATION ================= */
+
+@media screen and (max-width: 768px) {
+
+    .slds-modal__container {
+        width: 95% !important;
+        max-width: 95% !important;
+        margin: 0 auto;
+    }
+
+    .slds-modal__content {
+        padding: 10px;
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+
+    .slds-modal__header {
+        font-size: 16px;
+        padding: 12px;
+        text-align: center;
+    }
+
+    .slds-modal__footer {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px;
+    }
+
+    .gradient-button {
+        width: 100%;
+        font-size: 16px;
+        padding: 12px;
+    }
+
+}
+
+/* ================= PDF MOBILE FIX ================= */
+
+@media screen and (max-width: 768px) {
+
+    .slds-modal {
+        position: fixed !important;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 9999 !important;
+    }
+
+    .slds-backdrop {
+        position: fixed !important;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 9998 !important;
+    }
+
+}
+
+/* ================= GLOBAL BLUR FIX ================= */
+
+/* Blur the entire Salesforce page behind modal (optional helper class) */
+.blurPage {
+    filter: blur(6px);
+    pointer-events: none;
+    user-select: none;
+}
+
+/* Make modal stay above everything */
+.slds-modal {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999 !important;
+}
+
+/* Backdrop with blur effect */
+.slds-backdrop {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9998 !important;
+
+    background-color: rgba(0, 0, 0, 0.45);
+
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
 }

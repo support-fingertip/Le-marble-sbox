@@ -101,7 +101,7 @@ throw new AuraHandledException(e.getMessage());
         
         return [
             SELECT Id, Quantity, UnitPrice, Discount, TotalPrice, 
-           Product2Id, Product2.Name, Product2.Product_Code__c, Product2.MSP__c,   Area__c,Product2.Tax__c,Product2.Sqft_Piece__c,
+           Product2Id, Product2.Name, Product2.Product_Code__c, Product2.MSP__c,   Area__c,Product2.Tax__c,Product2.Sqft_Piece__c,Room_Type__c,
             Product2.Product_Category__c,Sqft__c,
             PricebookEntryId,Description
             FROM OpportunityLineItem
@@ -217,7 +217,7 @@ public static List<Map<String, String>> getAreaPicklistValues() {
                                         Decimal priceLimit = Decimal.valueOf(Label.Quote_Approval_limit); 
                                         
                                         opportunity oppParent=[select id,name,Account.name,Account.BillingStreet,Account.BillingCity,Account.BillingState,Account.BillingCountry,Account.Email__c,Account.Phone,Account.BillingPostalCode,              
-                                                               Contact_Person_Name__c,Contact_Number__c,AddressLine1__c,AddressLine2__c,AddressLine3__c,Corporation__c,Country__c,District__c,Municipality__c,Panchayath__c,State__c,Village__c from Opportunity where id=:customerId];          
+                                                               Contact_Person_Name__c,Contact_Number__c,AddressLine1__c,AddressLine2__c,AddressLine3__c,Corporation__c,Country__c,District__c,Municipality__c,Panchayath__c,State__c,Village__c,pin_code__c from Opportunity where id=:customerId];          
                                         
                                         // Create new Cart record
                                         Quote cart = new Quote();
@@ -246,6 +246,7 @@ public static List<Map<String, String>> getAreaPicklistValues() {
                                         cart.District__c= oppParent.District__c;
                                         cart.State__c= oppParent.State__c;
                                         cart.Country__c= oppParent.country__c;
+                                          cart.pin_code__c= oppParent.pin_code__c;
           								cart.ExpirationDate=system.today().addDays(14);
                                         
                                         // Set other fields
@@ -360,7 +361,7 @@ lineItem.Sqft__c = safeDecimalConversion(item.get('sqft'));
                                                 }
                                                 
                                                 if(item.containsKey('roomType')) {
-                                                  lineItem.Room_Type__c = String.valueOf(item.get('roomType'));
+                                                  lineItem.Room_Type__c = String.valueOf(item.get('areaDesc'));
                                                   lineItem.Area__c = String.valueOf(item.get('roomType'));
                                                 }
                                                 
@@ -622,7 +623,8 @@ throw new AuraHandledException('Error creating cart: ' + e.getMessage());
             if(item.containsKey('afterDiscPricePiece')) lineItem.After_Disc_Price_Piece__c = safeDecimalConversion(item.get('afterDiscPricePiece'));
             if(item.containsKey('afterDiscPriceSqft')) lineItem.After_Disc_Price_Sqft__c = safeDecimalConversion(item.get('afterDiscPriceSqft'));
             if(item.containsKey('blocked')) lineItem.Blocked__c = safeDecimalConversion(item.get('blocked'));
-            if(item.containsKey('roomType')) lineItem.Room_Type__c = String.valueOf(item.get('roomType'));
+            if(item.containsKey('roomType')) lineItem.Area__c = String.valueOf(item.get('roomType'));
+            if(item.containsKey('areaDesc')) lineItem.Room_Type__c = String.valueOf(item.get('areaDesc'));
             if(item.containsKey('description')) lineItem.Description = String.valueOf(item.get('description'));
             
             insert lineItem;

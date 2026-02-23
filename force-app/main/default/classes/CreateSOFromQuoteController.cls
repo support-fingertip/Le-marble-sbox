@@ -49,15 +49,15 @@ public static Map<String, Object> getQuoteInfo(Id quoteId) {
         return [
             SELECT
                 Id,
-                Quantity,
-                UnitPrice,
-                Product2.Name,
-            	Product2.Tax__c,
-                Product2.ProductCode,
+            Quantity,
+            UnitPrice,
+            Product2.Name,
+            Product2.Tax__c,
+            Product2.ProductCode,
             Product2.Product_Code__c,
-                Product2.Family,
+            Product2.Family,
             Product2.Product_Category__c,
-                PricebookEntry.Product2.Product_Category__c
+            PricebookEntry.Product2.Product_Category__c
             FROM QuoteLineItem
             WHERE QuoteId = :quoteId
             ORDER BY CreatedDate ASC
@@ -83,7 +83,7 @@ public static Map<String, Object> getQuoteInfo(Id quoteId) {
             // Fetch Quote
          Quote q = [SELECT Id, AccountId, OpportunityId,
            Pricebook2Id,  Sales_Order_Created__c, Freight_Charge__c, Loading_Charge__c,Unloading_Charge__c,ContactId,Contact.Name,Contact.Phone,BillingStreet,BillingCity, BillingState, BillingPostalCode,
-           BillingCountry,ShippingStreet, ShippingCity, ShippingState, ShippingPostalCode, ShippingCountry, AddressLine1__c, AddressLine2__c, AddressLine3__c, District__c, State__c, Country__c FROM Quote WHERE Id = :quoteId LIMIT 1];
+           BillingCountry,ShippingStreet, ShippingCity, ShippingState, ShippingPostalCode, ShippingCountry, AddressLine1__c, AddressLine2__c, AddressLine3__c, District__c, State__c, Country__c,pin_code__c FROM Quote WHERE Id = :quoteId LIMIT 1];
 
         Account acc = [ SELECT BillingStreet, BillingCity, BillingState, BillingPostalCode, BillingCountry FROM Account  WHERE Id = :q.AccountId LIMIT 1];
 
@@ -209,7 +209,7 @@ if (deliveryCommittedDate < Date.today()) {
             ord.District__c = q.District__c;
 ord.State__c    = q.State__c;
             ord.Country__c    = q.Country__c;
-
+		 ord.pin_code__c    = q.pin_code__c;
         
         
         if (String.isBlank(q.ShippingStreet)) {
@@ -437,7 +437,7 @@ public static List<Map<String, Object>> getBatchStock1(Id orderItemId) {
             Http http = new Http();
             Map<String, Object> bodyMap = new Map<String, Object>();
             bodyMap.put('ApiKey', 'SKYHSTskb2h82yhdc76512rgsv');
-            bodyMap.put('ProductCode', 'TL02811');
+            bodyMap.put('ProductCode', orderItemId);
             // TL02811   orderItemId
             String requestBody = JSON.serialize(bodyMap);
  System.debug(' requestBody: ' + requestBody);
@@ -483,12 +483,10 @@ public static List<Map<String, Object>> getBatchStock1(Id orderItemId) {
                                 wrap.reserved = String.valueOf(warehouseInfo.get('Reserved')); 
                                 wrap.billable = String.valueOf(warehouseInfo.get('Billable')); 
                                 Object stockVal = warehouseInfo.get('Stock');
-                                wrap.inStock = stockVal != null
-                                    ? Decimal.valueOf(String.valueOf(stockVal))
-                                    : 0;
+                                wrap.inStock = stockVal != null ? Decimal.valueOf(String.valueOf(stockVal)): 0;
 
                                 system.debug(wrap.inStock);
-                                wrap.Eid = wrap.warehouseCode+wrap.Batch; 
+                                wrap.Eid = wrap.warehouseCode+wrap.Batch+ system.now() ; 
                                 if(wrap.IsBatchEnable=='Yes' && wCodes.contains( wrap.warehouseCode) && wrap.inStock>0){
                                     resultList.add(wrap);
                                    

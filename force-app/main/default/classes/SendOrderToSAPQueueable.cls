@@ -6,16 +6,16 @@ public class SendOrderToSAPQueueable implements Queueable, Database.AllowsCallou
         this.orderId = orderId;
     }
 public void execute(QueueableContext context) {
-
+system.debug('SendOrderToSAPQueueable  '+this.orderId);
     Order ord = [
         SELECT Id, Status, SAP_Doc_Num__c
         FROM Order
         WHERE Id = :orderId
     ];
-
-    if (ord.SAP_Doc_Num__c==null || ord.Status != 'Approved') {
+system.debug('ord  '+ord);
+  /*  if (ord.SAP_Doc_Num__c==null || ord.Status != 'Approved') {
         return;
-    }
+    }*/
 
     sapIntegration.sendOrderToSAP(orderId);
 

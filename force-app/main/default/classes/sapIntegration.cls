@@ -72,7 +72,7 @@ public class sapIntegration {
             Account deal = [
                 SELECT Customer_Number__c, Name, Email__c, Phone, Secondary_Phone__c,Type,
                 Address_Line1__c, Address_Line2__c,Address_Line3__c,Corporation__c,Municipality__c,Panchayath__c,Village__c,State__c,Country__c,Description,District__c,GST_Number__c,Owner_Name__c,
-                ShippingState,ShippingCountry, ShippingCity,ShippingStreet,ShippingAddress,BillingAddress,ShippingPostalCode,Customer_Type__c,GST_Type__c,POC_Name__c,POC_Number__c,
+                ShippingState,ShippingCountry, ShippingCity,ShippingStreet,ShippingAddress,BillingAddress,ShippingPostalCode,Customer_Type__c,GST_Type__c,POC_Name__c,POC_Number__c,pin_code__c,
                 BillingState,BillingCountry, BillingCity,BillingStreet,BillingPostalCode,ownerId FROM Account
                 WHERE Id = :dealId
                 LIMIT 1
@@ -173,7 +173,7 @@ public class sapIntegration {
                     'City'          => deal.Village__c!=null? deal.Village__c:'',
                      'County'         => deal.district__c!=null? deal.district__c:'',   
                     'State'         => deal.State__c!=null? deal.State__c:'',
-                    'ZipCode'       => '',
+                    'ZipCode'       => deal.pin_code__c!=null?String.valueOf(deal.pin_code__c):'',
                     'Country'       => deal.country__c!=null? deal.country__c:'', //IN
                     'AddressType'   => 'bo_ShipTo',
                     'AddressName2'  => deal.Address_Line2__c!=null? deal.Address_Line2__c:'',
@@ -287,7 +287,7 @@ public class sapIntegration {
             Account deal = [
                 SELECT Customer_Number__c, Name, Email__c, Phone, Secondary_Phone__c,Type,
                 Address_Line1__c, Address_Line2__c,Address_Line3__c,Corporation__c,Municipality__c,Panchayath__c,Village__c,State__c,Country__c,Description,District__c,GST_Number__c,POC_Number__c,
-                ShippingState,ShippingCountry, ShippingCity,ShippingStreet,ShippingAddress,BillingAddress,ShippingPostalCode,GST_Type__c,POC_Name__c,Account.OwnerId, Account.Customer_Type__c,
+                ShippingState,ShippingCountry, ShippingCity,ShippingStreet,ShippingAddress,BillingAddress,ShippingPostalCode,GST_Type__c,POC_Name__c,Account.OwnerId, Account.Customer_Type__c,pin_code__c,
                 BillingState,BillingCountry, BillingCity,BillingStreet,BillingPostalCode FROM Account
                 WHERE Id = :dealId
                 LIMIT 1
@@ -407,7 +407,7 @@ public class sapIntegration {
                     existingAddr.put('City', deal.Village__c!=null? deal.Village__c:'');
                     existingAddr.put('County',  deal.district__c!=null?deal.district__c:'');
                      existingAddr.put('State',  deal.State__c!=null?deal.State__c:'');
-                    existingAddr.put('ZipCode', '');
+                    existingAddr.put('ZipCode', deal.pin_code__c!=null?String.valueOf(deal.pin_code__c):'');
                     existingAddr.put('Country', deal.country__c!=null?deal.country__c:'');
                     existingAddr.put('AddressType', 'bo_ShipTo');
                     existingAddr.put('AddressName2',  deal.Address_Line2__c!=null?deal.Address_Line2__c:'');
@@ -444,7 +444,7 @@ public class sapIntegration {
                     'City'          => deal.Village__c!=null? deal.Village__c:'',
                     'County'         => deal.district__c!=null? deal.district__c:'',   
                     'State'         => deal.State__c!=null? deal.State__c:'',
-                    'ZipCode'       => '',
+                    'ZipCode'       => deal.pin_code__c!=null?String.valueOf(deal.pin_code__c):'',
                     'Country'       => deal.country__c!=null? deal.country__c:'', //IN
                     'AddressType'   => 'bo_ShipTo',
                     'AddressName2'  => deal.Address_Line2__c!=null? deal.Address_Line2__c:'',
@@ -627,7 +627,7 @@ public class sapIntegration {
             else {
                 
                  log.status__c='SUCCESS';
-                log.response__c= 'Status code : '+res.getStatusCode() +' Response body: '+ res.getBody();
+            //    log.response__c= 'Status code : '+res.getStatusCode() +' Response body: '+ res.getBody();
                 System.debug(' Order created in SAP for: ' + ord.Id);
                 System.debug('SAP Response Body: ' + res.getBody());
                 
@@ -747,7 +747,7 @@ public class sapIntegration {
             Order ord = [ SELECT id,account.Customer_Number__c,opportunityId,account.Customer_Type__c,Warehouse__r.Warehouse_Code__c,ownerid//, BranchLocation__c,  
                 FROM Order WHERE Id = :order.id LIMIT 1 ];
         
-        string oppowner=[select id from opportunity where id=:ord.opportunityId].ownerid;
+        string oppowner=[select id,ownerid from opportunity where id=:ord.opportunityId].ownerid;
         
         string oppOwnId=[select id, SAP_Emp_Code__c from user where id=:oppowner].SAP_Emp_Code__c;
         string ordOwnId=[select id, SAP_Emp_Code__c from user where id=:ord.ownerid].SAP_Emp_Code__c;

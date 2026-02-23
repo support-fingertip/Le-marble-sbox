@@ -461,12 +461,12 @@ L E &nbsp; M A R B L E &nbsp; G A L L E R Y &nbsp; P V T. &nbsp; L T D.
                             
                             <tr>
                                 <td style="font-weight:bold;">Contact Name</td>
-                                <td>{!cart.QuoteToName}</td>
+                                <td>{!cart.Contact_Person_Name__c}</td>
                             </tr>
                             
                             <tr>
                                 <td style="font-weight:bold;">Phone</td>
-                                <td>{!cart.Phone}</td>
+                                <td>{!cart.Contact_Person_Number__c}</td>
                             </tr>
                             
                             <tr>

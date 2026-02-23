@@ -7,6 +7,7 @@ import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { getRecord } from 'lightning/uiRecordApi';
 import EMAIL_FIELD from '@salesforce/schema/Quote.Email';
 import EXPIRATION_FIELD from '@salesforce/schema/Quote.ExpirationDate';
+import FORM_FACTOR from '@salesforce/client/formFactor';
 
 export default class QuotationButton extends NavigationMixin(LightningElement) {
     quoteEmail;
@@ -26,24 +27,24 @@ export default class QuotationButton extends NavigationMixin(LightningElement) {
         { label: 'Unit Price', fieldName: 'unitPrice', type: 'currency' },
         { label: 'Total Price After Disc', fieldName: 'totalPrice', type: 'currency' }
     ];
+get isMobile() {
+    return FORM_FACTOR === 'Small' || window.innerWidth <= 768;
+}
 
-    get isMobile() {
-        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    }
 
     @wire(getCartLineItems, { cartId: '$recordId' })
     wiredCartLineItems({ error, data }) {
         if (data) {
-            this.cartLineItems = data.map(item => ({
-                id: item.Id,
-                productName: item.Product2.Name,
-                category: item.Product_Category__c,
-                quantity: item.Quantity,
-                unitPrice: item.UnitPrice,
-                totalPrice: item.Calculated_Total_Price__c,
-                selected: false
-            }));
-        }
+           this.cartLineItems = data.map(item => ({
+            id: item.Id,
+            productName: item.Product2.Name,
+            category: item.Product_Category__c,
+            quantity: item.Quantity,
+            unitPrice: item.UnitPrice,
+            totalPrice: item.Calculated_Total_Price__c,
+            selected: this.selectedItems.includes(item.Id)
+        }));
+                }
     }
 
     // 🔹 ADD THIS WIRE ANYWHERE INSIDE THE CLASS (best: after the first wire)
@@ -68,14 +69,15 @@ export default class QuotationButton extends NavigationMixin(LightningElement) {
 
     // 🔹 rest of your methods
     handleOpenQuotation() {
-        this.showSelectionModal = true;
-    }
-
+    this.showSelectionModal = true;
+    this.applyBackgroundBlur();
+}
 
     handleSelectionClose() {
-        this.showSelectionModal = false;
-        this.selectedItems = [];
-    }
+    this.showSelectionModal = false;
+    this.selectedItems = [];
+    this.removeBackgroundBlur(); 
+}
 
     handleRowSelection(event) {
         const selectedRows = event.detail.selectedRows;
@@ -83,18 +85,22 @@ export default class QuotationButton extends NavigationMixin(LightningElement) {
     }
 
     async handleProceed() {
-        if (this.selectedItems.length === 0) {
-            this.dispatchEvent(new ShowToastEvent({
-                title: 'Warning',
-                message: 'Please select at least one item',
-                variant: 'warning'
-            }));
-            return;
-        }
-        this.showSelectionModal = false;
-        this.showPdfModal = true;
-        await this.loadQuotation();
+    if (this.selectedItems.length === 0) {
+        this.dispatchEvent(new ShowToastEvent({
+            title: 'Warning',
+            message: 'Please select at least one item',
+            variant: 'warning'
+        }));
+        return;
     }
+
+    this.showSelectionModal = false;
+    this.showPdfModal = true;
+
+    this.applyBackgroundBlur();  // ✅ ADD THIS
+
+    await this.loadQuotation();
+}
 
     async loadQuotation() {
         try {
@@ -130,8 +136,9 @@ export default class QuotationButton extends NavigationMixin(LightningElement) {
     }
 
     handleClose() {
-        this.showPdfModal = false;
-    }
+    this.showPdfModal = false;
+    this.removeBackgroundBlur();   
+}
 
    async handleSendEmail() {
 
@@ -222,4 +229,66 @@ export default class QuotationButton extends NavigationMixin(LightningElement) {
 
 
     }
+   handleMobileSelection(event) {
+
+    const id = event.target.dataset.id;
+    const checked = event.target.checked;
+
+    if (checked) {
+
+        if (!this.selectedItems.includes(id)) {
+            this.selectedItems = [...this.selectedItems, id];
+        }
+
+    } else {
+
+        this.selectedItems =
+            this.selectedItems.filter(item => item !== id);
+
+    }
+
+    // update UI state
+    this.cartLineItems = this.cartLineItems.map(item => ({
+        ...item,
+        selected: item.id === id ? checked : item.selected
+    }));
+
+}
+
+applyBackgroundBlur() {
+
+    // Try multiple Salesforce containers (Desktop + Mobile)
+    const containers = [
+        document.querySelector('.oneContent'),
+        document.querySelector('.siteforceContentArea'),
+        document.querySelector('.slds-template_default'),
+        document.querySelector('.viewport'),
+        document.querySelector('.container')
+    ];
+
+    containers.forEach(el => {
+        if (el) {
+            el.classList.add('blurPage');
+        }
+    });
+
+}
+
+removeBackgroundBlur() {
+
+    const containers = [
+        document.querySelector('.oneContent'),
+        document.querySelector('.siteforceContentArea'),
+        document.querySelector('.slds-template_default'),
+        document.querySelector('.viewport'),
+        document.querySelector('.container')
+    ];
+
+    containers.forEach(el => {
+        if (el) {
+            el.classList.remove('blurPage');
+        }
+    });
+
+}
 }
