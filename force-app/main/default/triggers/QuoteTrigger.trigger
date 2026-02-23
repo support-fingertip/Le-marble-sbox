@@ -41,8 +41,7 @@ trigger QuoteTrigger on Quote (
         
         QuoteTriggerHandler.handleCustomerAcceptedNotification(
             Trigger.new,
-            Trigger.oldMap
-        );
+            Trigger.oldMap);
 
         // Notify ONLY Quote Owner AFTER approval
         QuoteTriggerHandler.handleApprovalOwnerNotification(

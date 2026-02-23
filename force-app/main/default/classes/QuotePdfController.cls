@@ -90,7 +90,7 @@ public with sharing class QuotePdfController {
                        Sqft__c, Price_Sqft__c, After_Disc_Price_Sqft__c,
                        Total_Price__c, Price__c, Unit_Price__c, UOM__c,
                        After_Disc_Price_Piece__c, Dis_Value__c,
-                       Room_Type__c, Disc_Type__c,UnitPrice,
+                       Room_Type__c, Disc_Type__c,UnitPrice,Area__c,
                        Description, Without_Discount_Total_Price__c,
                        Calculated_Total_Price__c 
                 FROM QuoteLineItem
@@ -102,7 +102,7 @@ public with sharing class QuotePdfController {
                        Sqft__c, Price_Sqft__c, After_Disc_Price_Sqft__c,
                        Total_Price__c, Price__c, Unit_Price__c, UOM__c,
                        After_Disc_Price_Piece__c, Dis_Value__c,UnitPrice,
-                       Room_Type__c, Disc_Type__c,
+                       Room_Type__c, Disc_Type__c,Area__c,
                        Description, Without_Discount_Total_Price__c,
                        Calculated_Total_Price__c 
                 FROM QuoteLineItem
@@ -370,22 +370,10 @@ System.debug('Final products list size: ' + this.products.size());
     }
 
     @AuraEnabled
-    public static void sendQuotationEmail(
-        Id cartId,
-        List<String> selectedItemIds,
-        String toEmail,
-        String subject,
-        String body,
-        String quotationBlob
-    ) {
+    public static void sendQuotationEmail(Id cartId,List<String> selectedItemIds, String toEmail,String subject, String body,String quotationBlob ) {
    //     try {
             // cartId is Quote Id now
-            Quote quoteRecord = [
-                SELECT Id, Name, QuoteToName, Email,ownerId,status
-                FROM Quote
-                WHERE Id = :cartId
-                LIMIT 1
-            ];
+            Quote quoteRecord = [SELECT Id, Name, QuoteToName, Email,ownerId,status FROM Quote WHERE Id = :cartId LIMIT 1];
 
            String finalEmail;
 

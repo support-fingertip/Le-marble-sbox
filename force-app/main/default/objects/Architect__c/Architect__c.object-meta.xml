@@ -159,7 +159,7 @@
     <enableSharing>true</enableSharing>
     <enableStreamingApi>true</enableStreamingApi>
     <externalSharingModel>Private</externalSharingModel>
-    <label>Architects</label>
+    <label>Referral</label>
     <nameField>
         <label>Reference Name</label>
         <trackHistory>false</trackHistory>

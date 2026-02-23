@@ -83,10 +83,10 @@
             <center>
                 <lightning:button variant="brand" label="Get Outstanding Data" title="Pull data" onclick="{!c.navigateToComponent}" />
             </center>
-        </aura:if>  
+        </aura:if>   Stock Data
     -->    
         
-            Stock Data
+           
         <aura:if isTrue="{!(v.selectedType=='Stock')}">
             
             

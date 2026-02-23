@@ -211,6 +211,33 @@ wiredQuoteInfo({ error, data }) {
     }
 
     handleWarehouseSelect(event) {
+            const selectedEid = event.currentTarget.dataset.eid;
+
+    // Get selected batch row
+        const selectedBatch = this.batchList.find(b => b.Eid === selectedEid);
+
+        if (!selectedBatch) {
+            return;
+        }
+
+        const selectedItem = this.quoteLineItems.find(
+            item => item.Id === this.selectedOrderItemId
+        );
+
+        if (!selectedItem) {
+            return;
+        }
+        
+        if (selectedBatch.inStock < selectedItem.Quantity) {
+            this.showToast(
+                'Error',
+                'Stock not available in selected warehouse',
+                'error'
+            );
+            return; // stop execution
+        }
+
+
     const warehouseCode = event.currentTarget.dataset.warehouse;
 
         this.quoteLineItems = this.quoteLineItems.map(item => {
@@ -403,6 +430,25 @@ wiredQuoteInfo({ error, data }) {
     handleBlockQtyChange(event) {
         const recordId = event.target.dataset.id;
         const value = event.target.value;
+
+        const currentItem = this.quoteLineItems.find(
+            item => item.Id === recordId
+        );
+
+        if (!currentItem) {
+            return;
+        }
+        if (value > currentItem.Quantity) {
+            this.showToast(
+                'Error',
+                'Block Quantity cannot be greater than Quantity',
+                'error'
+            );
+
+            // Reset input value to previous valid value
+            event.target.value = currentItem.BlockQty || 0;
+            return;
+        }
 
         this.quoteLineItems = this.quoteLineItems.map(item => {
             if (item.Id === recordId) {
@@ -606,6 +652,7 @@ handleViewBatch(event) {
 
     // existing logic
     const qliId = event.currentTarget.dataset.id;
+    const prodCode = event.currentTarget.dataset.code;
 
     this.selectedQuoteLineItemId = qliId;
     this.isBatchModalOpen = true;
@@ -614,7 +661,7 @@ handleViewBatch(event) {
     this.selectedOrderItemId = event.target.dataset.id;
 
    getBatchStock({
-    orderItemId: this.selectedOrderItemId,
+    orderItemId: prodCode,
     warehouse: this.selectedWarehouse
 })
 .then(result => {
@@ -647,79 +694,85 @@ console.log('Batch List:', JSON.stringify(this.batchList));
 }
 
 handleBatchQtyChange(event) {
-    const qty = Number(event.target.value);
+    const value = Number(event.target.value);
     const eid = event.target.dataset.eid;
+    const field = event.target.dataset.field; // quantity | blkQty
 
-    if (!eid) return;
-    // find the row from batchList
+    if (!eid || !field) return;
+
     const row = this.batchList.find(b => b.Eid === eid);
     if (!row) return;
 
-     const quoteItem = this.quoteLineItems.find(
+    const quoteItem = this.quoteLineItems.find(
         i => i.Id === this.selectedOrderItemId
     );
-
     if (!quoteItem) return;
 
-    // remove entry if qty is 0 or empty
-    if (!qty || qty <= 0) {
-        delete this.batchQtyMap[eid];
-          this.batchList = this.batchList.map(b =>
-            b.Eid === eid ? { ...b, quantity: null } : b
+    // Init map entry
+    if (!this.batchQtyMap[eid]) {
+        this.batchQtyMap[eid] = {
+            Eid: row.Eid,
+            Batch: row.Batch,
+            warehouseCode: row.warehouseCode,
+            quantity: 0,
+            blkQty: 0,
+            inStock: row.inStock,
+            reserved: row.reserved,
+            billable: row.billable
+        };
+    }
+
+    // Clear / reset
+    if (!value || value <= 0) {
+        this.batchQtyMap[eid][field] = 0;
+        this.batchList = this.batchList.map(b =>
+            b.Eid === eid ? { ...b, [field]: null } : b
         );
         return;
     }
-  let totalBatchQty = 0;
-   Object.values(this.batchQtyMap).forEach(b => {
+
+    // 🔹 TOTAL VALIDATION (quantity OR blkQty)
+    let total = 0;
+    Object.values(this.batchQtyMap).forEach(b => {
         if (b.Eid !== eid) {
-            totalBatchQty += b.quantity || 0;
+            total += b[field] || 0;
         }
     });
+    total += value;
 
-    totalBatchQty += qty;
-
-    //  VALIDATION: batch qty > item qty
-    if (totalBatchQty > quoteItem.Quantity) {
+    if (total > quoteItem.Quantity) {
         this.showToast(
             'Error',
-            `Total batch quantity (${totalBatchQty}) cannot exceed item quantity (${quoteItem.Quantity}).`,
+            `Total ${field} (${total}) cannot exceed item quantity (${quoteItem.Quantity}).`,
             'error'
         );
-
-        // reset input field
         event.target.value = null;
         return;
     }
 
-    //Validation: cannot exceed available
-        if (qty > row.inStock) {
+    // 🔹 PER ROW STOCK VALIDATION
+    if (value > row.inStock) {
         this.showToast(
             'Error',
-            `Quantity cannot exceed available stock (${row.inStock})`,
+            `${field} cannot exceed available stock (${row.inStock}).`,
             'error'
         );
         event.target.value = null;
         return;
-        }
+    }
 
-    // store complete row data
-    this.batchQtyMap[eid] = {
-        Eid: row.Eid,
-        Batch: row.Batch,
-        warehouseCode: row.warehouseCode,
-        quantity: qty,
-        inStock: row.inStock,
-        reserved: row.reserved,
-        billable: row.billable
-    };
-     this.batchList = this.batchList.map(b =>
-        b.Eid === eid
-            ? { ...b, quantity: qty }
-            : b
+    // 🔹 SAVE
+    this.batchQtyMap[eid][field] = value;
+
+    this.batchList = this.batchList.map(b =>
+        b.Eid === eid ? { ...b, [field]: value } : b
     );
 
     console.log('Batch Qty Map:', JSON.stringify(this.batchQtyMap));
 }
+
+
+
 handleEditBatch(event) {
     this.selectedOrderItemId = event.currentTarget.dataset.qli;
     this.isBatchModalOpen = true;
@@ -743,8 +796,6 @@ handleEditBatch(event) {
 }
 
 handleDeleteBatch(event) {
-
-
     const qliId = event.currentTarget.dataset.qli;
     const eid = event.currentTarget.dataset.eid;
 
@@ -754,28 +805,30 @@ handleDeleteBatch(event) {
             // remove the selected batch
             const updatedBatches = item.batches.filter(b => b.Eid !== eid);
 
-            // recalculate Block Qty
-            const updatedBlockQty = updatedBatches.reduce(
-                (sum, b) => sum + (b.quantity || 0),
+            // recalculate blkQty (SUM of blkQty)
+            const updatedBlkQty = updatedBatches.reduce(
+                (sum, b) => sum + (b.blkQty || 0),
                 0
             );
 
             return {
                 ...item,
                 batches: updatedBatches,
-                BlockQty: updatedBlockQty
+                blkQty: updatedBlkQty,
+                isBlockQtyDisabled: Array.isArray(item.batches) && item.batches.length > 0
             };
         }
         return item;
     });
 
-    // Optional: clean from batchQtyMap if exists
+    // clean from map
     if (this.batchQtyMap[eid]) {
         delete this.batchQtyMap[eid];
     }
 
     this.showToast('Success', 'Batch removed successfully', 'success');
 }
+
 
 
 closeBatchModal(){
@@ -786,7 +839,12 @@ closeBatchModal(){
 saveBatchItems() {
     const batchList = Object.values(this.batchQtyMap);
 
-    const totalBatchQty = batchList.reduce(
+     const totalBlkQty = batchList.reduce(
+        (sum, b) => sum + (b.blkQty || 0),
+        0
+    );
+
+    const totalItemQty = batchList.reduce(
         (sum, b) => sum + (b.quantity || 0),
         0
     );
@@ -796,8 +854,10 @@ saveBatchItems() {
         if (item.Id === this.selectedOrderItemId) {
             return {
                 ...item,
-                batches: batchList,   //  store only in JS
-                BlockQty: totalBatchQty
+                batches: batchList,
+                itemQty: totalItemQty,   //  store only in JS
+                BlockQty: totalBlkQty,
+                isBlockQtyDisabled: Array.isArray(item.batches) && item.batches.length > 0
             };
         }
         return item;

@@ -33,6 +33,10 @@
                 <behavior>Readonly</behavior>
                 <field>Curent_User_Profile_Name__c</field>
             </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>Pin_Code__c</field>
+            </layoutItems>
         </layoutColumns>
         <layoutColumns>
             <layoutItems>

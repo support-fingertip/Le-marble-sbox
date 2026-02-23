@@ -126,7 +126,7 @@
                         </div>
                     </template>
                     </div>
-                </div>
+                </div>  
 
                     <div class="slds-m-bottom_medium">
                         <lightning-combobox
@@ -255,7 +255,7 @@
                                             checked={item.isSelected}
                                             onchange={handleProductSelection}>
                                         </lightning-input>
-                                    </td>
+                                        </td>
                                             <td class="product-cell">{item.Product2.Name}</td>
                                             <td>{item.Quantity}</td>
                                             <template if:false={isFactoryWarehouse}>
@@ -265,6 +265,7 @@
                                                     variant="label-hidden"
                                                     value={item.BlockQty}
                                                     data-id={item.Id}
+                                                    disabled={item.isBlockQtyDisabled}
                                                     min="0"
                                                     onchange={handleBlockQtyChange}>
                                                 </lightning-input>
@@ -280,6 +281,7 @@
                                                         label="Check Stock"
                                                         variant="brand-outline"
                                                         data-id={item.Id}
+                                                        data-code={item.Product2.Product_Code__c}
                                                         onclick={handleViewBatch}>
                                                     </lightning-button>
                                                 </template>
@@ -300,6 +302,7 @@
                                 <th>Warehouse</th>
                                 <th>Batch</th>
                                 <th>Qty</th>
+                                <th>BlkQty</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -309,6 +312,7 @@
                                     <td>{b.warehouseCode}</td>
                                     <td>{b.Batch}</td>
                                     <td>{b.quantity}</td>
+                                    <td>{b.blkQty}</td>
                                     <td>
                                         <lightning-button-icon
                                             icon-name="utility:edit"
@@ -381,7 +385,7 @@
 
         <div class="slds-backdrop slds-backdrop_open"></div>
       </div>
-        <template if:true={isBatchModalOpen}>
+     <template if:true={isBatchModalOpen}>
         <section role="dialog" class="slds-modal slds-fade-in-open slds-modal_medium">
         <div class="slds-modal__container">
 
@@ -401,6 +405,7 @@
                         <th>Reserved</th>
                         <template if:true={isBatchEditable}>
                             <th>Enter Qty</th>
+                            <th>Enter Block Qty</th>
                         </template>
                     </tr>
                 </thead>
@@ -410,25 +415,49 @@
                             <td>{b.warehouseCode}</td>
                             <td>{b.Batch}</td>
                             <td>{b.inStock}</td>
-                            <td>{b.billable}</td>
-                            <td>{b.reserved}</td>
+                            <td>
+                                <lightning-formatted-number
+                                    value={b.billable}
+                                    minimum-fraction-digits="2"
+                                    maximum-fraction-digits="2">
+                                </lightning-formatted-number>
+                            </td>
+                            <td>
+                                <lightning-formatted-number
+                                    value={b.reserved}
+                                    minimum-fraction-digits="2"
+                                    maximum-fraction-digits="2">
+                                </lightning-formatted-number>
+                            </td>
                         <template if:true={isBatchEditable}>
                             <td>
                                 <lightning-input
                                     type="number"
                                     min="0"
                                     data-eid={b.Eid}
+                                     data-field="quantity"
                                     value={b.quantity}
                                     onchange={handleBatchQtyChange}>
                                 </lightning-input>
                             </td>
-                            </template>
+                             <td>
+                                <lightning-input
+                                    type="number"
+                                    min="0"
+                                    data-eid={b.Eid}
+                                    value={b.blkQty}
+                                     data-field="blkQty"
+                                    onchange={handleBatchQtyChange}>
+                                </lightning-input>
+                            </td>
+                        </template>
 
-                            <template if:false={isBatchEditable}>
+                        <template if:false={isBatchEditable}>
                             <td>
                                 <lightning-button
                                     label="Select"
                                     variant="brand-outline"
+                                     data-eid={b.Eid}
                                     data-warehouse={b.warehouseCode}
                                     onclick={handleWarehouseSelect}>
                                 </lightning-button>

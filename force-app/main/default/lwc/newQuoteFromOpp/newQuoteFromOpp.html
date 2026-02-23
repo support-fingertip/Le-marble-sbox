@@ -106,10 +106,44 @@
         <!-- LINE ITEM CARDS -->
         <div>
             <template for:each={selectedProducts} for:item="item" for:index="index">
-               <div key={item.compositeKey} class="item-card">
+            <div key={item.compositeKey} class={item.rowClass} data-index={index} onclick={handleRowClick}>
+
                 <div class="line-no-box">
                         {item.lineNo}.
+                </div>
+                <template if:false={item.isActive}>
+                    <div class="slds-grid slds-gutters slds-p-around_small">
+                            <div class="slds-col slds-size_6-of-12">
+                                <strong>{item.name}</strong>
+                                <div class="product-code">Code: {item.code}</div>
+                                  <template if:true={item.isNaturalStone}>
+                                    <div class="product-code">Description: {item.description}</div>
+                                  </template>
+
+                                 <div class="product-code">Area: {item.roomType} {item.areaDesc}</div>
+                            </div>
+
+                            <div class="slds-col slds-size_6-of-12 slds-text-align_right">
+                                <lightning-button-icon
+                                    icon-name="utility:add"
+                                    alternative-text="Add Row"
+                                    data-index={index}
+                                    onclick={addRow}>
+                                </lightning-button-icon>
+
+                                <lightning-button-icon
+                                    icon-name="utility:delete"
+                                    alternative-text="Delete Row"
+                                    data-index={index}
+                                    onclick={removeRow}>
+                                </lightning-button-icon>
+                            </div>
                     </div>
+                </template>
+                <!-- PRODUCT DETAILS (ONLY ACTIVE ROW) -->
+                <template if:true={item.isActive}>
+                    <div class="product-details slds-p-around_medium">
+
 
                     <!-- Top row: Category | Product | Buttons -->
                     <div class="slds-grid slds-wrap slds-gutters">
@@ -127,6 +161,7 @@
                                                 placeholder="Search by product name or code..."
                                                 data-index={index}
                                                 value={item.name}
+                                                autocomplete="off"
                                                 onkeyup={handleSearchInput}
                                                 onfocus={handleSearchFocus}
                                                 onblur={handleSearchBlur} />
@@ -169,8 +204,20 @@
                                                             <td>{stk.warehouseCode}</td>
                                                             <td>{stk.Batch}</td>
                                                             <td>{stk.inStock}</td>
-                                                            <td>{stk.reserved}</td>
-                                                             <td>{stk.billable}</td>
+                                                            <td>
+                                                                <lightning-formatted-number
+                                                                    value={stk.reserved}
+                                                                    minimum-fraction-digits="2"
+                                                                    maximum-fraction-digits="2">
+                                                                </lightning-formatted-number>
+                                                            </td>
+                                                             <td>
+                                                                <lightning-formatted-number
+                                                                    value={stk.billable}
+                                                                    minimum-fraction-digits="2"
+                                                                    maximum-fraction-digits="2">
+                                                                </lightning-formatted-number>
+                                                             </td>
 
                                                         </tr>
                                                     </template>
@@ -301,6 +348,15 @@
                                             required>
                                         </lightning-combobox>
                                 </div>
+
+                                    <div class="slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
+                            <lightning-input type="text" label="Area Desc"
+                                                                value={item.areaDesc}
+                                                                data-index={index}
+                                                                data-product-id={item.id}
+                                                                onchange={handleAreaDesChange}>
+                                            </lightning-input>
+                                    </div>
                              <!--   <template if:true={showDiscountSection}> -->     
                                     <div class="slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
                                         <div class="slds-form-element">
@@ -363,15 +419,24 @@
                                 <!-- Area -->
                                 <div class="field-box slds-col slds-small-size_1-of-1 slds-medium-size_2-of-8">
                                     <lightning-combobox
-                                    label="Area"
-                                    value={item.roomType}
-                                    options={areaOptions}
-                                    data-index={index}
-                                    data-product-id={item.id}
-                                    onchange={handleRoomTypeChange}
-                                    required>
-                                </lightning-combobox>
-                                                                </div>
+                                        label="Area"
+                                        value={item.roomType}
+                                        options={areaOptions}
+                                        data-index={index}
+                                        data-product-id={item.id}
+                                        onchange={handleRoomTypeChange}
+                                        required>
+                                    </lightning-combobox>
+                                 </div>
+
+                               <div class="slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
+                                    <lightning-input type="text" label="Area Desc"
+                                                                value={item.areaDesc}
+                                                                data-index={index}
+                                                                data-product-id={item.id}
+                                                                onchange={handleAreaDesChange}>
+                                            </lightning-input>
+                                </div>
 
                                 <!-- Only tile-specific fields -->
                                 <template if:true={item.isTile}>
@@ -386,13 +451,13 @@
                                         </lightning-input>
 
                                     </div>
-
+                                    <template if:true={showMRPSection}>
                                      <div class="field-box slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
                                         <lightning-input type="number" label="MRP/Sqft"
                                                             value={item.msp}
                                                             disabled><!--(After Tax)-->
                                         </lightning-input>
-                                    </div>
+                                    </div></template>
 
                                     <div class="field-box slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
                                         <lightning-input type="number" label="Unit Price "
@@ -467,12 +532,13 @@
                                 <!-- </template>-->
                                 <!-- Unit Price (After Tax) for non-tile -->
                                 <template if:false={item.isTile}>
+                                    <template if:true={showMRPSection}>
                                      <div class="field-box slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
                                         <lightning-input type="number" label="MRP"
                                                             value={item.msp}
                                                             disabled><!--(After Tax)-->
                                         </lightning-input>
-                                    </div>
+                                    </div></template>
                                     <div class="qty-box slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
                                         <lightning-input type="number" label="Unit Price"
                                                             value={item.unitPriceAfterTax}
@@ -512,7 +578,7 @@
                                 </lightning-input>
                         </div>
                     </div>
-
+</div></template>
                 </div>
             </template>
         </div>

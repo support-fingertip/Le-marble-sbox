@@ -52,6 +52,7 @@
     ondataTypeChange : function(component, event, helper) {
         component.set('v.fromDate','');
         component.set('v.ToDate','');
+        component.set('v.showStockPopup',false);
         component.set('v.customerName','');  
         var sit= component.get('v.itemsList');  
         
@@ -106,7 +107,7 @@
             }
             
         } 
-     alert(component.get("v.productCode"));
+  //   alert(component.get("v.productCode"));
         component.set('v.matchpro',[]);
         component.set('v.spinner', false);
         

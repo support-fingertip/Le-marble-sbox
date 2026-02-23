@@ -155,9 +155,10 @@
     <externalSharingModel>Private</externalSharingModel>
     <label>Invoice</label>
     <nameField>
+        <displayFormat>INV-{0000}</displayFormat>
         <label>Invoice Number</label>
         <trackHistory>false</trackHistory>
-        <type>Text</type>
+        <type>AutoNumber</type>
     </nameField>
     <pluralLabel>Invoices</pluralLabel>
     <searchLayouts></searchLayouts>

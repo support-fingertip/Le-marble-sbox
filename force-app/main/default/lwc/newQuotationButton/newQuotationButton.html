@@ -18,15 +18,62 @@
           </button>
           <h2 id="modal-heading-01" class="slds-modal__title slds-hyphenate">Select Items for Quotation</h2>
         </header>
-        <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
-          <lightning-datatable
-            key-field="id"
-            data={cartLineItems}
-            columns={columns}
-            selected-rows={selectedItems}
-            onrowselection={handleRowSelection}>
-          </lightning-datatable>
+       <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+
+  <!-- Desktop View -->
+  <template if:false={isMobile}>
+    <lightning-datatable
+      key-field="id"
+      data={cartLineItems}
+      columns={columns}
+      selected-rows={selectedItems}
+      onrowselection={handleRowSelection}>
+    </lightning-datatable>
+  </template>
+
+  <!-- Mobile View -->
+  <template if:true={isMobile}>
+    <div class="mobile-list">
+
+      <template for:each={cartLineItems} for:item="item">
+
+        <div key={item.id} class="mobile-card">
+
+          <lightning-input
+          type="checkbox"
+          data-id={item.id}
+          label={item.productName}
+          checked={item.selected}
+          onchange={handleMobileSelection}>
+      </lightning-input>
+          <div class="mobile-row">
+            <span class="label">Category:</span>
+            <span>{item.category}</span>
+          </div>
+
+          <div class="mobile-row">
+            <span class="label">Quantity:</span>
+            <span>{item.quantity}</span>
+          </div>
+
+          <div class="mobile-row">
+            <span class="label">Unit Price:</span>
+            <span>₹{item.unitPrice}</span>
+          </div>
+
+          <div class="mobile-row">
+            <span class="label">Total:</span>
+            <span class="price">₹{item.totalPrice}</span>
+          </div>
+
         </div>
+
+      </template>
+
+    </div>
+  </template>
+
+</div>
         <footer class="slds-modal__footer">
           <lightning-button label="Cancel" onclick={handleSelectionClose} class="slds-m-right_x-small">
           </lightning-button>
