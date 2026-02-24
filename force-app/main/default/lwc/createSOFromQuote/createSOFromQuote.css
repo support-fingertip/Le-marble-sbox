@@ -1,3 +1,20 @@
+/* Page Header Styles */
+.so-page-header {
+    background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.so-page-header lightning-icon {
+    --sds-c-icon-color-foreground-default: white;
+}
+
+.so-header-title {
+    color: #ffffff;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
 .button-container {
     display: flex;
     justify-content: center;
