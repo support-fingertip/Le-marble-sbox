@@ -42,7 +42,7 @@ public with sharing class QuotePdfController {
          Freight_Charge__c, Loading_Charge__c, Unloading_Charge__c,Round_Off__c,
         Total_Amount1__c, Subtotal, TotalPrice, GrandTotal, Discount,
         Email, Phone, Fax,
-        QuoteToName, QuoteToAddress,createddate,
+        QuoteToName, QuoteToAddress,createddate,Contact_Person_Name__c,Contact_Person_Number__c,
         BillingAddress, ShippingAddress,
         Owner.Name, Owner.Title, Owner.Email,
         Owner.Phone,

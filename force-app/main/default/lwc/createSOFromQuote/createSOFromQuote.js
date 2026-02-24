@@ -532,7 +532,8 @@ wiredQuoteInfo({ error, data }) {
                         Eid: b.Eid,
                         Batch: b.Batch,
                         warehouseCode: b.warehouseCode,
-                        quantity: b.quantity
+                        quantity: b.quantity,
+                        blkQty: b.blkQty
                     });
                 });
             }
@@ -857,7 +858,7 @@ saveBatchItems() {
                 batches: batchList,
                 itemQty: totalItemQty,   //  store only in JS
                 BlockQty: totalBlkQty,
-                isBlockQtyDisabled: Array.isArray(item.batches) && item.batches.length > 0
+                isBlockQtyDisabled: Array.isArray(item.batches) && item.batches.length > 0,
             };
         }
         return item;

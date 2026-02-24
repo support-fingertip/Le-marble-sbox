@@ -222,11 +222,18 @@
                                                         </tr>
                                                     </template>
                                                 </tbody>
+                                                <template if:false={item.stockList.length}>
+                                                        <div class="slds-text-color_error slds-m-top_medium slds-align_absolute-center">
+                                                            ❌ No stock available for this product.
+                                                        </div>
+                                                </template>
                                             </table>
                                         </div>
 
                                     </section>
-                                    </template>
+
+                                   
+                                </template>
 
 
                              </template>     

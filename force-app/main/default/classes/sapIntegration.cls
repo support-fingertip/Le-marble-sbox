@@ -130,9 +130,14 @@ public class sapIntegration {
                 }
                 return;
             }
-            
-           string bCountryCode= getCountryCode(deal.BillingCountry);
-		String bStateCode = getStateCode(deal.BillingState);
+            string bCountryCode;
+            if(deal.BillingCountry != null && deal.BillingCountry.length() > 2){
+                 bCountryCode= getCountryCode(deal.BillingCountry);
+            }
+            String bStateCode;
+           if(deal.BillingState != null && deal.BillingState.length() > 2){ 
+             bStateCode = getStateCode(deal.BillingState);
+           } 
             // Build BPAddresses[]
             List<Map<String, Object>> bpAddresses = new List<Map<String, Object>>();
             String uniqueSuffix = String.valueOf(DateTime.now().getTime());
@@ -363,12 +368,21 @@ public class sapIntegration {
             
             Boolean shipToAddressFoundAndUpdated = false;
             Boolean billToAddressFoundAndUpdated = false;
-            string bCountryCode= getCountryCode(deal.BillingCountry);
-            string stateCode= getStateCode(deal.BillingState);
+             
+            string bCountryCode;
+            if(deal.BillingCountry != null && deal.BillingCountry.length() > 2){
+                 bCountryCode= getCountryCode(deal.BillingCountry);
+            }
+            String stateCode;
+           if(deal.BillingState != null && deal.BillingState.length() > 2){ 
+             stateCode = getStateCode(deal.BillingState);
+           } 
+            
+           
         string gstT='';
             
             
-            if(deal.Customer_Type__c=='B2B'){
+            if(deal.Customer_Type__c=='B2B' && deal.GST_Type__c!=null){
                 //gstT= 'gstRegularTDSISD';
                 gstT= deal.GST_Type__c; 
             }  	
@@ -627,7 +641,7 @@ public class sapIntegration {
             else {
                 
                  log.status__c='SUCCESS';
-                log.response__c= 'Status code : '+res.getStatusCode() +' Response body: '+ res.getBody();
+            //    log.response__c= 'Status code : '+res.getStatusCode() +' Response body: '+ res.getBody();
                 System.debug(' Order created in SAP for: ' + ord.Id);
                 System.debug('SAP Response Body: ' + res.getBody());
                 
@@ -747,7 +761,7 @@ public class sapIntegration {
             Order ord = [ SELECT id,account.Customer_Number__c,opportunityId,account.Customer_Type__c,Warehouse__r.Warehouse_Code__c,ownerid//, BranchLocation__c,  
                 FROM Order WHERE Id = :order.id LIMIT 1 ];
         
-        string oppowner=[select id from opportunity where id=:ord.opportunityId].ownerid;
+        string oppowner=[select id,ownerid from opportunity where id=:ord.opportunityId].ownerid;
         
         string oppOwnId=[select id, SAP_Emp_Code__c from user where id=:oppowner].SAP_Emp_Code__c;
         string ordOwnId=[select id, SAP_Emp_Code__c from user where id=:ord.ownerid].SAP_Emp_Code__c;

@@ -391,7 +391,7 @@ var i=0;
                     discType: item.Disc_Type__c,
                     discValue: item.Dis_Value__c || 0,
                     roomType: item.Area__c,
-                     areaDesc: item.AreaDesc__c,
+                        areaDesc: item.Room_Type__c,
                     requiredSqft: item.Sqft__c,
                     pricePerSqft: 0,
                     Tax:item.Product2.Tax__c || 0,
@@ -399,7 +399,7 @@ var i=0;
                     sqft: item.Sqft__c, sqm: 0,
                     sqftPerPiece:item.Product2.Sqft_Piece__c || 0,
                     pricebookEntryId: item.PricebookEntryId,
-                     isNaturalStone: item.Product2.Product_Category__c === 'NATURAL STONE',
+                        isNaturalStone: item.Product2.Product_Category__c === 'N.STONE',
                      isTile:item.Product2.Product_Category__c === 'TILE',
                     showDropdown: false,
                 isActive: false,
@@ -1302,8 +1302,8 @@ console.log(el);
         updated[this.activeRowIndex].name = selectedProduct.Name;
         updated[this.activeRowIndex].code = selectedProduct.productCode;
         updated[this.activeRowIndex].category = selectedProduct.category || '';
-        updated[this.activeRowIndex].isNaturalStone= selectedProduct.category === 'NATURAL STONE';
-        updated[this.activeRowIndex].quantity= selectedProduct.category === 'NATURAL STONE' ? 1:0;
+        updated[this.activeRowIndex].isNaturalStone= selectedProduct.category === 'N.STONE';
+        updated[this.activeRowIndex].quantity= selectedProduct.category === 'N.STONE' ? 1:0;
 
         updated[this.activeRowIndex].isTile= selectedProduct.category === 'TILE';
         

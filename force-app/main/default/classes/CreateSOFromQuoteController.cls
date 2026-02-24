@@ -483,12 +483,10 @@ public static List<Map<String, Object>> getBatchStock1(Id orderItemId) {
                                 wrap.reserved = String.valueOf(warehouseInfo.get('Reserved')); 
                                 wrap.billable = String.valueOf(warehouseInfo.get('Billable')); 
                                 Object stockVal = warehouseInfo.get('Stock');
-                                wrap.inStock = stockVal != null
-                                    ? Decimal.valueOf(String.valueOf(stockVal))
-                                    : 0;
+                                wrap.inStock = stockVal != null ? Decimal.valueOf(String.valueOf(stockVal)): 0;
 
                                 system.debug(wrap.inStock);
-                                wrap.Eid = wrap.warehouseCode+wrap.Batch; 
+                                wrap.Eid = wrap.warehouseCode+wrap.Batch+ system.now() ; 
                                 if(wrap.IsBatchEnable=='Yes' && wCodes.contains( wrap.warehouseCode) && wrap.inStock>0){
                                     resultList.add(wrap);
                                    
