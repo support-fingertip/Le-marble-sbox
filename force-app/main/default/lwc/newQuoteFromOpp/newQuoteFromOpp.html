@@ -121,6 +121,7 @@
                                   </template>
 
                                  <div class="product-code">Area: {item.roomType} {item.areaDesc}</div>
+                                 <div class="product-code">Quantity: {item.quantity} </div>
                             </div>
 
                             <div class="slds-col slds-size_6-of-12 slds-text-align_right">
@@ -306,7 +307,6 @@
                                                         value={item.unitPrice}
                                                         data-product-id={item.id}
                                                         data-index={index}
-                                                        disabled="true"
                                                         onchange={handleNaturalStoneUnitPriceChange}>
                                     </lightning-input>
                                 </div>
@@ -332,7 +332,7 @@
                                     </div>
                                 </div>
 
-                                <div class="slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
+                           <!--  <div class="slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
                                     <lightning-input type="number" label="Total Price (₹)"
                                                         value={item.totalPrice}
                                                         data-index={index}
@@ -341,7 +341,7 @@
                                     </lightning-input>
                                 </div>
 
-                          <!--    </div>
+                             </div>
 
                        <div class="slds-grid slds-wrap slds-gutters">-->   
                                 <div class="slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
@@ -460,7 +460,7 @@
                                     </div>
                                     <template if:true={showMRPSection}>
                                      <div class="field-box slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
-                                        <lightning-input type="number" label="MRP/Sqft"
+                                        <lightning-input type="number" label="MRP"
                                                             value={item.msp}
                                                             disabled><!--(After Tax)-->
                                         </lightning-input>
@@ -473,13 +473,13 @@
                                         </lightning-input>
                                     </div>
 
-                                    <div class="field-box slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
+                             <!--       <div class="field-box slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
                                         <lightning-input type="number" label="Price/Sqft"
                                                             value={item.pricePerSqft}
                                                              step="0.000001"
-                                                            disabled><!--(After Tax)-->
+                                                            disabled>
                                         </lightning-input>
-                                    </div>
+                                    </div>-->
 
                                         <div class="field-box slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
                                                         <lightning-input type="number" label="Required Sqft"

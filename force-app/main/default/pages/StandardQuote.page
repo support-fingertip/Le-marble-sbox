@@ -536,7 +536,7 @@ L E &nbsp; M A R B L E &nbsp; G A L L E R Y &nbsp; P V T. &nbsp; L T D.
 <apex:outputText rendered="{!item.category = 'NATURAL STONE' && NOT(ISBLANK(item.descriptionField))}" 
 value=" - {!item.descriptionField}"/>
 </td>
-<td style="border: 1px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 15px;">{!item.roomType}</td>
+                                        <td style="border: 1px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 15px;">{!item.areaDisplay}</td>
 <td style="border: 1px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 15px;">{!item.sqft}</td>
 <td style="border: 1px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 15px;">{!item.quantity}</td>
 <td style="border: 1px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 15px;">
@@ -598,7 +598,7 @@ item.afterDiscPrice
                                 <tr style="font-size:16px; font-weight:normal;">
                                     <td style="border:1px solid #cfcfcf; text-align:center; font-weight:normal;">{!counter}</td>
                                     <td style="border:1px solid #cfcfcf; font-weight:normal; padding:4px 10px;">{!item.description}</td>
-                                    <td style="border:1px solid #cfcfcf; text-align:center; font-weight:normal;">{!item.roomType}</td>
+                                    <td style="border:1px solid #cfcfcf; text-align:center; font-weight:normal;">{!item.areaDisplay}</td>
                                     <td style="border:1px solid #cfcfcf; text-align:center; font-weight:normal;">{!item.sqft}</td>
                                     <td style="border:1px solid #cfcfcf; text-align:center; font-weight:normal;">{!item.quantity}</td>
                                     <td style="border:1px solid #cfcfcf; text-align:center; font-weight:normal;"><apex:outputText value="{0, number, ##,##0.00}">

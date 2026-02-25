@@ -29,6 +29,15 @@ global without sharing class WebsiteAPIController {
             leadWrapper ldData = (leadWrapper) JSON.deserialize(requestBody, leadWrapper.class);
             log.Request__c = requestBody;
 
+            string bCountryCode='';
+            if(ldData.Country != null && ldData.Country.length() > 2){
+                bCountryCode= sapIntegration.getCountryCode(ldData.Country);
+            }
+            String stateCode='';
+            if(ldData.State != null && ldData.State.length() > 2){ 
+                stateCode = sapIntegration.getStateCode(ldData.State);
+            } 
+            
             // Create a new Lead using the deserialized data
             Lead nld = new Lead();
             nld.FirstName               = ldData.firstName;
@@ -41,9 +50,9 @@ global without sharing class WebsiteAPIController {
             nld.GST_Number__c           = ldData.GSTNumber;
             nld.LeadSource              = ldData.LeadSource;
             nld.Sub_Source__c           = ldData.SubSource;   // restored 
-            nld.Country__c              = ldData.Country;
+            nld.Country__c              = bCountryCode;
         //  nld.FirstName               = ldData.CountryCode;
-            nld.State__c                = ldData.State;
+            nld.State__c                = stateCode;
             nld.District__c             = ldData.District;
             nld.Corporation__c          = ldData.Corporation;
             nld.Municipality__c         = ldData.Municipality;

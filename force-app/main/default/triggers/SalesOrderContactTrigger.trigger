@@ -1,4 +1,4 @@
-trigger SalesOrderContactTrigger on Order (after update) {
+trigger SalesOrderContactTrigger on Order (after update,after insert) {//
  /*   if (Trigger.isBefore && (Trigger.isInsert || Trigger.isUpdate)) {
         SalesOrderTriggerHandler.populateContactDetails(Trigger.new);
     }*/
@@ -12,7 +12,7 @@ trigger SalesOrderContactTrigger on Order (after update) {
         Order newRec = Trigger.new[i];
         Order oldRec = Trigger.old[i];
 system.debug('newRec.Status>>'+newRec.Status + '   ---   '+ newRec.SAP_Doc_Num__c);
-        if (newRec.Status == 'Approved' && oldRec.Status != 'Approved' && newRec.SAP_Doc_Num__c==null) {
+     if ((newRec.Status == 'Approved' && oldRec.Status != 'Approved' && newRec.SAP_Doc_Num__c==null) || (trigger.isInsert && newRec.Status == 'Approved')) {
 
             System.enqueueJob(
                 new SendOrderToSAPQueueable(newRec.Id)
