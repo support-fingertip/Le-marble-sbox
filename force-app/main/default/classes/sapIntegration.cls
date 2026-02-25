@@ -1,5 +1,5 @@
 public class sapIntegration {
-    private static final String SAP_BASE_URL = 'https://lemrg.hstconnect.in:50000/b1s/v1';
+    public static final String SAP_BASE_URL = 'https://lemrg.hstconnect.in:50000/b1s/v1';
     private static final String COMPANY_DB = 'MG_LIVE_WIP_1';
     private static final String USERNAME = 'manager';
     private static final String PASSWORD = 'Mgsap12@';
@@ -30,7 +30,7 @@ public class sapIntegration {
         return CreateSOFromQuoteController.getBatchStock(itemcode, '');
     }  
     
-    private static String loginToSAP() {
+    public static String loginToSAP() {
         HttpRequest req = new HttpRequest();
         req.setEndpoint(SAP_BASE_URL + '/Login');	
         req.setMethod('POST');
@@ -575,138 +575,26 @@ public class sapIntegration {
 
     
     public static void sendOrderToSAP(id order) {
-           Order ord = [SELECT id,name,OrderNumber,Order_Owner__c,account.name,account.Customer_Number__c,account.Customer_Type__c,Warehouse__r.Warehouse_Code__c//, BranchLocation__c,  
-                FROM Order WHERE Id = :order LIMIT 1 ];
-         
-         List<Apex_Log__c> logList = new List<Apex_Log__c>();
-        Apex_Log__c log = new Apex_Log__c();
-        
-          CustomNotificationType notificationType = [SELECT Id, DeveloperName
-                                                   FROM CustomNotificationType
-                                                   WHERE DeveloperName='Sales_Order_Notification'];
-        Messaging.CustomNotification notification = new Messaging.CustomNotification();
-        notification.setNotificationTypeId(notificationType.Id);
-        notification.setTargetId(ord.id);
-        String adminUserId = [SELECT Id FROM User WHERE Profile.Name = 'System Administrator' and isactive=true LIMIT 1].Id;
-        Set<String> addressee = new Set<String>();
-        if(adminUserId!=null){
-            addressee.add(adminUserId); 
-        }
-        addressee.add(UserInfo.getUserId());
-        system.debug('Order '+ord);
-        
-        notification.setTitle('Order :'+ord.OrderNumber);
-        String NotificationBody =  'Order Id : ' + ord.Name +'\nOrder created by : ' + ord.account.name;
-        if( ord.account.name != null )
-        {
-            NotificationBody += '\nCustomer Name : ' + ord.account.name ;
+        Order ord = [SELECT id, name, OrderNumber, Order_Owner__c, accountId, account.name, account.Customer_Number__c, account.Customer_Type__c, Warehouse__r.Warehouse_Code__c,
+            AddressLine1__c, AddressLine2__c, AddressLine3__c, District__c, State__c, Country__c //, BranchLocation__c
+            FROM Order WHERE Id = :order LIMIT 1 ];
+
+        // Fetch Account with address fields
+        Account acc = [SELECT Id, Address_Line1__c, Address_Line2__c, Address_Line3__c, District__c, State__c, Country__c FROM Account WHERE Id = :ord.accountId LIMIT 1];
+
+        // If address fields differ, update Account from Order
+        if (ord.AddressLine1__c != acc.Address_Line1__c) {
+            acc.Address_Line1__c = ord.AddressLine1__c;
+            acc.Address_Line2__c = ord.AddressLine2__c;
+            acc.Address_Line3__c = ord.AddressLine3__c;
+            acc.District__c = ord.District__c;
+            acc.State__c = ord.State__c;
+            acc.Country__c = ord.Country__c;
+            update acc;
         }
 
-
-        String sessionId=loginToSAP();
-        if(sessionId!=null){              
-            
-            
-           
-            log.Request_Type__c ='Order -'+ord.OrderNumber;
-           
-            
-       SAPOrderPayload body= buildPayload(ord);
-                        
-                        System.debug('Full SAP payload: ' + JSON.serialize(body));
-            
-            HttpRequest req = new HttpRequest();
-            req.setEndpoint(SAP_BASE_URL + '/Orders');
-            req.setMethod('POST');
-            req.setHeader('Content-Type', 'application/json');
-            req.setHeader('Cookie', 'B1SESSION=' + sessionId);
-            req.setBody(JSON.serialize(body));
-            
-            Http http = new Http();
-            HttpResponse res = http.send(req);
-             log.Request__c =SAP_BASE_URL + '/Orders /n'+JSON.serialize(body); 
-            if (res.getStatusCode() != 201) {
-                System.debug(' Failed to create SAP Order: ' + res.getBody());
-                
-                String errorBody = res.getBody();
-                log.Status__c = 'FAILED';
-                log.Error_Message__c = 'Failed to create SAP Order:  Statuscode: '+res.getStatusCode()+'/n'+errorBody ;
-				 logList.add(log);
-                if (errorBody.contains('OITW.Locked') || errorBody.contains('warehouse is locked')) {
-                    //                return null;
-                }
-                
-          //      throw new AuraHandledException('Failed to create SAP Order: ' + res.getBody());
-            }
-            else {
-                
-                 log.status__c='SUCCESS';
-            //    log.response__c= 'Status code : '+res.getStatusCode() +' Response body: '+ res.getBody();
-                System.debug(' Order created in SAP for: ' + ord.Id);
-                System.debug('SAP Response Body: ' + res.getBody());
-                
-                try {
-                    // Parse the response to get the SAP Order ID
-                    Map<String, Object> responseMap = (Map<String, Object>) JSON.deserializeUntyped(res.getBody());
-                    System.debug('Parsed Response Map: ' + responseMap);
-                    
-                    String sapOrderId;
-                    String sapDocNum;
-                    if (responseMap.containsKey('DocEntry')) {
-                        Object docEntryObj = responseMap.get('DocEntry');
-                        sapOrderId = String.valueOf(docEntryObj);
-                    }
-                    if (responseMap.containsKey('DocNum')) {
-                        Object docNumObj = responseMap.get('DocNum');
-                        sapDocNum = String.valueOf(docNumObj);
-                    }
-                    
-                    System.debug('Extracted SAP Order ID: ' + sapOrderId);
-                    Map<String, String> result = new Map<String, String>{
-                        'DocEntry' => sapOrderId,
-                            'DocNum' => sapDocNum
-                            };
-                                ord.SAP_Doc_Num__c= sapDocNum;
-                    ord.Order_status__c= 'Sent to SAP';
-                    update ord;
-                    notification.setTitle('Order Created in SAP');
-                    notification.setBody(NotificationBody);   
-                    
-                     logList.add(log);
-                    //                return result;
-                } catch (Exception e) {
-                     log.status__c='FAILED';
-                    log.response__c= 'Status code : '+res.getStatusCode() +' Response body: '+ res.getBody();
-                    log.Error_Message__c = 'Status code : '+res.getStatusCode()+ ' Error: Callout failed. Please review the response for additional details.';
-                    logList.add(log);
-            		  notification.setBody('Error: '+e.getMessage());   
-                    System.debug('❌ Error parsing SAP response: ' + e.getMessage());
-                    System.debug('Response that caused error: ' + res.getBody());
-                    //                return null;
-                }
-            }
-
-           
-        }
-        else{
-           notification.setBody('Error While sending Order:No access token generated ');   
-                
-        
-        log.status__c='FAILED';
-        log.Error_Message__c = 'Token not generated';
-            
-        }
-        if(logList.size()>0){
-            insert logList;
-        }
-        try {
-            notification.send(addressee);
-            
-        }
-        catch (Exception e) {
-            System.debug('Problem sending notification: ' + e.getMessage());
-            
-        }
+        // Now call the SAP order callout asynchronously
+        sapIntegrationAsync.sendOrderToSAPAsync(ord.Id);
     }
     
     
@@ -714,11 +602,11 @@ public class sapIntegration {
     public class SAPOrderPayload {
 
         public String CardCode;
-        public String DocDate;
-        public String DocDueDate;
-        public String TaxDate;
-        public String DocCurrency;
-        public String BPL_IDAssignedToInvoice;
+                public String DocDate;
+                public String DocDueDate;
+                public String TaxDate;
+                public String DocCurrency;
+                public String BPL_IDAssignedToInvoice;
         
         public String U_To_Delivery_date;
       //  public String StartDeliveryDate;
@@ -733,9 +621,11 @@ public class sapIntegration {
         public String SalesPersonCode;
         public String DocumentsOwner;
 
-        
-        public List<DocumentLine> DocumentLines;
-    }  
+                public String ShipToCode;
+                public String ShipToDescription;
+
+                public List<DocumentLine> DocumentLines;
+        }  
         public class DocumentLine {
             public String ItemCode;
             public Decimal Quantity;
@@ -753,79 +643,56 @@ public class sapIntegration {
         }
     
     public static SAPOrderPayload buildPayload(order order) {
- //       String sessionId=loginToSAP();
-                    SAPOrderPayload payload = new SAPOrderPayload();
-
-   //     if(sessionId!=null){              
-            
-            Order ord = [ SELECT id,account.Customer_Number__c,opportunityId,account.Customer_Type__c,Warehouse__r.Warehouse_Code__c,ownerid//, BranchLocation__c,  
-                FROM Order WHERE Id = :order.id LIMIT 1 ];
-        
-        string oppowner=[select id,ownerid from opportunity where id=:ord.opportunityId].ownerid;
-        
-        string oppOwnId=[select id, SAP_Emp_Code__c from user where id=:oppowner].SAP_Emp_Code__c;
-        string ordOwnId=[select id, SAP_Emp_Code__c from user where id=:ord.ownerid].SAP_Emp_Code__c;
+        SAPOrderPayload payload = new SAPOrderPayload();
+        string oppowner = [select id,ownerid from opportunity where id=:order.opportunityId].ownerid;
+        string oppOwnId = [select id, SAP_Emp_Code__c from user where id=:oppowner].SAP_Emp_Code__c;
+        string ordOwnId = [select id, SAP_Emp_Code__c from user where id=:order.ownerid].SAP_Emp_Code__c;
         Date currentDate = Date.today();
         Date endDeliveryDate = currentDate.addDays(2);
-            
-            // Format dates for SAP in YYYY-MM-DD format
-            String docDate = currentDate.year() + '-' + 
-                String.valueOf(currentDate.month()).leftPad(2, '0') + '-' + 
-                String.valueOf(currentDate.day()).leftPad(2, '0');
-            String dueDate = currentDate.addDays(10).year() + '-' + 
-                String.valueOf(currentDate.addDays(10).month()).leftPad(2, '0') + '-' + 
-                String.valueOf(currentDate.addDays(10).day()).leftPad(2, '0');
-            String taxDate = docDate;
-            String deliveryDate = docDate;
-            String endDeliveryDateStr = endDeliveryDate.year() + '-' + 
-                String.valueOf(endDeliveryDate.month()).leftPad(2, '0') + '-' + 
-                String.valueOf(endDeliveryDate.day()).leftPad(2, '0');
-            
-            String deliveryTime = '12:00:59';
-            String endDeliveryTime = '12:00:59';
-            
-            // Get U_TYPE from Order Type__c field
-            String uType;
-            if(ord.account.Customer_Type__c == 'B2B'){
-                uType= 'PROJECT';
-            } 
-            else {
-                uType= 'RETAIL';
+        // Format dates for SAP in YYYY-MM-DD format
+        String docDate = currentDate.year() + '-' + 
+            String.valueOf(currentDate.month()).leftPad(2, '0') + '-' + 
+            String.valueOf(currentDate.day()).leftPad(2, '0');
+        String dueDate = currentDate.addDays(10).year() + '-' + 
+            String.valueOf(currentDate.addDays(10).month()).leftPad(2, '0') + '-' + 
+            String.valueOf(currentDate.addDays(10).day()).leftPad(2, '0');
+        String taxDate = docDate;
+        String deliveryDate = docDate;
+        String endDeliveryDateStr = endDeliveryDate.year() + '-' + 
+            String.valueOf(endDeliveryDate.month()).leftPad(2, '0') + '-' + 
+            String.valueOf(endDeliveryDate.day()).leftPad(2, '0');
+        String deliveryTime = '12:00:59';
+        String endDeliveryTime = '12:00:59';
+        // Get U_TYPE from Order Type__c field
+        String uType;
+        if(order.account.Customer_Type__c == 'B2B'){
+            uType= 'PROJECT';
+        } else {
+            uType= 'RETAIL';
+        }
+        payload.CardCode = order.account.Customer_Number__c;
+        payload.DocDate = docDate;
+        payload.DocDueDate = dueDate;
+        payload.DocCurrency = 'INR';
+        payload.BPL_IDAssignedToInvoice = '3';
+        payload.U_To_Delivery_date = deliveryDate;
+        payload.U_DELIVERY_TIME = deliveryTime;
+        payload.U_TYPE = uType;
+        payload.U_Approval = 'Y';
+        payload.SalesPersonCode = oppOwnId;
+        payload.DocumentsOwner = ordOwnId;
+        // Set ShipToCode from AddressLine1__c
+        payload.ShipToCode = order.AddressLine1__c;
+        payload.DocumentLines = new List<DocumentLine>();
+        List<OrderItem> orderItems = [ SELECT Id,Quantity,PricebookEntry.Product2.Product_Code__c,Warehouse__r.Warehouse_Code__c,After_Disc_Price_Sqft__c,ListPrice,UnitPrice FROM OrderItem WHERE OrderId = :order.Id ]; //,Tax_Code__c
+        Map<Id, List<Order_Batch_Item__c>> batchByItem = new Map<Id, List<Order_Batch_Item__c>>();
+        for (Order_Batch_Item__c b : [SELECT Order_Product__c, Batch__c,Quantity__c, Warehouse_Code__c FROM Order_Batch_Item__c  WHERE Order_Product__c IN :orderItems ]) {
+            if (!batchByItem.containsKey(b.Order_Product__c)) {
+                batchByItem.put(b.Order_Product__c, new List<Order_Batch_Item__c>());
             }
-            
-            payload.CardCode = ord.account.Customer_Number__c;
-            payload.DocDate = docDate;
-            payload.DocDueDate = dueDate;
-        //    payload.TaxDate = payload.DocDate;
-            payload.DocCurrency = 'INR';
-            payload.BPL_IDAssignedToInvoice = '3';
-            payload.U_To_Delivery_date=deliveryDate;
-        payload.U_DELIVERY_TIME=deliveryTime;
-   //         payload.StartDeliveryDate=deliveryDate;
-	//		payload.StartDeliveryTime=deliveryTime;
-      //      payload.EndDeliveryDate=endDeliveryDateStr;
-        //    payload.EndDeliveryTime=endDeliveryTime;
-            payload.U_TYPE=uType;
-            payload.U_Approval='Y';
-        
-            payload.SalesPersonCode=oppOwnId;
-            payload.DocumentsOwner=ordOwnId;
-            payload.DocumentLines  = new List<DocumentLine>(); 
-            
-            
-            
-            List<OrderItem> orderItems = [ SELECT Id,Quantity,PricebookEntry.Product2.Product_Code__c,Warehouse__r.Warehouse_Code__c,After_Disc_Price_Sqft__c,ListPrice,UnitPrice FROM OrderItem WHERE OrderId = :ord.Id ];//,Tax_Code__c
-            
-            Map<Id, List<Order_Batch_Item__c>> batchByItem = new Map<Id, List<Order_Batch_Item__c>>();
-            
-            for (Order_Batch_Item__c b : [SELECT Order_Product__c, Batch__c,Quantity__c, Warehouse_Code__c FROM Order_Batch_Item__c  WHERE Order_Product__c IN :orderItems ]) {
-                if (!batchByItem.containsKey(b.Order_Product__c)) {
-                    batchByItem.put(b.Order_Product__c, new List<Order_Batch_Item__c>());
-                }
-                batchByItem.get(b.Order_Product__c).add(b);
-            }
-            
-       //️⃣ Build DocumentLines (GROUP BY WAREHOUSE)
+            batchByItem.get(b.Order_Product__c).add(b);
+        }
+        //️⃣ Build DocumentLines (GROUP BY WAREHOUSE)
         for (OrderItem oi : orderItems) {
 
             if (!batchByItem.containsKey(oi.Id)) {
@@ -987,7 +854,7 @@ public class sapIntegration {
                         inv.SalesPersonCode__c= String.valueOf(item.get('SalesPersonCode'));
                         inv.Cancel_Status__c= String.valueOf(item.get('CancelStatus'));
                         inv.Total_Discount__c =     Decimal.valueOf(String.valueOf(item.get('TotalDiscount')));
-
+						inv.SaleOrder_Number__c = String.valueOf(item.get('U_Saleorder'));
                     invList.add(inv);    
                         List<Object> documentLines =
                             (List<Object>) item.get('DocumentLines');

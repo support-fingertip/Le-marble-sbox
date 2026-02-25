@@ -90,7 +90,7 @@ public with sharing class QuotePdfController {
                        Sqft__c, Price_Sqft__c, After_Disc_Price_Sqft__c,
                        Total_Price__c, Price__c, Unit_Price__c, UOM__c,
                        After_Disc_Price_Piece__c, Dis_Value__c,
-                       Room_Type__c, Disc_Type__c,UnitPrice,Area__c,
+                       Room_Type__c, Disc_Type__c, UnitPrice, Area__c,
                        Description, Without_Discount_Total_Price__c,
                        Calculated_Total_Price__c 
                 FROM QuoteLineItem
@@ -101,8 +101,8 @@ public with sharing class QuotePdfController {
                 SELECT Id, Product2.Name, Product_Category__c, Quantity,
                        Sqft__c, Price_Sqft__c, After_Disc_Price_Sqft__c,
                        Total_Price__c, Price__c, Unit_Price__c, UOM__c,
-                       After_Disc_Price_Piece__c, Dis_Value__c,UnitPrice,
-                       Room_Type__c, Disc_Type__c,Area__c,
+                       After_Disc_Price_Piece__c, Dis_Value__c, UnitPrice,
+                       Room_Type__c, Disc_Type__c, Area__c,
                        Description, Without_Discount_Total_Price__c,
                        Calculated_Total_Price__c 
                 FROM QuoteLineItem
@@ -272,7 +272,8 @@ this.mrpTotal += item.Without_Discount_Total_Price__c;
                 item.Dis_Value__c,
                 descriptionField,
                 item.Price_Sqft__c,
-                discountAmount
+                discountAmount,
+                item.Area__c
             ));
         }
         
@@ -282,14 +283,24 @@ this.mrpTotal += item.Without_Discount_Total_Price__c;
         
         for(QuotationLineItem p : products){
             
-            String area = String.isBlank(p.roomType) ? 'OTHERS' : p.roomType;
-            
-            if(!mapArea.containsKey(area)){
-                mapArea.put(area,new AreaGroupWrapper(area));
+            // Combine Area__c and Room_Type__c to create area label
+            String areaLabel = '';
+            if (String.isNotBlank(p.area) && String.isNotBlank(p.roomType)) {
+                areaLabel = p.area + ' ' + p.roomType;
+            } else if (String.isNotBlank(p.area)) {
+                areaLabel = p.area;
+            } else if (String.isNotBlank(p.roomType)) {
+                areaLabel = p.roomType;
+            } else {
+                areaLabel = 'OTHERS';
             }
             
-            mapArea.get(area).items.add(p);
-            mapArea.get(area).areaTotal += p.total;
+            if(!mapArea.containsKey(areaLabel)){
+                mapArea.put(areaLabel,new AreaGroupWrapper(areaLabel));
+            }
+            
+            mapArea.get(areaLabel).items.add(p);
+            mapArea.get(areaLabel).areaTotal += p.total;
         }
         
         areaGroups = mapArea.values();
@@ -503,7 +514,26 @@ email.setToAddresses(new List<String>{ finalEmail });
         public String descriptionField { get; set; }  // NATURAL STONE description
         public Decimal priceSqft { get; set; }
         public Decimal discountAmountInRupees { get; set; }
+        public String area { get; set; }              // Area field from QuoteLineItem
+        public String areaDisplay {
+            get {
+                if (String.isNotBlank(area) && String.isNotBlank(roomType)) {
+                    // Avoid duplicate like "Family Lounge Family Lounge"
+                    if (area == roomType) {
+                        return area;
+                    }
 
+                    return area + ' ' + roomType;
+                }
+                if (String.isNotBlank(area)) {
+                    return area;
+                }
+                if (String.isNotBlank(roomType)) {
+                    return roomType;
+                }
+                return '';
+            }
+        }
 
         public QuotationLineItem(
             String description,
@@ -521,7 +551,8 @@ email.setToAddresses(new List<String>{ finalEmail });
             Decimal discountValue,
             String descriptionField,
             Decimal priceSqft,
-            Decimal discountAmountInRupees
+            Decimal discountAmountInRupees,
+            String area
 
         ) {
             this.description = description;
@@ -555,6 +586,7 @@ email.setToAddresses(new List<String>{ finalEmail });
             this.descriptionField = descriptionField;
             this.priceSqft = priceSqft;
             this.discountAmountInRupees = discountAmountInRupees;
+            this.area = area;
 
         }
     }

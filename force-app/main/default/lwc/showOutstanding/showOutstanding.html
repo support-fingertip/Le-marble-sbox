@@ -6,9 +6,15 @@
                 onclick={handleClick}>
             </lightning-button>
 
-            <template if:true={result}>
+            <template if:true={hasResult}>
                 <p class="slds-m-top_medium">
                     <b>Current Outstanding:</b> {result}
+                </p>
+            </template>
+
+            <template if:true={errorMessage}>
+                <p class="slds-m-top_medium slds-text-color_error">
+                    <b>Error:</b> {errorMessage}
                 </p>
             </template>
         </div>

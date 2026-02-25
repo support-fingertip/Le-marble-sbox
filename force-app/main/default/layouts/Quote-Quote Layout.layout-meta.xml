@@ -334,12 +334,16 @@
         </relatedContentItems>
     </relatedContent>
     <relatedLists>
+        <relatedList>RelatedEntityHistoryList</relatedList>
+    </relatedLists>
+    <relatedLists>
         <excludeButtons>AddQuoteLine</excludeButtons>
         <excludeButtons>EditAllQuoteLine</excludeButtons>
         <excludeButtons>MultiAdd</excludeButtons>
         <excludeButtons>MultiEdit</excludeButtons>
         <fields>QUOTE_LI.PRODUCT2</fields>
         <fields>QUOTE_LI.QUANTITY</fields>
+        <fields>Sale_Price__c</fields>
         <fields>QUOTE_LI.UNIT_PRICE</fields>
         <fields>Disc_Type__c</fields>
         <fields>Dis_Value__c</fields>
