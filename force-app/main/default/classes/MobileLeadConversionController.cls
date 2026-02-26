@@ -1,0 +1,639 @@
+public with sharing class MobileLeadConversionController {
+    @AuraEnabled(cacheable=true)
+    public static Map<String, Object> getConversionContext(Id leadId) {
+        if (leadId == null) {
+            throw new AuraHandledException('Lead Id is required.');
+        }
+
+        Lead sourceLead = [
+            SELECT Id, FirstName, LastName, Company, OwnerId, Owner.Name
+            FROM Lead
+            WHERE Id = :leadId
+            LIMIT 1
+        ];
+
+        List<LeadStatus> convertedStatuses = [
+            SELECT MasterLabel
+            FROM LeadStatus
+            WHERE IsConverted = true
+            ORDER BY SortOrder
+        ];
+
+        List<String> statusLabels = new List<String>();
+        for (LeadStatus status : convertedStatuses) {
+            statusLabels.add(status.MasterLabel);
+        }
+
+        String defaultOpportunityName = String.isNotBlank(sourceLead.Company)
+            ? sourceLead.Company
+            : ((sourceLead.FirstName != null ? sourceLead.FirstName + ' ' : '') + sourceLead.LastName);
+
+        return new Map<String, Object>{
+            'leadId' => sourceLead.Id,
+            'leadFirstName' => sourceLead.FirstName,
+            'leadLastName' => sourceLead.LastName,
+            'leadCompany' => sourceLead.Company,
+            'ownerId' => sourceLead.OwnerId,
+            'ownerName' => sourceLead.Owner.Name,
+            'convertedStatuses' => statusLabels,
+            'defaultConvertedStatus' => statusLabels.isEmpty() ? null : statusLabels[0],
+            'defaultOpportunityName' => defaultOpportunityName
+        };
+    }
+
+    @AuraEnabled(cacheable=true)
+    public static List<Account> searchAccounts(String searchTerm) {
+        if (String.isBlank(searchTerm) || searchTerm.trim().length() < 2) {
+            return new List<Account>();
+        }
+
+        String likeTerm = '%' + searchTerm.trim() + '%';
+        return [
+            SELECT Id, Name
+            FROM Account
+            WHERE Name LIKE :likeTerm
+            ORDER BY Name
+            LIMIT 20
+        ];
+    }
+
+    @AuraEnabled(cacheable=true)
+    public static List<Contact> searchContacts(Id accountId, String searchTerm) {
+        if (accountId == null || String.isBlank(searchTerm) || searchTerm.trim().length() < 2) {
+            return new List<Contact>();
+        }
+
+        String likeTerm = '%' + searchTerm.trim() + '%';
+        return [
+            SELECT Id, Name, AccountId
+            FROM Contact
+            WHERE AccountId = :accountId
+            AND Name LIKE :likeTerm
+            ORDER BY Name
+            LIMIT 20
+        ];
+    }
+
+    @AuraEnabled(cacheable=true)
+    public static List<Opportunity> searchOpportunities(Id accountId, String searchTerm) {
+        if (accountId == null || String.isBlank(searchTerm) || searchTerm.trim().length() < 2) {
+            return new List<Opportunity>();
+        }
+
+        String likeTerm = '%' + searchTerm.trim() + '%';
+        return [
+            SELECT Id, Name, AccountId
+            FROM Opportunity
+            WHERE AccountId = :accountId
+            AND Name LIKE :likeTerm
+            ORDER BY LastModifiedDate DESC
+            LIMIT 20
+        ];
+    }
+
+    @AuraEnabled(cacheable=true)
+    public static Contact getContactSummary(Id contactId) {
+        if (contactId == null) {
+            return null;
+        }
+
+        return [
+            SELECT Id, Name, AccountId
+            FROM Contact
+            WHERE Id = :contactId
+            LIMIT 1
+        ];
+    }
+
+    @AuraEnabled(cacheable=true)
+    public static Opportunity getOpportunitySummary(Id opportunityId) {
+        if (opportunityId == null) {
+            return null;
+        }
+
+        return [
+            SELECT Id, Name, AccountId
+            FROM Opportunity
+            WHERE Id = :opportunityId
+            LIMIT 1
+        ];
+    }
+
+    @AuraEnabled
+    public static Map<String, Id> convertLeadForMobile(
+        Id leadId,
+        String convertedStatus,
+        Id ownerId,
+        Boolean useExistingAccount,
+        Id existingAccountId,
+        String newAccountName,
+        Boolean useExistingContact,
+        Id existingContactId,
+        String newContactFirstName,
+        String newContactLastName,
+        Boolean doNotCreateOpportunity,
+        String opportunityName,
+        Boolean useExistingOpportunity,
+        Id existingOpportunityId
+    ) {
+        if (leadId == null) {
+            throw new AuraHandledException('Lead Id is required for conversion.');
+        }
+
+        if (String.isBlank(convertedStatus)) {
+            List<LeadStatus> statuses = [
+                SELECT MasterLabel
+                FROM LeadStatus
+                WHERE IsConverted = true
+                ORDER BY SortOrder
+                LIMIT 1
+            ];
+            if (statuses.isEmpty()) {
+                throw new AuraHandledException('No converted Lead status is configured.');
+            }
+            convertedStatus = statuses[0].MasterLabel;
+        }
+
+        if (useExistingAccount == true && existingAccountId == null) {
+            throw new AuraHandledException('Please choose an existing Account.');
+        }
+        if (useExistingAccount != true && String.isBlank(newAccountName)) {
+            throw new AuraHandledException('Account Name is required for conversion.');
+        }
+
+        if (useExistingContact == true && existingContactId == null) {
+            throw new AuraHandledException('Please choose an existing Contact.');
+        }
+        if (useExistingContact != true && String.isBlank(newContactLastName)) {
+            throw new AuraHandledException('Contact Last Name is required for conversion.');
+        }
+
+        if (useExistingOpportunity == true && existingOpportunityId == null) {
+            throw new AuraHandledException('Please choose an existing Opportunity.');
+        }
+
+        if (useExistingOpportunity == true) {
+            doNotCreateOpportunity = true;
+        }
+
+        if ((doNotCreateOpportunity == false || doNotCreateOpportunity == null) && String.isBlank(opportunityName)) {
+            throw new AuraHandledException('Opportunity name is required when creating an Opportunity.');
+        }
+
+        Lead leadToUpdate = [
+            SELECT Id, OwnerId, Company, FirstName, LastName, Phone, MobilePhone, Customer_Type__c,
+                   Product_Category__c, Branch_Location__c, Check_List_Items__c,
+                   GST_Type__c, GST_Number__c
+            FROM Lead
+            WHERE Id = :leadId
+            LIMIT 1
+        ];
+        Boolean shouldUpdateLead = false;
+
+        if (useExistingAccount != true && String.isNotBlank(newAccountName)) {
+            String normalizedAccountName = newAccountName.trim();
+            if (leadToUpdate.Company != normalizedAccountName) {
+                leadToUpdate.Company = normalizedAccountName;
+                shouldUpdateLead = true;
+            }
+        }
+
+        if (useExistingContact != true && String.isNotBlank(newContactFirstName)) {
+            String updatedFirstName = newContactFirstName.trim();
+            if (leadToUpdate.FirstName != updatedFirstName) {
+                leadToUpdate.FirstName = updatedFirstName;
+                shouldUpdateLead = true;
+            }
+        }
+
+        if (useExistingContact != true && String.isNotBlank(newContactLastName)) {
+            String updatedLastName = newContactLastName.trim();
+            if (leadToUpdate.LastName != updatedLastName) {
+                leadToUpdate.LastName = updatedLastName;
+                shouldUpdateLead = true;
+            }
+        }
+
+        if (String.isBlank(leadToUpdate.Check_List_Items__c)) {
+            throw new AuraHandledException('Please select at least one Checklist item before converting the Lead.');
+        }
+
+
+        if (useExistingContact != true && String.isNotBlank(leadToUpdate.Phone)) {
+            String cleanedPhone = digitsOnly(leadToUpdate.Phone);
+            if (leadToUpdate.Phone != cleanedPhone) {
+                leadToUpdate.Phone = cleanedPhone;
+                shouldUpdateLead = true;
+            }
+        }
+
+        if (useExistingContact != true && String.isNotBlank(leadToUpdate.MobilePhone)) {
+            String cleanedMobilePhone = digitsOnly(leadToUpdate.MobilePhone);
+            if (leadToUpdate.MobilePhone != cleanedMobilePhone) {
+                leadToUpdate.MobilePhone = cleanedMobilePhone;
+                shouldUpdateLead = true;
+            }
+        }
+
+        if (shouldUpdateLead) {
+            update leadToUpdate;
+        }
+
+        Id ownerIdToUse = ownerId != null ? ownerId : leadToUpdate.OwnerId;
+
+        if (useExistingContact == true && useExistingAccount == true) {
+            Contact existingContactRecord = [
+                SELECT Id, AccountId
+                FROM Contact
+                WHERE Id = :existingContactId
+                LIMIT 1
+            ];
+
+            if (existingContactRecord.AccountId != existingAccountId) {
+                existingAccountId = existingContactRecord.AccountId;
+            }
+        }
+
+        if (useExistingContact == true && existingContactId != null) {
+            syncLeadToExistingContact(leadId, existingContactId, newContactFirstName, newContactLastName);
+        }
+
+        if (useExistingAccount == true && existingAccountId != null) {
+            syncLeadToExistingAccount(leadId, existingAccountId, newAccountName);
+        }
+
+        Opportunity selectedOpportunity;
+        if (useExistingOpportunity == true) {
+            selectedOpportunity = [
+                SELECT Id, AccountId
+                FROM Opportunity
+                WHERE Id = :existingOpportunityId
+                LIMIT 1
+            ];
+
+            if (useExistingAccount == true && existingAccountId != selectedOpportunity.AccountId) {
+                throw new AuraHandledException('Selected Opportunity must belong to the selected Account.');
+            }
+
+            useExistingAccount = true;
+            existingAccountId = selectedOpportunity.AccountId;
+
+            syncLeadToExistingOpportunity(leadId, existingOpportunityId);
+        }
+
+        if (useExistingContact == true && useExistingOpportunity == true) {
+            Contact contactToValidate = [
+                SELECT Id, AccountId
+                FROM Contact
+                WHERE Id = :existingContactId
+                LIMIT 1
+            ];
+
+            if (contactToValidate.AccountId != existingAccountId) {
+                throw new AuraHandledException('Selected Contact must belong to the Opportunity Account.');
+            }
+        }
+
+        try {
+            Database.LeadConvert leadConvert = new Database.LeadConvert();
+            leadConvert.setLeadId(leadId);
+            leadConvert.setConvertedStatus(convertedStatus);
+            leadConvert.setDoNotCreateOpportunity(doNotCreateOpportunity == true);
+
+            leadConvert.setOwnerId(ownerIdToUse);
+
+            if (useExistingAccount == true) {
+                leadConvert.setAccountId(existingAccountId);
+            }
+
+            if (useExistingContact == true) {
+                leadConvert.setContactId(existingContactId);
+            }
+
+            if (doNotCreateOpportunity != true && String.isNotBlank(opportunityName)) {
+                leadConvert.setOpportunityName(opportunityName.trim());
+            }
+
+            Database.LeadConvertResult conversionResult = Database.convertLead(leadConvert);
+            if (!conversionResult.isSuccess()) {
+                String errorMessage = 'Lead conversion failed.';
+                if (!conversionResult.getErrors().isEmpty()) {
+                    errorMessage = conversionResult.getErrors()[0].getMessage();
+                }
+                throw new AuraHandledException(errorMessage);
+            }
+
+            Id responseOpportunityId = conversionResult.getOpportunityId();
+
+            if (useExistingOpportunity == true && existingOpportunityId != null) {
+                responseOpportunityId = existingOpportunityId;
+
+                if (conversionResult.getContactId() != null) {
+                    List<OpportunityContactRole> existingRoles = [
+                        SELECT Id
+                        FROM OpportunityContactRole
+                        WHERE OpportunityId = :existingOpportunityId
+                        AND ContactId = :conversionResult.getContactId()
+                        LIMIT 1
+                    ];
+
+                    if (existingRoles.isEmpty()) {
+                        insert new OpportunityContactRole(
+                            OpportunityId = existingOpportunityId,
+                            ContactId = conversionResult.getContactId(),
+                            IsPrimary = false
+                        );
+                    }
+                }
+            }
+
+            return new Map<String, Id>{
+                'leadId' => conversionResult.getLeadId(),
+                'accountId' => conversionResult.getAccountId(),
+                'contactId' => conversionResult.getContactId(),
+                'opportunityId' => responseOpportunityId
+            };
+        } catch (AuraHandledException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new AuraHandledException('Error converting lead: ' + ex.getMessage());
+        }
+    }
+
+    private static String digitsOnly(String value) {
+        if (String.isBlank(value)) {
+            return value;
+        }
+
+        return value.replaceAll('[^0-9]', '');
+    }
+
+    private static void syncLeadToExistingAccount(Id leadId, Id accountId, String newAccountName) {
+        List<String> commonFields = getCommonLeadAccountFields();
+        if (commonFields.isEmpty()) {
+            return;
+        }
+
+        String leadQuery = 'SELECT ' + String.join(commonFields, ',') + ' FROM Lead WHERE Id = :leadId LIMIT 1';
+        String accountQuery = 'SELECT ' + String.join(commonFields, ',') + ' FROM Account WHERE Id = :accountId LIMIT 1';
+
+        Lead leadForMapping = Database.query(leadQuery);
+        Account accountToUpdate = Database.query(accountQuery);
+
+        Boolean shouldUpdateAccount = false;
+        for (String fieldName : commonFields) {
+            if (fieldName == 'Id' || fieldName == 'Name') {
+                continue;
+            }
+
+            Object leadValue = leadForMapping.get(fieldName);
+            if (leadValue != null) {
+                accountToUpdate.put(fieldName, leadValue);
+                shouldUpdateAccount = true;
+            }
+        }
+
+        if (String.isNotBlank(newAccountName)) {
+            String normalizedName = newAccountName.trim();
+            if (accountToUpdate.Name != normalizedName) {
+                accountToUpdate.Name = normalizedName;
+                shouldUpdateAccount = true;
+            }
+        }
+
+        if (shouldUpdateAccount) {
+            update accountToUpdate;
+        }
+    }
+
+    private static List<String> getCommonLeadAccountFields() {
+        Map<String, Schema.SObjectField> leadFields = Schema.SObjectType.Lead.fields.getMap();
+        Map<String, Schema.SObjectField> accountFields = Schema.SObjectType.Account.fields.getMap();
+
+        List<String> commonFields = new List<String>{ 'Id', 'Name' };
+
+        for (String fieldName : accountFields.keySet()) {
+            if (fieldName == 'Id' || fieldName == 'Name') {
+                continue;
+            }
+
+            if (!leadFields.containsKey(fieldName)) {
+                continue;
+            }
+
+            Schema.DescribeFieldResult accountDescribe = accountFields.get(fieldName).getDescribe();
+            Schema.DescribeFieldResult leadDescribe = leadFields.get(fieldName).getDescribe();
+
+            if (!accountDescribe.isUpdateable() || accountDescribe.isCalculated() || accountDescribe.isAutoNumber()) {
+                continue;
+            }
+
+            if (accountDescribe.getType() == Schema.DisplayType.Address ||
+                accountDescribe.getType() == Schema.DisplayType.Location ||
+                accountDescribe.getType() == Schema.DisplayType.Base64) {
+                continue;
+            }
+
+            if (leadDescribe.getType() != accountDescribe.getType()) {
+                continue;
+            }
+
+            commonFields.add(fieldName);
+        }
+
+        commonFields.sort();
+        return commonFields;
+    }
+
+    private static void syncLeadToExistingContact(Id leadId, Id contactId, String newContactFirstName, String newContactLastName) {
+        List<String> commonFields = getCommonLeadContactFields();
+        if (commonFields.isEmpty()) {
+            return;
+        }
+
+        String leadQuery = 'SELECT ' + String.join(commonFields, ',') + ' FROM Lead WHERE Id = :leadId LIMIT 1';
+        String contactQuery = 'SELECT ' + String.join(commonFields, ',') + ' FROM Contact WHERE Id = :contactId LIMIT 1';
+
+        Lead leadForMapping = Database.query(leadQuery);
+        Contact contactToUpdate = Database.query(contactQuery);
+
+        Map<String, Schema.SObjectField> contactFieldMap = Schema.SObjectType.Contact.fields.getMap();
+        Boolean shouldUpdateContact = false;
+
+        for (String fieldName : commonFields) {
+            if (fieldName == 'Id') {
+                continue;
+            }
+
+            Object leadValue = leadForMapping.get(fieldName);
+            if (leadValue == null) {
+                continue;
+            }
+
+            Schema.DescribeFieldResult contactFieldDescribe = contactFieldMap.get(fieldName).getDescribe();
+            if (contactFieldDescribe.getType() == Schema.DisplayType.Phone) {
+                String cleanedPhone = digitsOnly(String.valueOf(leadValue));
+                if (String.isBlank(cleanedPhone)) {
+                    continue;
+                }
+                contactToUpdate.put(fieldName, cleanedPhone);
+            } else {
+                contactToUpdate.put(fieldName, leadValue);
+            }
+
+            shouldUpdateContact = true;
+        }
+
+        if (String.isNotBlank(newContactFirstName)) {
+            String normalizedFirstName = newContactFirstName.trim();
+            if (contactToUpdate.FirstName != normalizedFirstName) {
+                contactToUpdate.FirstName = normalizedFirstName;
+                shouldUpdateContact = true;
+            }
+        }
+
+        if (String.isNotBlank(newContactLastName)) {
+            String normalizedLastName = newContactLastName.trim();
+            if (contactToUpdate.LastName != normalizedLastName) {
+                contactToUpdate.LastName = normalizedLastName;
+                shouldUpdateContact = true;
+            }
+        }
+
+        if (shouldUpdateContact) {
+            update contactToUpdate;
+        }
+    }
+
+    private static List<String> getCommonLeadContactFields() {
+        Map<String, Schema.SObjectField> leadFields = Schema.SObjectType.Lead.fields.getMap();
+        Map<String, Schema.SObjectField> contactFields = Schema.SObjectType.Contact.fields.getMap();
+
+        List<String> commonFields = new List<String>{ 'Id' };
+
+        for (String fieldName : contactFields.keySet()) {
+            if (fieldName == 'Id') {
+                continue;
+            }
+
+            if (!leadFields.containsKey(fieldName)) {
+                continue;
+            }
+
+            Schema.DescribeFieldResult contactDescribe = contactFields.get(fieldName).getDescribe();
+            Schema.DescribeFieldResult leadDescribe = leadFields.get(fieldName).getDescribe();
+
+            if (!contactDescribe.isUpdateable() || contactDescribe.isCalculated() || contactDescribe.isAutoNumber()) {
+                continue;
+            }
+
+            if (contactDescribe.getType() == Schema.DisplayType.Address ||
+                contactDescribe.getType() == Schema.DisplayType.Location ||
+                contactDescribe.getType() == Schema.DisplayType.Base64) {
+                continue;
+            }
+
+            if (leadDescribe.getType() != contactDescribe.getType()) {
+                continue;
+            }
+
+            commonFields.add(fieldName);
+        }
+
+        commonFields.sort();
+        return commonFields;
+    }
+
+    private static void syncLeadToExistingOpportunity(Id leadId, Id opportunityId) {
+        List<String> fieldsToMap = getMappedLeadOpportunityFields();
+        if (fieldsToMap.isEmpty()) {
+            return;
+        }
+
+        String leadQuery = 'SELECT ' + String.join(fieldsToMap, ',') + ' FROM Lead WHERE Id = :leadId LIMIT 1';
+        String oppQuery = 'SELECT ' + String.join(fieldsToMap, ',') + ' FROM Opportunity WHERE Id = :opportunityId LIMIT 1';
+
+        Lead leadForMapping = Database.query(leadQuery);
+        Opportunity opportunityToUpdate = Database.query(oppQuery);
+
+        Map<String, Schema.SObjectField> opportunityFieldMap = Schema.SObjectType.Opportunity.fields.getMap();
+        Boolean shouldUpdateOpportunity = false;
+
+        for (String fieldName : fieldsToMap) {
+            if (fieldName == 'Id') {
+                continue;
+            }
+
+            Object leadValue = leadForMapping.get(fieldName);
+            if (leadValue == null) {
+                continue;
+            }
+
+            Schema.DescribeFieldResult opportunityFieldDescribe = opportunityFieldMap.get(fieldName).getDescribe();
+            if (opportunityFieldDescribe.getType() == Schema.DisplayType.Phone) {
+                String cleanedPhone = digitsOnly(String.valueOf(leadValue));
+                if (String.isBlank(cleanedPhone)) {
+                    continue;
+                }
+                opportunityToUpdate.put(fieldName, cleanedPhone);
+            } else {
+                opportunityToUpdate.put(fieldName, leadValue);
+            }
+
+            shouldUpdateOpportunity = true;
+        }
+
+        if (shouldUpdateOpportunity) {
+            update opportunityToUpdate;
+        }
+    }
+
+    private static List<String> getMappedLeadOpportunityFields() {
+        Map<String, Schema.SObjectField> leadFields = Schema.SObjectType.Lead.fields.getMap();
+        Map<String, Schema.SObjectField> opportunityFields = Schema.SObjectType.Opportunity.fields.getMap();
+
+        Set<String> mappedFieldCandidates = new Set<String>{
+            'AddressLine1__c',
+            'AddressLine2__c',
+            'AddressLine3__c',
+            'Branch_Location__c',
+            'Corporation__c',
+            'Country__c',
+            'District__c',
+            'House_Name_No__c',
+            'Municipality__c',
+            'Panchayath__c',
+            'Pin_Code__c',
+            'Place__c',
+            'Product_Category__c',
+            'Referral_Name__c',
+            'State__c',
+            'Sub_Source__c',
+            'Village__c'
+        };
+
+        List<String> fieldsToMap = new List<String>{ 'Id' };
+
+        for (String fieldName : mappedFieldCandidates) {
+            if (!leadFields.containsKey(fieldName) || !opportunityFields.containsKey(fieldName)) {
+                continue;
+            }
+
+            Schema.DescribeFieldResult leadDescribe = leadFields.get(fieldName).getDescribe();
+            Schema.DescribeFieldResult opportunityDescribe = opportunityFields.get(fieldName).getDescribe();
+
+            if (!opportunityDescribe.isUpdateable() || opportunityDescribe.isCalculated() || opportunityDescribe.isAutoNumber()) {
+                continue;
+            }
+
+            if (leadDescribe.getType() != opportunityDescribe.getType()) {
+                continue;
+            }
+
+            fieldsToMap.add(fieldName);
+        }
+
+        fieldsToMap.sort();
+        return fieldsToMap;
+    }
+}

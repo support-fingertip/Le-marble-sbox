@@ -28,6 +28,16 @@ public with sharing class StandardLeadController {
     }
 
     @AuraEnabled(cacheable=true)
+    public static List<String> getDistricts() {
+        return getPicklistValues('Lead', 'District__c');
+    }
+
+    @AuraEnabled(cacheable=true)
+    public static List<String> getPanchayaths() {
+        return getPicklistValues('Lead', 'Panchayath__c');
+    }
+
+    @AuraEnabled(cacheable=true)
     public static List<String> getCountries() {
         return getPicklistValues('Lead', 'Country__c');
     }

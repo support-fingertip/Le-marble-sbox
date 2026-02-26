@@ -686,11 +686,14 @@ var i=0;
                 }
 
                 let afterDiscPriceSqft = pricePerSqft;
+                let afterDiscPriceUnit= unitPriceAfterTax;
                 if (discType === 'Percentage' && discValue > 0) {
                     afterDiscPriceSqft = parseFloat((pricePerSqft * (1 - discValue / 100)).toFixed(6));
+                    afterDiscPriceUnit= afterDiscPriceSqft * sqftPerPiece;
                 } else if (discType === 'Amount' && discValue > 0) {
                     // Amount discount directly reduces price per sqft
                     afterDiscPriceSqft = parseFloat((pricePerSqft - discValue).toFixed(6));
+                    afterDiscPriceUnit= afterDiscPriceSqft * sqftPerPiece;
                 }
 
                 // 3. Total Amount (use the after discount price per sqft)
@@ -699,6 +702,7 @@ var i=0;
                 product.pricePerSqft = pricePerSqft.toFixed(6); // always show original after-tax per sqft
                 product.afterDiscPriceSqft = afterDiscPriceSqft.toFixed(6); // always from original
                 product.totalPrice = totalPrice.toFixed(2);
+                product.afterDiscPriceUnit = afterDiscPriceUnit.toFixed(6);
 
                 this.selectedProducts  = [...this.selectedProducts];
                 return;
@@ -1314,6 +1318,18 @@ console.log(el);
         updated[this.activeRowIndex].pricebookEntryId = pricebookEntryId;
         updated[this.activeRowIndex].sqftPerPiece=selectedProduct.sqftPiece;
         updated[this.activeRowIndex].Tax=selectedProduct.tax;
+
+        // Calculate mspInSqft for tiles: (msp + tax%) / sqftPerPiece
+        if (updated[this.activeRowIndex].isTile) {
+            const msp = parseFloat(selectedProduct.msp) || 0;
+            const tax = parseFloat(selectedProduct.tax) || 0;
+            const sqftPerPiece = parseFloat(selectedProduct.sqftPiece) || 0;
+            updated[this.activeRowIndex].mspInSqft = sqftPerPiece > 0
+                ? parseFloat(((msp * (1 + tax / 100)) / sqftPerPiece).toFixed(6))
+                : 0;
+        } else {
+            updated[this.activeRowIndex].mspInSqft = 0;
+        }
         updated[this.activeRowIndex].totalPrice =
             (updated[this.activeRowIndex].quantity || 0) * unitPrice;
         updated[this.activeRowIndex].isRegularProduct = (!updated[this.activeRowIndex].isTile && !updated[this.activeRowIndex].isNaturalStone);

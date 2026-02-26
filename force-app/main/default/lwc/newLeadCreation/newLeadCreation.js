@@ -20,288 +20,12 @@ import getSocialMediaPlatforms from '@salesforce/apex/CustomerEntryController.ge
 //import getCustomerTypes from '@salesfor@ce/apex/CustomerEntryController.getCustomerTypes';
 import getLeadSourcesStd from '@salesforce/apex/StandardLeadController.getLeadSources';
 import getLeadTypes from '@salesforce/apex/StandardLeadController.getLeadTypes';
+import getSalutationsStd from '@salesforce/apex/StandardLeadController.getSalutations';
+import getStatesStd from '@salesforce/apex/StandardLeadController.getStates';
+import getCountriesStd from '@salesforce/apex/StandardLeadController.getCountries';
+import getDistrictsStd from '@salesforce/apex/StandardLeadController.getDistricts';
+import getPanchayathsStd from '@salesforce/apex/StandardLeadController.getPanchayaths';
 
-
-const INDIAN_STATES_CITIES = {
-    "Andhra Pradesh": ["Adoni", "Amaravati", "Anantapur", "Chittoor", "Eluru", "Guntur", "Kadapa",
-        "Kakinada", "Kurnool", "Nellore", "Ongole", "Rajahmundry", "Srikakulam",
-        "Tirupati", "Vijayawada", "Visakhapatnam", "Vizianagaram"],
-    "Arunachal Pradesh": ["Itanagar", "Naharlagun", "Pasighat", "Tawang", "Ziro"],
-    "Assam": ["Dibrugarh", "Dispur", "Guwahati", "Jorhat", "Silchar", "Tezpur", "Tinsukia"],
-    "Bihar": ["Arrah", "Bhagalpur", "Bihar Sharif", "Darbhanga", "Gaya", "Muzaffarpur",
-        "Patna", "Purnia", "Samastipur", "Sasaram"],
-    "Chhattisgarh": ["Ambikapur", "Bhilai", "Bilaspur", "Durg", "Jagdalpur", "Korba", "Raigarh", "Raipur"],
-    "Goa": ["Bicholim", "Canacona", "Mapusa", "Margao", "Mormugao", "Panaji", "Ponda"],
-    "Gujarat": ["Ahmedabad", "Amreli", "Anand", "Bhavnagar", "Bhuj", "Gandhinagar", "Jamnagar",
-        "Junagadh", "Mehsana", "Rajkot", "Surat", "Vadodara"],
-    "Haryana": ["Ambala", "Faridabad", "Gurugram", "Hisar", "Karnal", "Kurukshetra", "Panipat", "Rohtak", "Yamunanagar"],
-    "Himachal Pradesh": ["Bilaspur", "Chamba", "Dharamshala", "Hamirpur", "Kullu", "Mandi", "Shimla", "Solan"],
-    "Jharkhand": ["Bokaro", "Deoghar", "Dhanbad", "Dumka", "Giridih", "Hazaribagh", "Jamshedpur", "Ranchi"],
-    "Karnataka": ["Bagalkot", "Ballari", "Belagavi", "Bengaluru", "Bidar", "Chikmagalur", "Davanagere",
-        "Hassan", "Hubballi", "Kalaburagi", "Mangaluru", "Mysuru", "Shivamogga", "Tumakuru", "Udupi"],
-    "Kerala": ["Alappuzha", "Ernakulam", "Idukki", "Kannur", "Kasaragod", "Kollam", "Kottayam",
-        "Kozhikode", "Malappuram", "Palakkad", "Pathanamthitta", "Thiruvananthapuram", "Thrissur"],
-    "Madhya Pradesh": ["Bhopal", "Dewas", "Gwalior", "Indore", "Jabalpur", "Khandwa", "Rewa", "Sagar", "Satna", "Ujjain"],
-    "Maharashtra": ["Ahmednagar", "Aurangabad", "Kolhapur", "Mumbai", "Nagpur", "Nashik", "Pune",
-        "Solapur", "Thane", "Amravati", "Latur", "Satara", "Sangli"],
-    "Manipur": ["Bishnupur", "Chandel", "Churachandpur", "Imphal", "Senapati", "Tamenglong", "Ukhrul"],
-    "Meghalaya": ["Shillong", "Tura", "Jowai", "Baghmara", "Williamnagar"],
-    "Mizoram": ["Aizawl", "Lunglei", "Champhai", "Serchhip"],
-    "Nagaland": ["Dimapur", "Kohima", "Mokokchung", "Mon", "Phek", "Tuensang", "Zunheboto"],
-    "Odisha": ["Balasore", "Bargarh", "Berhampur", "Bhubaneswar", "Cuttack", "Puri", "Rourkela", "Sambalpur"],
-    "Punjab": ["Amritsar", "Barnala", "Bathinda", "Ferozepur", "Jalandhar", "Ludhiana", "Mansa", "Patiala"],
-    "Rajasthan": ["Ajmer", "Bikaner", "Jaipur", "Jaisalmer", "Jodhpur", "Kota", "Udaipur"],
-    "Sikkim": ["Gangtok", "Gyalshing", "Mangan", "Namchi"],
-    "Tamil Nadu": ["Chennai", "Coimbatore", "Erode", "Madurai", "Salem", "Tiruchirappalli", "Tirunelveli", "Vellore"],
-    "Telangana": ["Adilabad", "Hyderabad", "Karimnagar", "Khammam", "Mahbubnagar", "Nalgonda", "Nizamabad", "Warangal"],
-    "Tripura": ["Agartala", "Dharmanagar", "Udaipur"],
-    "Uttar Pradesh": ["Agra", "Aligarh", "Allahabad", "Bareilly", "Ghaziabad", "Gorakhpur", "Jhansi", "Kanpur",
-        "Lucknow", "Meerut", "Moradabad", "Noida", "Saharanpur", "Varanasi"],
-    "Uttarakhand": ["Almora", "Dehradun", "Haridwar", "Nainital", "Pauri", "Rishikesh", "Roorkee", "Tehri"],
-    "West Bengal": ["Asansol", "Bardhaman", "Darjeeling", "Durgapur", "Howrah", "Kolkata", "Siliguri"],
-    "Andaman and Nicobar Islands": ["Port Blair"],
-    "Chandigarh": ["Chandigarh"],
-    "Dadra and Nagar Haveli and Daman and Diu": ["Daman", "Diu", "Silvassa"],
-    "Lakshadweep": ["Kavaratti"],
-    "Delhi": ["New Delhi", "Central Delhi", "East Delhi", "West Delhi", "North Delhi", "South Delhi"],
-    "Puducherry": ["Karaikal", "Mahe", "Puducherry", "Yanam"]
-};
-
-const KERALA_PANCHAYATS = {
-    "Kasaragod": [
-        "Ajanur", "Badiadka", "Balal", "Bedadka", "Belloor", "Chemnad", "Chengala", "Cheruvathur",
-        "Delampady", "East Eleri", "Enmakaje", "Kallar", "Karadka", "Kayyur Cheemeni", "Kinanoor - Karinthalam",
-        "KodomBelur", "Kumbadaje", "Kumbla", "Kuttikol", "Madhur", "Madikai", "Mangalpady", "Manjeshwar",
-        "Meenja", "MogralPuthur", "Muliyar", "Padne", "Paivalike", "Pallikere", "Panathady", "Pilicode",
-        "PullurPeriya", "Puthige", "Trikaripur", "Udma", "Valiyaparamba", "Vorkady", "WestEleri",
-        "Manjeshwar", "Karadka", "Kasaragod", "Kanhangad", "Parappa", "Nileshwar"
-    ],
-    "Kannur": [
-        "Alakode", "Anjarakandy", "Aralam", "Ayyankunnu", "Azhikode", "Chapparapadava", "Chembilode",
-        "Chengalayi", "Cherukunnu", "Cherupuzha", "Cheruthazham", "Chirakkal", "Chittariparamba", "Chokli",
-        "Dharmadam", "Eramam Kuttur", "Eranholi", "Eruvessy", "Ezhome", "Irikkur", "Kadambur",
-        "Kadannappally Panapuzha", "Kadirur", "Kalliasseri", "Kanichar", "Kankol-Alappadamba",
-        "Kannapuram", "Karivellur-Peralam", "Keezhallur", "Kelakam", "Kolachery", "Kolayad", "Koodali",
-        "Kottayam", "Kottiyoor", "Kunhimangalam", "Kunnothuparamba", "Kurumathur", "Kuttiattoor", "Madayi",
-        "Malappattam", "Malur", "Mangattidam", "Mattool", "Mayyil", "Mokeri", "Munderi", "Muzhakkunnu",
-        "Muzhappilangad", "Naduvil", "Narath", "New-Mahe", "Padiyoor", "Panniyannur", "Pappinisseri",
-        "Pariyaram", "Pattiam", "Pattuvam", "Payam", "Payyavoor", "Peralassery", "Peravoor",
-        "Peringome Vayakkara", "Pinarayi", "Ramanthali", "Thillankery", "Triprangottoor", "Udayagiri",
-        "Ulikkal", "Valapattanam", "Vengad", "Payyannur", "Kalliasseri", "Taliparamba", "Irikkur", "Kannur", "Edakkad", "Thalassery", "Panoor", "Kuthuparamba", "Iritty", "Peravoor"
-    ],
-    "Wayanad": [
-        "Ambalavayal", "Edavaka", "Kaniyambetta", "Kottathara", "Meenangadi", "Meppadi", "Mullankolly",
-        "Muppainad", "Muttil", "Nenmeni", "Noolpuzha", "Padinharathara", "Panamaram", "Poothadi",
-        "Pozhuthana", "Pulpally", "Thariode", "Thavinhal", "Thirunelly", "Thondernad", "Vellamunda",
-        "Vengappally", "Vythiri", "Mananthavady", "Panamaram", "Sulthan Bathery", "Kalpetta"
-    ],
-    "Kozhikode": [
-        "Arikkulam", "Atholi", "Ayancheri", "Azhiyur", "Balussery", "Chakkittapara", "Changaroth",
-        "Chathamangalam", "Chekkiad", "Chelannur", "Chemanchery", "Chengottukavu", "Cheruvannur",
-        "Chorode", "Edacheri", "Eramala", "Kadalundi", "Kakkodi", "Kakkur", "Karassery", "Kattippara",
-        "Kavilumpara", "Kayakkody", "Kayanna", "Keezhariyur", "Kizhakkoth", "Kodanchery", "Kodiyathur",
-        "Koodaranhi", "Koorachundu", "Koothali", "Kottur", "Kunnamangalam", "Kunnummal", "Kuruvattoor",
-        "Kuttiadi", "Madavoor", "Maniyur", "Maruthonkara", "Mavoor", "Meppayur", "Moodadi", "Nadapuram",
-        "Naduvannur", "Nanminda", "Narikunni", "Narippatta", "Nochad", "Olavanna", "Omassery",
-        "Onchiyam", "Panangad", "Perambra", "Perumanna", "Peruvayal", "Puduppady", "Purameri",
-        "Thalakulathur", "Thamarassery", "Thikkodi", "Thiruvallur", "Thiruvambadi", "Thurayur",
-        "Tuneri", "Ulliyeri", "Unnikulum", "Valayam", "Vanimal", "Velom", "Villiappally",
-        "Vatakara", "Tuneri", "Kunnummal", "Thodannur", "Melady", "Perambra", "Balussery", "Panthalayani", "Chelannur", "Koduvally", "Kunnamangalam", "Kozhikkode"
-    ],
-    "Malappuram": [
-        "Alamkode", "Aliparamba", "Amarambalam", "Anakkayam", "Angadippuram", "Areacode", "ARNagar",
-        "Athavanad", "Chaliyar", "Cheacode", "Chelembra", "Cheriyamundam", "Cherukavu", "Chokkad",
-        "Chungathara", "Edakkara", "Edapal", "Edappatta", "Edarikode", "Edavanna", "Edayur",
-        "Elamkulam", "Irimbiliyam", "Kaladi", "Kalikavu", "Kalpakanchery", "Kannamangalam", "Karulai",
-        "Karuvarakundu", "Kavanur", "Keezhattur", "Keezhuparamba", "Kodur", "Koottilangadi", "Kuruva",
-        "Kuttippuram", "Kuzhimanna", "Makkaraparamba", "Mampad", "Mangalam", "Mankada", "Marakkara",
-        "Maranchery", "Melattur", "Moonniyur", "Moorkkanad", "Moothedam", "Morayur", "Muthuvalloor",
-        "Nannambra", "Nannammukku", "Niramaruthur", "Oorakam", "Othukkungal", "Ozhur", "Pallikkal",
-        "Pandikkad", "Parappur", "Perumanna", "Perumpadappa", "Peruvalloor", "Ponmala", "Ponmundam",
-        "Pookkottur", "Porur", "Pothukallu", "Pulamanthole", "Pulikkal", "Pulpatta", "Purathur",
-        "Puzhakkattiri", "Tanalur", "Tavanur", "Thalakkad", "Thazhekkode", "Thenhipalam", "Thennala",
-        "Thirunavaya", "Thiruvali", "Thrikkalangodu", "Triprangode", "Tuvvur", "Urangattiri",
-        "Valavannur", "Vallikkunnu", "Vattamkulam", "Vazhakkad", "Vazhayur", "Vazhikkadavu",
-        "Veliancode", "Vengara", "Vettathur", "Vettom", "Wandoor", "Nilambur", "Kalikavu", "Wandoor", "Kondotty", "Areacode", "Malappuram", "Perinthalmanna", "Mankada", "Kuttippuram", "Vengara", "Tirurangadi", "Tanur", "Tirur", "Ponnani", "Perumpadappa"
-    ],
-    "Palakkad": [
-        "Agali", "Akathethara", "Alanallur", "Alathur", "Ambalappara", "Anakkara", "Ananganadi",
-        "Ayiloor", "Chalavara", "Chalissery", "Elappully", "Elavancherry", "Erimayur", "Eruthenpathy",
-        "Kadampazhipuram", "Kanhirapuzha", "Kannadi", "Kannambra", "Kappur", "Karakurussi", "Karimba",
-        "Karimpuzha", "Kavassery", "Keralassery", "Kizhakkencherry", "Kodumbu", "Koduvayur", "Kollengode",
-        "Kongad", "Koppam", "Kottayi", "Kottopadam", "Kozhinjampara", "Kulukkallur", "Kumaramputhur",
-        "Kuthanur", "Kuzhalmannam", "Lakkidi-Perur", "Malampuzha", "Mankara", "Mannur", "Marutharode",
-        "Mathur", "Melarcode", "Mundur", "Muthalamada", "Muthuthala", "Nagalassery", "Nallepilly",
-        "Nellaya", "Nelliyampathy", "Nenmara", "Ongallur", "Pallassana", "Parali", "Paruthur",
-        "Pattanchery", "Pattithara", "Peringottukurissi", "Perumatty", "Peruvemba", "Pirayiri",
-        "Polpully", "Pookkottukavu", "Puducode", "Pudunagaram", "Puduppariyaram", "Pudur", "Pudusseri",
-        "Sholayoor", "Sreekrishnapuram", "Tachampara", "Tarur", "Thachanattukara", "Thenkara",
-        "Thenkurissi", "Thirumittacode", "Thiruvegappura", "Trikkaderi", "Trithala", "Vadakarapathy",
-        "Vadakkencheri", "Vadavannur", "Vallapuzha", "Vandazhy", "Vaniamkulam", "Vellinezhi", "Vilayur",
-        "Trithala", "Pattambi", "Ottapalam", "Sreekrishnapuram", "Mannarkad", "Attappady", "Palakkad", "Kuzhalmannam", "Chittur", "Kollengode", "Nemmara", "Alathur", "Malampuzha"
-    ],
-    "Thrissur": [
-        "Adat", "Alagappanagar", "Aloor", "Annamanada", "Anthikad", "Arimpur", "Athirappilly",
-        "Avanur", "Avinissery", "Chazhur", "Chelakkara", "Cherpu", "Choondal", "Chowannur",
-        "Desamangalam", "Edathiruthy", "Edavilangu", "Elavally", "Engandiyur", "Eriyad", "Erumapetty",
-        "Kadangode", "Kadappuram", "Kadavallur", "Kadukutty", "Kaipamangalam", "Kaiparambu",
-        "Kandanassery", "Karalam", "Kattakampal", "Kattoor", "Kodakara", "Kodassery", "Kolazhy",
-        "Kondazhy", "Koratty", "Kuzhur", "Madakkathara", "Mala", "Manalur", "Mathilakam", "Mattathur",
-        "Meloor", "Mulakunnathukavu", "Mullassery", "Mullurkara", "Muriyad", "Nadathara", "Nattika",
-        "Nenmanikkara", "Orumanayur", "Padiyoor", "Pananchery", "Panjal", "Paralam", "Parappukkara",
-        "Pariyaram", "Pavaratty", "Pazhayannur", "Perinjanam", "Poomangalam", "Porkulam", "Poyya",
-        "Pudukad", "Punnayur", "Punnayurkulam", "Puthenchira", "Puthur", "Sreenarayanapuram",
-        "Thalikulam", "Thanniyam", "Thekkumkara", "Thiruvilwamala", "Tholur", "Thrikkur", "Vadakkekkad",
-        "Valapad", "Vallachira", "VallatholNagar", "Varandarappilly", "Varavoor", "Vatanapally",
-        "Vellangallur", "Velukara", "Velur", "Venkitangu", "Chavakkad", "Chowannur", "Wadakanchery", "Pazhayannur", "Ollukkara", "Puzhakkal", "Mullassery", "Thalikulam", "Anthikad", "Cherpu", "Kodakara", "Irinjalakuda", "Vellangallur", "Mathilakam", "Mala", "Chalakudy"
-    ],
-    "Ernakulam": [
-        "Aikaranad", "Alangad", "Amballoor", "Arakuzha", "Asamannoor", "Avoly", "Ayavana",
-        "Ayyampuzha", "Chellanam", "Chendamangalam", "Chengamanad", "Cheranalloor", "Chittattukara",
-        "Choornikkara", "Chottanikkara", "Edakkattuvayal", "Edathala", "Edavanakkad", "Elanji",
-        "Elankunnapuzha", "Ezhikkara", "Kadamakudy", "Kadungalloor", "Kalady", "Kalloorkad", "Kanjoor",
-        "Karukutty", "Karumallur", "Kavalangad", "Keerampara", "Keezhmad", "Kizhakkambalam", "Koovappady",
-        "Kottappady", "Kottuvally", "Kumbalam", "Kumbalanghi", "Kunnathunad", "Kunnukara", "Kuttampuzha",
-        "Kuzhuppilly", "MalayattoorNeeleswaram", "Maneed", "Manjalloor", "Manjapra", "Marady",
-        "Mazhuvannoor", "Mookkannur", "Mudakuzha", "Mulanthuruthy", "Mulavukad", "Narakal", "Nayarambalam",
-        "Nedumbassery", "Nellikuzhi", "Okkal", "Paingottoor", "Paipra", "Palakuzha", "Pallarimangalam",
-        "Pallippuram", "Pampakuda", "Parakkadavu", "Pindimana", "Poothrikka", "Pothanicad",
-        "Puthenvelikkara", "Ramamangalam", "Rayamangalam", "Sreemoolanagaram", "Thirumarady",
-        "Thiruvaniyoor", "Thuravoor", "Udayamperoor", "Vadakkekkara", "VadavucodePuthencruz", "Valakom",
-        "Varappetty", "Varapuzha", "Vazhakulam", "Vengola", "Vengoor", "Paravur", "Alangad", "Angamaly", "Koovappady", "Vazhakulam", "Edappally", "Vypin", "Palluruthy", "Peravoor"
-    ],
-    "Kottayam": [
-        "Akalakunnam", "Arpookara", "Athirampuzha", "Ayarkunnam", "Aymanam", "Bharananganam", "Chempu",
-        "Chirakkadavu", "Elikulam", "Erumely", "Kadanad", "Kadaplamattom", "Kaduthuruthy", "Kallara",
-        "Kanakkary", "Kangazha", "Kanjirappally", "Karoor", "Karukachal", "Kidangoor", "Kooroppada",
-        "Koottickal", "Koruthodu", "Kozhuvanal", "Kumarakom", "Kuravilangad", "Kurichy", "Madappally",
-        "Manarcadu", "Manimala", "Manjoor", "Marangattupilly", "Maravanthuruthu", "Meenachil", "Meenadom",
-        "Melukavu", "Moonnilavu", "Mulakulam", "Mundakayam", "Mutholy", "Nedumkunnam", "Neendoor",
-        "Neezhoor", "Paippad", "Pallickathodu", "Pampady", "Panachikkad", "Parathodu", "Poonjar",
-        "Thekkekara", "Puthuppally", "Ramapuram", "Teekoy", "Thalanad", "Thalappalam", "Thalayazham",
-        "Thalayolaparambu", "Thidanad", "Thiruvarppu", "Thrickodithanam", "TV Puram", "Udayanapuram",
-        "Uzhavoor", "Vakathanam", "Vazhappally", "Vazhoor", "Vechoor", "Veliyannoor", "Vellavoor",
-        "Velloor", "Vijayapuram", "Vaikom", "Kaduthuruthy", "Ettumanoor", "Uzhavoor", "Lalam", "Erattupetta", "Pampady", "Pallom", "Madappally", "Vazhoor", "Kanjirappally"
-    ],
-    "Alappuzha": [
-        "Ala", "Ambalapuzha", "Arattupuzha", "Arookutty", "Aroor", "Aryad", "Bharanickavu", "Budhanoor",
-        "Champakulam", "Chennam- Pallippuram", "Chennithala-Thripperumthura", "Cheppad", "Cheriyanad",
-        "Cherthala", "Cheruthana", "Chettikulangara", "Chingoli", "Chunakara", "Devikulangara", "Edathua",
-        "Ezhupunna", "Kadakkarappally", "Kainakary", "Kandalloor", "Kanjikuzhy", "Karthikappally",
-        "Karuvatta", "Kavalam", "Kodamthuruth", "Krishnapuram", "Kumarapuram", "Kuthiathod", "Mannancherry",
-        "Mannar", "Mararikulam", "Mararikulam", "Mavelikara-Thamarakulam", "Mavelikara-Thekkekara",
-        "Muhamma", "Mulakuzha", "Muthukulam", "Muttar", "Nedumudi", "Neelamperoor", "Nooranad", "Palamel",
-        "Pallippad", "Panavally", "Pandanad", "Pathiyoor", "Pattanakkad", "Perumpalam", "Pulincunnoo",
-        "Puliyoor", "Punnapra", "Purakkad", "Ramankary", "Thakazhy", "Thalavady", "Thanneermukkom",
-        "Thazhakara", "Thiruvanvandoor", "Thrikkunnappuzha", "Thuravoor", "Thycattussery", "Vallikunnam",
-        "Vayalar", "Veeyapuram", "Veliyanad", "Venmoney", "Thycattussery", "Pattanakkad", "Kanjikuzhy", "Aryad", "Ambalappuzha", "Champakulam", "Veliyanad", "Chengannur", "Haripad", "Mavelikara", "Bharanickavu", "Muthukulam"
-    ],
-    "Pathanamthitta": [
-        "Anicadu", "Aranmula", "Aruvappulam", "Ayroor", "Chenneerkara", "Cherukole", "Chittar",
-        "Elanthoor", "Enadimangalam", "Erathu", "Eraviperoor", "Ezhumattoor", "Kadampanad",
-        "Kadapra", "Kalanjoor", "Kallooppara", "Kaviyoor", "Kodumon", "Koipuram", "Konni", "Kottanad",
-        "Kottangal", "Kozhencherry", "Kulanada", "Kunnamthanam", "Kuttoor", "Malayalapuzha", "Mallappally",
-        "Mallappuzhassery", "Mezhuveli", "Mylapra", "Naranammoozhy", "Naranganam", "Nedumpuram",
-        "Niranam", "Omalloor", "Pallickal", "Pandalam Thekkekara", "Peringara", "Pramadom", "Puramattom",
-        "Ranni Angadi", "Ranni", "Ranni Pazhavangadi", "Ranni Perunadu", "Seethathodu", "Thannithodu",
-        "Thottappuzhassery", "Thumpamon", "Vadaserikara", "Vallicode", "Vechoochira", "Mallappally", "Pulikeezhu", "Koipuram", "Elanthoor", "Ranni", "Konni", "Pandalam", "Parakkode"
-    ],
-    "Kollam": [
-        "Adichanalloor", "Alappad", "Alayamon", "Anchal", "Aryankavu", "Chadayamangalam", "Chathannoor",
-        "Chavara", "Chirakkara", "Chithara", "Clappana", "East Kallada", "Edamulackal", "Elamadu",
-        "Elampalloor", "Ezhukone", "Ittiva", "Kadakkal", "Kalluvathukkal", "Karavaloor", "Kareepra",
-        "Kottamkara", "Kulakkada", "Kulasekharapuram", "Kulathupuzha", "Kummil", "Kundara", "Kunnathoor",
-        "Mayyanad", "Melila", "Munroethuruth", "Mylom", "Mynagappally", "Nedumpana", "Neduvathoor",
-        "Neendakara", "Nilamel", "Oachira", "Panayam", "Panmana", "Pathanapuram", "Pattazhi",
-        "Pattazhi-Vadakkekara", "Pavithreswaram", "Perayam", "Perinad", "Piravanthoor", "Poothakulam",
-        "Pooyappally", "Poruvazhy", "Sasthamcotta", "Sooranad", "Thalavoor", "Thazhava", "Thekkumbhagom",
-        "Thenmala", "Thevalakkara", "Thodiyoor", "Thrikkaruva", "Thrikkovilvattom", "Ummannoor",
-        "Velinalloor", "Veliyam", "Vettikavala", "Vilakkudy", "West Kallada", "Yeroor", "Oachira", "Sasthamcotta", "Vettikavala", "Pathanapuram", "Anchal", "Kottarakara", "Chittumala", "Chavara", "Mukhathala", "Ithikkara", "Chadayamangalam"
-    ],
-    "Thiruvananthapuram": [
-        "Amboori", "Anad", "Anchuthengu", "Andoorkonam", "Aruvikkara", "Aryanad", "Aryancode",
-        "Athiyannoor", "Azhoor", "Balaramapuram", "Chemmaruthy", "Chenkal", "Cherunniyoor",
-        "Chirayinkeezhu", "Edava", "Elakamon", "Kadakkavoor", "Kadinamkulam", "Kallara", "Kallikkadu",
-        "Kalliyoor", "Kanjiramkulam", "Karakulam", "Karavaram", "Karode", "Karumkulam", "Kattakada",
-        "Kilimanoor", "Kizhuvilam", "Kollayil", "Kottukal", "Kulathoor", "Kunnathukal", "Kuttichal",
-        "Madavoor", "Malayinkeezh", "Manamboor", "Mangalapuram", "Manickal", "Maranalloor", "Mudakkal",
-        "Nagaroor", "Nanniyode", "Navaikulam", "Nellanad", "Ottasekharamangalam", "Ottoor", "Pallichal",
-        "Pallickal", "Panavoor", "Pangode", "Parassala", "Pazhayakunnumel", "Peringammala",
-        "Perumkadavila", "Poovachal", "Poovar", "Pothencode", "Pulimath", "Pullampara", "Thirupuram",
-        "Tholicode", "Uzhamalakkal", "Vakkom", "Vamanapuram", "Vellanad", "Vellarada", "Vembayam",
-        "Venganoor", "Vettoor", "Vilappil", "Vilavoorkal", "Vithura", "Varkala", "Kilimanoor", "Chirayinkeezh", "Vamanapuram", "Vellanad", "Nedumangad", "Pothencode", "Nemom", "Perumkadavila", "Athiyannoor", "Parassala"
-    ],
-    "Idukki": [
-        "Adimaly", "Alakode", "Arakulam", "AyyappanCoil", "BysonValley", "Chakkupallam", "Chinnakanal", "Devikulam", "Edamalakkudy", "Edavetty", "Elappara", "Erattaayar", "IdukkiKanjikuzhy", "Kamakshy", "Kanchiyar", "Kanthalloor", "Karimannoor", "Karimkunnam", "Karunapuram", "Kodikulam", "Kokkayar", "Konnathady", "Kudayathoor", "Kumaramangalam", "Kumily", "Manakkad", "Mankulam", "Marayoor", "Mariyapuram", "Munnar", "Muttom", "Nedumkandam", "Pallivasal", "Pampadumpara", "Peermade", "Peruvanthanam", "Purapuzha", "Rajakkad", "Rajakumary", "Santhanpara", "Senapathy", "Udumbanchola", "Udumbanoor", "Upputhara", "Vandanmedu", "Vandiperiyar", "Vannappuram", "Vathikudy", "Vattavada", "Vazhathope", "Vellathooval", "Velliyamattom", "Adimaly", "Devikulam", "Nedumkandam", "Elemdesam", "Idukki", "Kattappana", "Thodupuzha", "Azhutha"
-    ]
-};
-
-
-const COUNTRY_PHONE_RULES = {
-    IN: { name: 'India', min: 10, max: 10, code: '+91' },
-    US: { name: 'United States', min: 10, max: 10, code: '+1' },
-    GB: { name: 'United Kingdom', min: 10, max: 10, code: '+44' },
-    AU: { name: 'Australia', min: 9, max: 9, code: '+61' },
-    CA: { name: 'Canada', min: 10, max: 10, code: '+1' },
-    SG: { name: 'Singapore', min: 8, max: 8, code: '+65' },
-    AE: { name: 'United Arab Emirates', min: 9, max: 9, code: '+971' },
-    DE: { name: 'Germany', min: 10, max: 11, code: '+49' },
-    FR: { name: 'France', min: 9, max: 9, code: '+33' },
-    IT: { name: 'Italy', min: 9, max: 10, code: '+39' },
-    ES: { name: 'Spain', min: 9, max: 9, code: '+34' },
-    CN: { name: 'China', min: 11, max: 11, code: '+86' },
-    JP: { name: 'Japan', min: 10, max: 11, code: '+81' },
-    RU: { name: 'Russia', min: 10, max: 10, code: '+7' },
-    BR: { name: 'Brazil', min: 10, max: 11, code: '+55' },
-    ZA: { name: 'South Africa', min: 9, max: 9, code: '+27' },
-    PK: { name: 'Pakistan', min: 10, max: 11, code: '+92' },
-    BD: { name: 'Bangladesh', min: 10, max: 10, code: '+880' },
-    LK: { name: 'Sri Lanka', min: 9, max: 9, code: '+94' },
-    NP: { name: 'Nepal', min: 10, max: 10, code: '+977' },
-    SA: { name: 'Saudi Arabia', min: 9, max: 9, code: '+966' },
-    MY: { name: 'Malaysia', min: 9, max: 10, code: '+60' },
-    TH: { name: 'Thailand', min: 9, max: 9, code: '+66' },
-    ID: { name: 'Indonesia', min: 10, max: 12, code: '+62' },
-    PH: { name: 'Philippines', min: 10, max: 10, code: '+63' },
-    NG: { name: 'Nigeria', min: 10, max: 11, code: '+234' },
-    EG: { name: 'Egypt', min: 10, max: 10, code: '+20' },
-    TR: { name: 'Turkey', min: 10, max: 10, code: '+90' },
-    MX: { name: 'Mexico', min: 10, max: 10, code: '+52' },
-    AR: { name: 'Argentina', min: 10, max: 10, code: '+54' },
-    KR: { name: 'South Korea', min: 9, max: 10, code: '+82' },
-    PL: { name: 'Poland', min: 9, max: 9, code: '+48' },
-    NL: { name: 'Netherlands', min: 9, max: 9, code: '+31' },
-    BE: { name: 'Belgium', min: 9, max: 9, code: '+32' },
-    SE: { name: 'Sweden', min: 9, max: 9, code: '+46' },
-    CH: { name: 'Switzerland', min: 9, max: 9, code: '+41' },
-    AT: { name: 'Austria', min: 10, max: 13, code: '+43' },
-    DK: { name: 'Denmark', min: 8, max: 8, code: '+45' },
-    NO: { name: 'Norway', min: 8, max: 8, code: '+47' },
-    FI: { name: 'Finland', min: 9, max: 10, code: '+358' },
-    IE: { name: 'Ireland', min: 9, max: 9, code: '+353' },
-    NZ: { name: 'New Zealand', min: 9, max: 9, code: '+64' },
-    IL: { name: 'Israel', min: 9, max: 9, code: '+972' },
-    GR: { name: 'Greece', min: 10, max: 10, code: '+30' },
-    PT: { name: 'Portugal', min: 9, max: 9, code: '+351' },
-    HU: { name: 'Hungary', min: 9, max: 9, code: '+36' },
-    CZ: { name: 'Czech Republic', min: 9, max: 9, code: '+420' },
-    RO: { name: 'Romania', min: 10, max: 10, code: '+40' },
-    SK: { name: 'Slovakia', min: 9, max: 9, code: '+421' },
-    BG: { name: 'Bulgaria', min: 9, max: 9, code: '+359' },
-    HR: { name: 'Croatia', min: 9, max: 9, code: '+385' },
-    SI: { name: 'Slovenia', min: 9, max: 9, code: '+386' },
-    EE: { name: 'Estonia', min: 7, max: 8, code: '+372' },
-    LT: { name: 'Lithuania', min: 8, max: 8, code: '+370' },
-    LV: { name: 'Latvia', min: 8, max: 8, code: '+371' },
-    LU: { name: 'Luxembourg', min: 9, max: 9, code: '+352' },
-    MT: { name: 'Malta', min: 8, max: 8, code: '+356' },
-    CY: { name: 'Cyprus', min: 8, max: 8, code: '+357' },
-    IS: { name: 'Iceland', min: 7, max: 7, code: '+354' },
-    MC: { name: 'Monaco', min: 8, max: 8, code: '+377' },
-    LI: { name: 'Liechtenstein', min: 7, max: 7, code: '+423' },
-    SM: { name: 'San Marino', min: 10, max: 10, code: '+378' },
-    VA: { name: 'Vatican City', min: 9, max: 9, code: '+379' }
-};
 
 export default class NewLeadCreation extends NavigationMixin(LightningElement) {
     @track customerData = {
@@ -485,6 +209,11 @@ export default class NewLeadCreation extends NavigationMixin(LightningElement) {
 
 
     @track leadSourcesStd = [];
+    @track salutationOptionsStd = [];
+    @track stateOptionsStd = [];
+    @track countryOptionsStd = [];
+    @track districtOptionsStd = [];
+    @track panchayatOptionsStd = [];
 
     @wire(getLeadSourcesStd)
     wiredLeadSourcesStd({ error, data }) {
@@ -494,6 +223,51 @@ export default class NewLeadCreation extends NavigationMixin(LightningElement) {
                 } else if (error) {
                     console.error('Error loading standard lead sources:', error);
                 }
+    }
+
+    @wire(getSalutationsStd)
+    wiredSalutationsStd({ error, data }) {
+        if (data) {
+            this.salutationOptionsStd = data;
+        } else if (error) {
+            console.error('Error loading salutations:', error);
+        }
+    }
+
+    @wire(getStatesStd)
+    wiredStatesStd({ error, data }) {
+        if (data) {
+            this.stateOptionsStd = data;
+        } else if (error) {
+            console.error('Error loading states:', error);
+        }
+    }
+
+    @wire(getCountriesStd)
+    wiredCountriesStd({ error, data }) {
+        if (data) {
+            this.countryOptionsStd = data;
+        } else if (error) {
+            console.error('Error loading countries:', error);
+        }
+    }
+
+    @wire(getDistrictsStd)
+    wiredDistrictsStd({ error, data }) {
+        if (data) {
+            this.districtOptionsStd = data;
+        } else if (error) {
+            console.error('Error loading districts:', error);
+        }
+    }
+
+    @wire(getPanchayathsStd)
+    wiredPanchayathsStd({ error, data }) {
+        if (data) {
+            this.panchayatOptionsStd = data;
+        } else if (error) {
+            console.error('Error loading panchayaths:', error);
+        }
     }
 
    /* @wire(getCustomerTypes)
@@ -516,18 +290,15 @@ export default class NewLeadCreation extends NavigationMixin(LightningElement) {
 
     // Getter for states list
     get statesList() {
-        return Object.keys(INDIAN_STATES_CITIES);
+        return this.stateOptionsStd;
     }
 
     get keralaDistrictsList() {
-        return Object.keys(KERALA_PANCHAYATS);
+        return this.districtOptionsStd;
     }
 
     get panchayatOptions() {
-        if (this.customerData.district && KERALA_PANCHAYATS[this.customerData.district]) {
-            return KERALA_PANCHAYATS[this.customerData.district];
-        }
-        return [];
+        return this.panchayatOptionsStd;
     }
 
     get toastClass() {
@@ -630,14 +401,6 @@ export default class NewLeadCreation extends NavigationMixin(LightningElement) {
             const saveData = { ...this.customerData };
             console.log('Saving customer data:', saveData);
             console.log('Architect ID before save:', saveData.referenceArchitect);
-            
-            // Prepend country code to phone numbers
-            if (saveData.primaryPhone) {
-                saveData.primaryPhone = (COUNTRY_PHONE_RULES[this.country]?.code || '') + saveData.primaryPhone;
-            }
-            if (saveData.secondaryPhone) {
-                saveData.secondaryPhone = (COUNTRY_PHONE_RULES[this.secondaryCountry]?.code || '') + saveData.secondaryPhone;
-            }
             
             // Remove empty fields to avoid validation issues
             if (!saveData.assignedExecutive) {
@@ -1152,10 +915,11 @@ export default class NewLeadCreation extends NavigationMixin(LightningElement) {
         const selectedState = event.target.value;
         this.customerData.state = selectedState;
 
+        this.customerData.district = '';
         this.customerData.panchayat = '';
-        if (selectedState === 'Kerala') {
+        if (selectedState) {
             this.showDistrictAndPanchayat = true;
-            this.isPanchayatDisabled = true;
+            this.isPanchayatDisabled = this.panchayatOptions.length === 0;
         } else {
             this.showDistrictAndPanchayat = false;
             this.panchayatList = [];
@@ -1170,9 +934,9 @@ export default class NewLeadCreation extends NavigationMixin(LightningElement) {
         this.panchayatSearchTerm = '';
         this.filteredPanchayatOptions = [];
         this.showPanchayatResults = false;
-        if (selectedDistrict && KERALA_PANCHAYATS[selectedDistrict]) {
-            this.panchayatList = KERALA_PANCHAYATS[selectedDistrict].map(p => ({ label: p, value: p }));
-            this.isPanchayatDisabled = false;
+        if (selectedDistrict && this.panchayatOptionsStd.length > 0) {
+            this.panchayatList = this.panchayatOptionsStd.map(p => ({ label: p, value: p }));
+            this.isPanchayatDisabled = this.panchayatList.length === 0;
         } else {
             this.panchayatList = [];
             this.isPanchayatDisabled = true;
@@ -1240,48 +1004,35 @@ export default class NewLeadCreation extends NavigationMixin(LightningElement) {
     handlePhoneInput(event) {
         const digits = event.target.value.replace(/[^0-9]/g, ''); // Only digits
         this.customerData.primaryPhone = digits; // Update the tracked field
-        const rules = COUNTRY_PHONE_RULES[this.country];
-        if (digits.length < rules.min) {
-            this.phoneError = `Number is too short for ${rules.name} (${rules.min} digits required)`;
-        } else if (digits.length > rules.max) {
-            this.phoneError = `Number is too long for ${rules.name} (${rules.max} digits allowed)`;
-        } else {
-            this.phoneError = '';
-        }
+        this.phoneError = '';
     }
 
     handleSecondaryPhoneInput(event) {
         const digits = event.target.value.replace(/[^0-9]/g, ''); // Only digits
         this.customerData.secondaryPhone = digits; // Update the tracked field
-        const rules = COUNTRY_PHONE_RULES[this.secondaryCountry];
-        if (digits.length < rules.min) {
-            this.secondaryPhoneError = `Number is too short for ${rules.name} (${rules.min} digits required)`;
-        } else if (digits.length > rules.max) {
-            this.secondaryPhoneError = `Number is too long for ${rules.name} (${rules.max} digits allowed)`;
-        } else {
-            this.secondaryPhoneError = '';
-        }
+        this.secondaryPhoneError = '';
     }
 
     get countryList() {
-        return Object.entries(COUNTRY_PHONE_RULES).map(([code, data]) => ({
-            code,
-            name: data.name
+        return this.countryOptionsStd.map((countryName) => ({
+            code: countryName,
+            name: countryName
         }));
     }
 
     handleCountryChange(event) {
         this.country = event.target.value;
+        this.customerData.country = event.target.value;
         this.phoneError = '';
         this.phone = '';
     }
 
     get selectedCountryCode() {
-        return COUNTRY_PHONE_RULES[this.country]?.code || '';
+        return '';
     }
 
     get selectedSecondaryCountryCode() {
-        return COUNTRY_PHONE_RULES[this.secondaryCountry]?.code || '';
+        return '';
     }
 
     handleSecondaryCountryChange(event) {

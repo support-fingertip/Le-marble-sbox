@@ -130,11 +130,11 @@ public class sapIntegration {
                 }
                 return;
             }
-            string bCountryCode;
+            string bCountryCode=deal.BillingCountry;
             if(deal.BillingCountry != null && deal.BillingCountry.length() > 2){
                  bCountryCode= getCountryCode(deal.BillingCountry);
             }
-            String bStateCode;
+            String bStateCode=deal.BillingState ;
            if(deal.BillingState != null && deal.BillingState.length() > 2){ 
              bStateCode = getStateCode(deal.BillingState);
            } 
@@ -369,11 +369,11 @@ public class sapIntegration {
             Boolean shipToAddressFoundAndUpdated = false;
             Boolean billToAddressFoundAndUpdated = false;
              
-            string bCountryCode;
+            string bCountryCode=deal.BillingCountry;
             if(deal.BillingCountry != null && deal.BillingCountry.length() > 2){
                  bCountryCode= getCountryCode(deal.BillingCountry);
             }
-            String stateCode;
+            String stateCode=deal.BillingState;
            if(deal.BillingState != null && deal.BillingState.length() > 2){ 
              stateCode = getStateCode(deal.BillingState);
            } 
@@ -414,8 +414,9 @@ public class sapIntegration {
             
             for (Map<String, Object> existingAddr : bpAddresses) {
                 String addrName = (String)existingAddr.get('AddressType');
+                String addr = (String)existingAddr.get('AddressName');
                 
-                if ( addrName == 'bo_ShipTo') {
+                if ( addrName == 'bo_ShipTo' && addr == deal.Address_Line1__c) {
                      existingAddr.put('AddressName', deal.Address_Line1__c!=null? deal.Address_Line1__c:'');                       
                     existingAddr.put('Street', deal.Corporation__c!=null? deal.Corporation__c +', ':'' + deal.Municipality__c!=null? deal.Municipality__c+', ':'' + deal.Panchayath__c!=null? deal.Panchayath__c:'');
                     existingAddr.put('City', deal.Village__c!=null? deal.Village__c:'');
@@ -574,29 +575,154 @@ public class sapIntegration {
     }
 
     
-    public static void sendOrderToSAP(id order) {
+  /*  public static void sendOrderToSAP(id order) {
         Order ord = [SELECT id, name, OrderNumber, Order_Owner__c, accountId, account.name, account.Customer_Number__c, account.Customer_Type__c, Warehouse__r.Warehouse_Code__c,
             AddressLine1__c, AddressLine2__c, AddressLine3__c, District__c, State__c, Country__c //, BranchLocation__c
             FROM Order WHERE Id = :order LIMIT 1 ];
 
         // Fetch Account with address fields
-        Account acc = [SELECT Id, Address_Line1__c, Address_Line2__c, Address_Line3__c, District__c, State__c, Country__c FROM Account WHERE Id = :ord.accountId LIMIT 1];
-
-        // If address fields differ, update Account from Order
-        if (ord.AddressLine1__c != acc.Address_Line1__c) {
-            acc.Address_Line1__c = ord.AddressLine1__c;
-            acc.Address_Line2__c = ord.AddressLine2__c;
-            acc.Address_Line3__c = ord.AddressLine3__c;
-            acc.District__c = ord.District__c;
-            acc.State__c = ord.State__c;
-            acc.Country__c = ord.Country__c;
-            update acc;
-        }
-
+      
+    //sapIntegration.updateBusinessPartner(acc.id);
         // Now call the SAP order callout asynchronously
         sapIntegrationAsync.sendOrderToSAPAsync(ord.Id);
+
+        
+    }*/
+    @future(callout=true)
+    public static void sendOrderToSAP(Id order) {
+        Order ord = [
+            SELECT
+                id,
+                name,
+                OrderNumber,
+                Order_Owner__c,
+                accountId,
+                account.name,
+                account.Customer_Number__c,
+                account.Customer_Type__c,
+                Warehouse__r.Warehouse_Code__c,
+                OpportunityId,
+                ownerid,
+                SAP_Doc_Num__c,
+                Order_status__c,
+                AddressLine1__c,
+                AddressLine2__c,
+                AddressLine3__c,
+                District__c,
+                State__c,
+                Country__c
+            FROM Order
+            WHERE Id = :order
+            LIMIT 1
+        ];
+          Account acc = [SELECT Id, Address_Line1__c, Address_Line2__c, Address_Line3__c, District__c, State__c, Country__c FROM Account WHERE Id = :ord.accountId LIMIT 1];
+
+        List<Apex_Log__c> logList = new List<Apex_Log__c>();
+        Apex_Log__c log = new Apex_Log__c();
+        CustomNotificationType notificationType = [SELECT Id, DeveloperName FROM CustomNotificationType WHERE DeveloperName='Sales_Order_Notification'];
+        Messaging.CustomNotification notification = new Messaging.CustomNotification();
+        notification.setNotificationTypeId(notificationType.Id);
+        notification.setTargetId(ord.id);
+        String adminUserId = [SELECT Id FROM User WHERE Profile.Name = 'System Administrator' and isactive=true LIMIT 1].Id;
+        Set<String> addressee = new Set<String>();
+        if(adminUserId!=null){
+            addressee.add(adminUserId); 
+        }
+        addressee.add(UserInfo.getUserId());
+        System.debug('Order '+ord);
+        notification.setTitle('Order :'+ord.OrderNumber);
+        String NotificationBody =  'Order Id : ' + ord.Name +'\nOrder created by : ' + ord.account.name;
+        if( ord.account.name != null ) {
+            NotificationBody += '\nCustomer Name : ' + ord.account.name ;
+        }
+        String sessionId=loginToSAP();
+        if(sessionId!=null){              
+            log.Request_Type__c ='Order -'+ord.OrderNumber;
+            SAPOrderPayload body= buildPayload(ord);
+            System.debug('Full SAP payload: ' + JSON.serialize(body));
+            HttpRequest req = new HttpRequest();
+            req.setEndpoint(SAP_BASE_URL + '/Orders');
+            req.setMethod('POST');
+            req.setHeader('Content-Type', 'application/json');
+            req.setHeader('Cookie', 'B1SESSION=' + sessionId);
+            req.setBody(JSON.serialize(body));
+            Http http = new Http();
+            HttpResponse res = http.send(req);
+            log.Request__c =SAP_BASE_URL + '/Orders /n'+JSON.serialize(body); 
+            if (res.getStatusCode() != 201) {
+                System.debug(' Failed to create SAP Order: ' + res.getBody());
+                String errorBody = res.getBody();
+                log.Status__c = 'FAILED';
+                log.Error_Message__c = 'Failed to create SAP Order:  Statuscode: '+res.getStatusCode()+'/n' +errorBody ;
+                logList.add(log);
+                String errorMsgValue = '';
+                try {
+                    Map<String, Object> errorMap = (Map<String, Object>) JSON.deserializeUntyped(errorBody);
+                    if (errorMap.containsKey('error')) {
+                        Map<String, Object> err = (Map<String, Object>)errorMap.get('error');
+                        if (err.containsKey('message')) {
+                            Map<String, Object> msg = (Map<String, Object>)err.get('message');
+                            if (msg.containsKey('value')) {
+                                errorMsgValue = String.valueOf(msg.get('value'));
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    // ignore JSON parse errors
+                }
+                notification.setBody( 'Failed to create SAP Order:  Statuscode: '+res.getStatusCode() + (errorMsgValue != '' ? ('\n' + errorMsgValue) : '') );
+            } else {
+                log.status__c='SUCCESS';
+                System.debug(' Order created in SAP for: ' + ord.Id);
+                System.debug('SAP Response Body: ' + res.getBody());
+                try {
+                    Map<String, Object> responseMap = (Map<String, Object>) JSON.deserializeUntyped(res.getBody());
+                    System.debug('Parsed Response Map: ' + responseMap);
+                    String sapOrderId;
+                    String sapDocNum;
+                    if (responseMap.containsKey('DocEntry')) {
+                        Object docEntryObj = responseMap.get('DocEntry');
+                        sapOrderId = String.valueOf(docEntryObj);
+                    }
+                    if (responseMap.containsKey('DocNum')) {
+                        Object docNumObj = responseMap.get('DocNum');
+                        sapDocNum = String.valueOf(docNumObj);
+                    }
+                    System.debug('Extracted SAP Order ID: ' + sapOrderId);
+                    Map<String, String> result = new Map<String, String>{
+                        'DocEntry' => sapOrderId,
+                        'DocNum' => sapDocNum
+                    };
+                    ord.SAP_Doc_Num__c= sapDocNum;
+                    ord.Order_status__c= 'Sent to SAP';
+                    update ord;
+                    notification.setTitle('Order Created in SAP');
+                    notification.setBody(NotificationBody);   
+                    logList.add(log);
+                } catch (Exception e) {
+                    log.status__c='FAILED';
+                    log.response__c= 'Status code : '+res.getStatusCode() +' Response body: '+ res.getBody();
+                    log.Error_Message__c = 'Status code : '+res.getStatusCode()+ ' Error: Callout failed. Please review the response for additional details.';
+                    logList.add(log);
+                    notification.setBody('Error: '+e.getMessage());   
+                    System.debug('❌ Error parsing SAP response: ' + e.getMessage());
+                    System.debug('Response that caused error: ' + res.getBody());
+                }
+            }
+        } else {
+            notification.setBody('Error While sending Order:No access token generated ');   
+            log.status__c='FAILED';
+            log.Error_Message__c = 'Token not generated';
+        }
+        if(logList.size()>0){
+            insert logList;
+        }
+        try {
+            notification.send(addressee);
+        } catch (Exception e) {
+            System.debug('Problem sending notification: ' + e.getMessage());
+        }
     }
-    
     
     
     public class SAPOrderPayload {
@@ -625,6 +751,17 @@ public class sapIntegration {
                 public String ShipToDescription;
 
                 public List<DocumentLine> DocumentLines;
+                public List<BPAddress> BPAddresses;
+        }
+        public class BPAddress {
+            public String AddressName;
+            public String AddressType;
+            public String Street;
+            public String Block;
+            public String City;
+            public String ZipCode;
+            public String State;
+            public String Country;
         }  
         public class DocumentLine {
             public String ItemCode;
@@ -682,7 +819,17 @@ public class sapIntegration {
         payload.SalesPersonCode = oppOwnId;
         payload.DocumentsOwner = ordOwnId;
         // Set ShipToCode from AddressLine1__c
-        payload.ShipToCode = order.AddressLine1__c;
+   //     payload.ShipToCode = order.AddressLine1__c;
+        // Build BPAddresses for Ship To
+        BPAddress shipAddr = new BPAddress();
+        shipAddr.AddressName = order.AddressLine1__c;
+        shipAddr.AddressType = 'bo_ShipTo';
+        shipAddr.Street = order.AddressLine2__c;
+        shipAddr.Block = order.AddressLine3__c;
+        shipAddr.City = order.District__c;
+        shipAddr.State = order.State__c;
+        shipAddr.Country = order.Country__c;
+        payload.BPAddresses = new List<BPAddress>{ shipAddr };
         payload.DocumentLines = new List<DocumentLine>();
         List<OrderItem> orderItems = [ SELECT Id,Quantity,PricebookEntry.Product2.Product_Code__c,Warehouse__r.Warehouse_Code__c,After_Disc_Price_Sqft__c,ListPrice,UnitPrice FROM OrderItem WHERE OrderId = :order.Id ]; //,Tax_Code__c
         Map<Id, List<Order_Batch_Item__c>> batchByItem = new Map<Id, List<Order_Batch_Item__c>>();

@@ -109,6 +109,7 @@ public class SAPProductIntegration implements Schedulable {
                      prod.ProductCode = String.valueOf(item.get('ItemCode'));
                     prod.Name = String.valueOf(item.get('ItemName'));
                     prod.Brand__c = (String)item.get('U_Brand');
+                    prod.Type_of_Finish__c = (String)item.get('U_Finish');
                     string vali=(String)item.get('Valid');
                     if(vali=='tYES'){
                          prod.IsActive=true;
