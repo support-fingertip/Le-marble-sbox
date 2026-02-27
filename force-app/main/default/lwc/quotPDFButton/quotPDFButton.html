@@ -19,13 +19,16 @@
           <h2 id="modal-heading-01" class="slds-modal__title slds-hyphenate">Select Items for Quotation</h2>
         </header>
         <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
-          <lightning-datatable
-            key-field="id"
-            data={cartLineItems}
-            columns={columns} 
-            selected-rows={selectedItems}
-            onrowselection={handleRowSelection}>
-          </lightning-datatable>
+          <div class="datatable-mobile-scroll">
+            <div class="scroll-hint">Swipe left/right to see more columns</div>
+            <lightning-datatable
+              key-field="id"
+              data={cartLineItems}
+              columns={columns} 
+              selected-rows={selectedItems}
+              onrowselection={handleRowSelection}>
+            </lightning-datatable>
+          </div>
         </div>
         <footer class="slds-modal__footer">
           <lightning-button label="Cancel" onclick={handleSelectionClose} class="slds-m-right_x-small">

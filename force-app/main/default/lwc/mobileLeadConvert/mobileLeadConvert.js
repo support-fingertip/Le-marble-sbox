@@ -1,6 +1,7 @@
-import { LightningElement, api } from 'lwc';
+import { LightningElement, api, wire } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { NavigationMixin } from 'lightning/navigation';
+import { CurrentPageReference } from 'lightning/navigation';
 import { CloseActionScreenEvent } from 'lightning/actions';
 import getConversionContext from '@salesforce/apex/MobileLeadConversionController.getConversionContext';
 import searchAccounts from '@salesforce/apex/MobileLeadConversionController.searchAccounts';
@@ -8,7 +9,20 @@ import searchContacts from '@salesforce/apex/MobileLeadConversionController.sear
 import convertLeadForMobile from '@salesforce/apex/MobileLeadConversionController.convertLeadForMobile';
 
 export default class MobileLeadConvert extends NavigationMixin(LightningElement) {
-    @api recordId;
+    _recordId;
+    currentPageReference;
+    hasLoadedContext = false;
+    isContextLoading = false;
+
+    @api
+    get recordId() {
+        return this._recordId;
+    }
+
+    set recordId(value) {
+        this._recordId = value;
+        this.initializeContextIfReady();
+    }
 
     isLoading = true;
     isConverting = false;
@@ -16,37 +30,102 @@ export default class MobileLeadConvert extends NavigationMixin(LightningElement)
     convertedStatusOptions = [];
     convertedStatus;
 
+    // Always auto-create new Account, Contact, Opportunity
     accountMode = 'new';
     contactMode = 'new';
+    doNotCreateOpportunity = false;
 
     newAccountName = '';
     newContactFirstName = '';
     newContactLastName = '';
     opportunityName = '';
 
+    // Hide all lookup/search UI
     accountSearchTerm = '';
     accountResults = [];
-    selectedAccountId;
+    selectedAccountId = null;
     selectedAccountName = '';
-
     contactSearchTerm = '';
     contactResults = [];
-    selectedContactId;
+    selectedContactId = null;
     selectedContactName = '';
-
-    doNotCreateOpportunity = false;
-
-    accountSearchTimeout;
-    contactSearchTimeout;
+    accountSearchTimeout = null;
+    contactSearchTimeout = null;
 
     connectedCallback() {
+        this.initializeContextIfReady();
+    }
+
+    @wire(CurrentPageReference)
+    setCurrentPageReference(pageReference) {
+        this.currentPageReference = pageReference;
+        if (!this._recordId) {
+            this._recordId = this.extractLeadIdFromPageReference(pageReference);
+        }
+        this.initializeContextIfReady();
+    }
+
+    get effectiveLeadId() {
+        return this._recordId || this.extractLeadIdFromPageReference(this.currentPageReference);
+    }
+
+    extractLeadIdFromPageReference(pageReference) {
+        if (!pageReference) {
+            return null;
+        }
+
+        const inContextRecordId = this.extractRecordIdFromInContext(pageReference?.state?.inContextOfRef);
+
+        return (
+            pageReference?.attributes?.recordId ||
+            pageReference?.state?.recordId ||
+            pageReference?.state?.c__recordId ||
+            inContextRecordId ||
+            null
+        );
+    }
+
+    extractRecordIdFromInContext(inContextOfRef) {
+        if (!inContextOfRef) {
+            return null;
+        }
+
+        try {
+            const encodedContext = inContextOfRef.startsWith('1.')
+                ? inContextOfRef.substring(2)
+                : inContextOfRef;
+            const decodedContext = atob(encodedContext);
+            const context = JSON.parse(decodedContext);
+
+            return (
+                context?.attributes?.recordId ||
+                context?.state?.recordId ||
+                context?.state?.c__recordId ||
+                null
+            );
+        } catch (error) {
+            return null;
+        }
+    }
+
+    initializeContextIfReady() {
+        if (this.hasLoadedContext || this.isContextLoading) {
+            return;
+        }
+
+        const leadId = this.effectiveLeadId;
+        if (!leadId) {
+            return;
+        }
+
         this.loadContext();
     }
 
     async loadContext() {
+        this.isContextLoading = true;
         this.isLoading = true;
         try {
-            const context = await getConversionContext({ leadId: this.recordId });
+            const context = await getConversionContext({ leadId: this.effectiveLeadId });
 
             const statuses = context.convertedStatuses || [];
             this.convertedStatusOptions = statuses.map(status => ({ label: status, value: status }));
@@ -56,41 +135,39 @@ export default class MobileLeadConvert extends NavigationMixin(LightningElement)
             this.newContactFirstName = context.leadFirstName || '';
             this.newContactLastName = context.leadLastName || '';
             this.opportunityName = context.defaultOpportunityName || '';
+            this.hasLoadedContext = true;
         } catch (error) {
             this.showError(error);
         } finally {
+            this.isContextLoading = false;
             this.isLoading = false;
         }
     }
 
+    // Hide radio options, always new
     get accountModeOptions() {
         return [
-            { label: 'Create New Account', value: 'new' },
-            { label: 'Choose Existing Account', value: 'existing' }
+            { label: 'Create New Account', value: 'new' }
         ];
     }
 
     get contactModeOptions() {
         return [
-            { label: 'Create New Contact', value: 'new' },
-            { label: 'Choose Existing Contact', value: 'existing' }
+            { label: 'Create New Contact', value: 'new' }
         ];
     }
 
     get isNewAccountMode() {
-        return this.accountMode === 'new';
+        return true;
     }
-
     get isExistingAccountMode() {
-        return this.accountMode === 'existing';
+        return false;
     }
-
     get isNewContactMode() {
-        return this.contactMode === 'new';
+        return true;
     }
-
     get isExistingContactMode() {
-        return this.contactMode === 'existing';
+        return false;
     }
 
     get showOpportunityName() {
@@ -98,7 +175,7 @@ export default class MobileLeadConvert extends NavigationMixin(LightningElement)
     }
 
     get disableConvert() {
-        if (!this.convertedStatus || this.isConverting || this.isLoading) {
+        if (!this.effectiveLeadId || !this.convertedStatus || this.isConverting || this.isLoading) {
             return true;
         }
 
@@ -129,21 +206,9 @@ export default class MobileLeadConvert extends NavigationMixin(LightningElement)
         this.convertedStatus = event.detail.value;
     }
 
-    handleAccountModeChange(event) {
-        this.accountMode = event.detail.value;
-        this.accountSearchTerm = '';
-        this.accountResults = [];
-        this.selectedAccountId = null;
-        this.selectedAccountName = '';
-    }
-
-    handleContactModeChange(event) {
-        this.contactMode = event.detail.value;
-        this.contactSearchTerm = '';
-        this.contactResults = [];
-        this.selectedContactId = null;
-        this.selectedContactName = '';
-    }
+    // Remove handlers for switching modes
+    handleAccountModeChange(event) {}
+    handleContactModeChange(event) {}
 
     handleNewAccountNameChange(event) {
         this.newAccountName = event.target.value;
@@ -165,87 +230,28 @@ export default class MobileLeadConvert extends NavigationMixin(LightningElement)
         this.doNotCreateOpportunity = event.target.checked;
     }
 
-    handleAccountSearchChange(event) {
-        this.accountSearchTerm = event.target.value;
-        this.selectedAccountId = null;
-        this.selectedAccountName = '';
-
-        window.clearTimeout(this.accountSearchTimeout);
-        this.accountSearchTimeout = window.setTimeout(() => {
-            this.performAccountSearch();
-        }, 300);
-    }
-
-    async performAccountSearch() {
-        if (!this.accountSearchTerm || this.accountSearchTerm.trim().length < 2) {
-            this.accountResults = [];
-            return;
-        }
-
-        try {
-            const results = await searchAccounts({ searchTerm: this.accountSearchTerm });
-            this.accountResults = (results || []).map(item => ({ id: item.Id, name: item.Name }));
-        } catch (error) {
-            this.showError(error);
-        }
-    }
-
-    handleAccountSelect(event) {
-        this.selectedAccountId = event.currentTarget.dataset.id;
-        this.selectedAccountName = event.currentTarget.dataset.name;
-        this.accountResults = [];
-
-        this.selectedContactId = null;
-        this.selectedContactName = '';
-        this.contactSearchTerm = '';
-        this.contactResults = [];
-    }
-
-    handleContactSearchChange(event) {
-        this.contactSearchTerm = event.target.value;
-        this.selectedContactId = null;
-        this.selectedContactName = '';
-
-        window.clearTimeout(this.contactSearchTimeout);
-        this.contactSearchTimeout = window.setTimeout(() => {
-            this.performContactSearch();
-        }, 300);
-    }
-
-    async performContactSearch() {
-        if (!this.selectedAccountId) {
-            this.contactResults = [];
-            return;
-        }
-
-        if (!this.contactSearchTerm || this.contactSearchTerm.trim().length < 2) {
-            this.contactResults = [];
-            return;
-        }
-
-        try {
-            const results = await searchContacts({ accountId: this.selectedAccountId, searchTerm: this.contactSearchTerm });
-            this.contactResults = (results || []).map(item => ({ id: item.Id, name: item.Name }));
-        } catch (error) {
-            this.showError(error);
-        }
-    }
-
-    handleContactSelect(event) {
-        this.selectedContactId = event.currentTarget.dataset.id;
-        this.selectedContactName = event.currentTarget.dataset.name;
-        this.contactResults = [];
-    }
+    // Remove all search/lookup handlers (UI will be hidden)
+    handleAccountSearchChange(event) {}
+    async performAccountSearch() {}
+    handleAccountSelect(event) {}
+    handleContactSearchChange(event) {}
+    async performContactSearch() {}
+    handleContactSelect(event) {}
 
     handleCancel() {
         this.dispatchEvent(new CloseActionScreenEvent());
     }
 
     async handleConvert() {
+        if (!this.effectiveLeadId) {
+            this.showError({ message: 'Lead Id is not available. Please reopen this action from a Lead record.' });
+            return;
+        }
+
         this.isConverting = true;
         try {
             const result = await convertLeadForMobile({
-                leadId: this.recordId,
+                leadId: this.effectiveLeadId,
                 convertedStatus: this.convertedStatus,
                 ownerId: null,
                 useExistingAccount: this.isExistingAccountMode,
@@ -287,19 +293,49 @@ export default class MobileLeadConvert extends NavigationMixin(LightningElement)
     }
 
     showError(error) {
-        let message = 'Something went wrong.';
-        if (error?.body?.message) {
+        const message = this.getFriendlyErrorMessage(error);
+
+        this.dispatchEvent(
+            new ShowToastEvent({
+                title: 'Unable to Convert Lead',
+                message,
+                variant: 'error'
+            })
+        );
+    }
+
+    getFriendlyErrorMessage(error) {
+        let message = 'Please check required fields and try again.';
+
+        if (error?.body?.output?.errors?.length) {
+            message = error.body.output.errors[0].message;
+        } else if (error?.body?.output?.fieldErrors) {
+            const fieldErrors = Object.values(error.body.output.fieldErrors)
+                .flat()
+                .map(entry => entry?.message)
+                .filter(Boolean);
+            if (fieldErrors.length) {
+                message = fieldErrors[0];
+            }
+        } else if (error?.body?.message) {
             message = error.body.message;
         } else if (error?.message) {
             message = error.message;
         }
 
-        this.dispatchEvent(
-            new ShowToastEvent({
-                title: 'Error',
-                message,
-                variant: 'error'
-            })
-        );
+        message = message
+            .replace(/^Error converting lead:\s*/i, '')
+            .replace(/ConvertLead failed\.\s*First exception on row \d+; first error:\s*/i, '')
+            .replace(/FIELD_CUSTOM_VALIDATION_EXCEPTION,\s*/gi, '')
+            .replace(/^Validation error on Lead:\s*/i, '')
+            .replace(/:\s*\[\]\s*$/g, '')
+            .replace(/\s{2,}/g, ' ')
+            .trim();
+
+        if (!message) {
+            return 'Please check required fields and try again.';
+        }
+
+        return /[.!?]$/.test(message) ? message : `${message}.`;
     }
 }

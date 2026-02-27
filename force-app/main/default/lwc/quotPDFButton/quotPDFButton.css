@@ -123,3 +123,48 @@
         width: 70%;
     }
 }
+
+/* Responsive Datatable Styles */
+@media (max-width: 600px) {
+    .datatable-mobile-scroll {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        background: #fff;
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+    }
+    .datatable-mobile-scroll lightning-datatable {
+        min-width: 600px;
+        width: max-content;
+        display: block;
+    }
+    .scroll-hint {
+        font-size: 0.8rem;
+        color: #888;
+        text-align: center;
+        margin-bottom: 0.25rem;
+        display: block;
+    }
+    .slds-modal__content {
+        padding: 0.5rem !important;
+    }
+    .slds-modal__header, .slds-modal__footer {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+    /* Make table cells wrap and reduce font size */
+    lightning-datatable .slds-table td,
+    lightning-datatable .slds-table th {
+        white-space: normal;
+        font-size: 0.95rem;
+        padding: 0.5rem 0.25rem;
+    }
+    /* Hide less important columns if needed (optional, comment out if not wanted) */
+    /*
+    lightning-datatable .slds-table th:nth-child(2),
+    lightning-datatable .slds-table td:nth-child(2) {
+        display: none;
+    }
+    */
+}

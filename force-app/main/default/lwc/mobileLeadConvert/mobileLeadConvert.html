@@ -15,113 +15,33 @@
                     onchange={handleConvertedStatusChange}>
                 </lightning-combobox>
 
-                <lightning-radio-group
-                    name="accountMode"
-                    label="Account"
-                    value={accountMode}
-                    options={accountModeOptions}
-                    type="radio"
-                    onchange={handleAccountModeChange}>
-                </lightning-radio-group>
-
-                <template if:true={isNewAccountMode}>
-                    <lightning-input
-                        label="Account Name"
-                        value={newAccountName}
-                        onchange={handleNewAccountNameChange}
-                        required>
-                    </lightning-input>
-                </template>
-
-                <template if:true={isExistingAccountMode}>
-                    <lightning-input
-                        label="Search Account"
-                        value={accountSearchTerm}
-                        onchange={handleAccountSearchChange}
-                        placeholder="Type at least 2 characters">
-                    </lightning-input>
-
-                    <template if:true={selectedAccountName}>
-                        <p class="selected-pill">Selected: {selectedAccountName}</p>
-                    </template>
-
-                    <template if:true={accountResults.length}>
-                        <ul class="lookup-list">
-                            <template for:each={accountResults} for:item="acc">
-                                <li key={acc.id} class="lookup-item">
-                                    <button class="lookup-button" data-id={acc.id} data-name={acc.name} onclick={handleAccountSelect}>
-                                        {acc.name}
-                                    </button>
-                                </li>
-                            </template>
-                        </ul>
-                    </template>
-                </template>
-
-                <lightning-radio-group
-                    name="contactMode"
-                    label="Contact"
-                    value={contactMode}
-                    options={contactModeOptions}
-                    type="radio"
-                    onchange={handleContactModeChange}>
-                </lightning-radio-group>
-
-                <template if:true={isNewContactMode}>
-                    <lightning-input
-                        label="Contact First Name"
-                        value={newContactFirstName}
-                        onchange={handleNewContactFirstNameChange}>
-                    </lightning-input>
-                    <lightning-input
-                        label="Contact Last Name"
-                        value={newContactLastName}
-                        onchange={handleNewContactLastNameChange}
-                        required>
-                    </lightning-input>
-                </template>
-
-                <template if:true={isExistingContactMode}>
-                    <lightning-input
-                        label="Search Contact"
-                        value={contactSearchTerm}
-                        onchange={handleContactSearchChange}
-                        placeholder="Select Account first, then type 2 characters"
-                        disabled={isNewAccountMode}>
-                    </lightning-input>
-
-                    <template if:true={selectedContactName}>
-                        <p class="selected-pill">Selected: {selectedContactName}</p>
-                    </template>
-
-                    <template if:true={contactResults.length}>
-                        <ul class="lookup-list">
-                            <template for:each={contactResults} for:item="con">
-                                <li key={con.id} class="lookup-item">
-                                    <button class="lookup-button" data-id={con.id} data-name={con.name} onclick={handleContactSelect}>
-                                        {con.name}
-                                    </button>
-                                </li>
-                            </template>
-                        </ul>
-                    </template>
-                </template>
-
+                <div class="section-title">Account</div>
                 <lightning-input
-                    type="checkbox"
-                    label="Do not create Opportunity"
-                    checked={doNotCreateOpportunity}
-                    onchange={handleDoNotCreateOpportunity}>
+                    label="Account Name"
+                    value={newAccountName}
+                    onchange={handleNewAccountNameChange}>
                 </lightning-input>
 
-                <template if:true={showOpportunityName}>
-                    <lightning-input
-                        label="Opportunity Name"
-                        value={opportunityName}
-                        onchange={handleOpportunityNameChange}
-                        required>
-                    </lightning-input>
-                </template>
+                <div class="section-title">Contact</div>
+                <lightning-input
+                    label="Contact First Name"
+                    value={newContactFirstName}
+                    onchange={handleNewContactFirstNameChange}>
+                </lightning-input>
+                <lightning-input
+                    label="Contact Last Name"
+                    value={newContactLastName}
+                    onchange={handleNewContactLastNameChange}
+                    required>
+                </lightning-input>
+
+                <div class="section-title">Opportunity</div>
+                <lightning-input
+                    label="Opportunity Name"
+                    value={opportunityName}
+                    onchange={handleOpportunityNameChange}
+                    required>
+                </lightning-input>
             </div>
         </template>
 

@@ -620,7 +620,16 @@ item.afterDiscPrice
                                     
                                     </td>
                                     <td style="border:1px solid #cfcfcf; text-align:center; font-weight:normal;">{!item.total}</td>
-                                    <td style="border:1px solid #cfcfcf;"></td>
+                                    <td style="border:1px solid #cfcfcf; text-align:center;">
+                                        <apex:outputPanel rendered="{!NOT(ISBLANK(item.imageUrl))}">
+                                            <apex:image url="{!item.imageUrl}" style="width: 60px; height: 60px; object-fit: contain;"/>
+                                        </apex:outputPanel>
+                                        <apex:outputPanel rendered="{!ISBLANK(item.imageUrl)}">
+                                            <div style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background-color: #f5f5f5;">
+                                                <span style="font-size: 15px; color: #999;">No Image</span>
+                                            </div>
+                                        </apex:outputPanel>
+                                    </td>
                                 </tr>
                                 
                                 <apex:variable var="counter" value="{!counter+1}"/>

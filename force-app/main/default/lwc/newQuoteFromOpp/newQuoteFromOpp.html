@@ -460,20 +460,26 @@
                                     </div>
                                     <template if:true={showMRPSection}>
                                      <div class="field-box slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
-                                        <lightning-input type="number" label="MRP"
-                                                            value={item.msp}
-                                                            disabled><!--(After Tax)-->
+                                        <lightning-input type="number" label="MRP/Sqft"
+                                                            value={item.mspInSqft}
+                                                            disabled>
                                         </lightning-input>
                                     </div></template>
-
                                     <div class="field-box slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
-                                        <lightning-input type="number" label="Unit Price "
-                                                            value={item.unitPriceAfterTax}
-                                                            disabled><!--(After Tax)-->
+                                        <lightning-input type="number" label="Unit Price"
+                                                            value={item.msp}
+                                                            disabled>
                                         </lightning-input>
                                     </div>
 
-                             <!--       <div class="field-box slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
+                                     <!--  <div class="field-box slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
+                                        <lightning-input type="number" label="Unit Price "
+                                                            value={item.unitPriceAfterTax}
+                                                            disabled>
+                                        </lightning-input>
+                                    </div>
+
+                                 <div class="field-box slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
                                         <lightning-input type="number" label="Price/Sqft"
                                                             value={item.pricePerSqft}
                                                              step="0.000001"
@@ -572,6 +578,14 @@
                                                             step="0.000001" disabled>
                                             </lightning-input>
                                         </div>
+
+                                        <div class="qty-box slds-col slds-small-size_1-of-1 slds-medium-size_2-of-12">
+                                            <lightning-input type="number" label="After Disc/Unit (₹)"
+                                                            value={item.afterDiscPriceUnit}
+                                                            step="0.000001" disabled>
+                                            </lightning-input>
+                                        </div>
+
                                     </template>
                                <!--  </template> -->
                             </div>

@@ -217,8 +217,8 @@ public static List<Map<String, String>> getAreaPicklistValues() {
                                         Decimal priceLimit = Decimal.valueOf(Label.Quote_Approval_limit); 
                                         
                                         opportunity oppParent=[select id,name,Account.name,Account.BillingStreet,Account.BillingCity,Account.BillingState,Account.BillingCountry,Account.Email__c,Account.Phone,Account.BillingPostalCode,              
-                                                               Contact_Person_Name__c,Contact_Number__c,AddressLine1__c,AddressLine2__c,AddressLine3__c,Corporation__c,Country__c,District__c,Municipality__c,Panchayath__c,State__c,Village__c,pin_code__c from Opportunity where id=:customerId];          
-                                        
+                                                               Contact_Person_Name__c,Contact_Number__c,AddressLine1__c,AddressLine2__c,AddressLine3__c,Corporation__c,District__c,Municipality__c,Panchayath__c,State__c,Village__c,pin_code__c from Opportunity where id=:customerId];          
+                                        //Country__c
                                         // Create new Cart record
                                         Quote cart = new Quote();
                                         cart.OpportunityId=customerId;
@@ -245,7 +245,7 @@ public static List<Map<String, String>> getAreaPicklistValues() {
                                         cart.AddressLine3__c= oppParent.AddressLine3__c;
                                         cart.District__c= oppParent.District__c;
                                         cart.State__c= oppParent.State__c;
-                                        cart.Country__c= oppParent.country__c;
+                                       // cart.Country__c= oppParent.country__c;
                                           cart.pin_code__c= oppParent.pin_code__c;
           								cart.ExpirationDate=system.today().addDays(14);
                                         

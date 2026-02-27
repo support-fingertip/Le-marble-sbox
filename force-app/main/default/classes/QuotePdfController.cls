@@ -145,6 +145,47 @@ public with sharing class QuotePdfController {
 
         
         
+        // Build a map of Product2Id to image URL (from ContentDocument/ContentVersion)
+        Set<Id> productIds = new Set<Id>();
+        for (QuoteLineItem item : cartItems) {
+            if (item.Product2Id != null) {
+                productIds.add(item.Product2Id);
+            }
+        }
+        Map<Id, String> productImageUrls = new Map<Id, String>();
+        if (!productIds.isEmpty()) {
+            // Get ContentDocumentLinks for Product2
+            List<ContentDocumentLink> cdlList = [
+                SELECT ContentDocumentId, LinkedEntityId
+                FROM ContentDocumentLink
+                WHERE LinkedEntityId IN :productIds
+            ];
+            Map<Id, Id> productToDoc = new Map<Id, Id>();
+            for (ContentDocumentLink cdl : cdlList) {
+                if (!productToDoc.containsKey(cdl.LinkedEntityId)) {
+                    productToDoc.put(cdl.LinkedEntityId, cdl.ContentDocumentId);
+                }
+            }
+            if (!productToDoc.isEmpty()) {
+                List<ContentVersion> cvList = [
+                    SELECT ContentDocumentId, Id, FileType
+                    FROM ContentVersion
+                    WHERE ContentDocumentId IN :productToDoc.values() AND IsLatest = true
+                ];
+                Map<Id, ContentVersion> docToVersion = new Map<Id, ContentVersion>();
+                for (ContentVersion cv : cvList) {
+                    docToVersion.put(cv.ContentDocumentId, cv);
+                }
+                for (Id prodId : productToDoc.keySet()) {
+                    Id docId = productToDoc.get(prodId);
+                    ContentVersion cv = docToVersion.get(docId);
+                    if (cv != null && (cv.FileType == 'JPG' || cv.FileType == 'PNG' || cv.FileType == 'JPEG')) {
+                        // Use the download URL for the image
+                        productImageUrls.put(prodId, '/sfc/servlet.shepherd/version/download/' + cv.Id);
+                    }
+                }
+            }
+        }
         for (QuoteLineItem item : cartItems) {
             // 🔹 Detect product categories for Terms & Conditions
             if (item.Product_Category__c == 'SANITARY') {
@@ -255,6 +296,10 @@ this.mrpTotal += item.Without_Discount_Total_Price__c;
                     Decimal originalTotal = item.UnitPrice * item.Quantity;
                     discountAmount = (originalTotal * item.Dis_Value__c) / 100;
                 }
+            String imageUrl = null;
+            if (item.Product2Id != null && productImageUrls.containsKey(item.Product2Id)) {
+                imageUrl = productImageUrls.get(item.Product2Id);
+            }
             products.add(new QuotationLineItem(
                 item.Product2.Name,
                 item.Product_Category__c,
@@ -266,7 +311,7 @@ this.mrpTotal += item.Without_Discount_Total_Price__c;
                 // item.After_Disc_Price_Piece__c,
                 item.Calculated_Total_Price__c,   // ✔ FIXED HERE
                 item.UOM__c,
-                null, // imageUrl - no image field on Quote Line; logic kept but value null
+                imageUrl, // imageUrl for product
                 item.Room_Type__c,
                 item.Disc_Type__c,
                 item.Dis_Value__c,
@@ -286,12 +331,13 @@ this.mrpTotal += item.Without_Discount_Total_Price__c;
             // Combine Area__c and Room_Type__c to create area label
             String areaLabel = '';
             if (String.isNotBlank(p.area) && String.isNotBlank(p.roomType)) {
-                areaLabel = p.area + ' ' + p.roomType;
+                areaLabel = p.area;// + ' ' + p.roomType;
             } else if (String.isNotBlank(p.area)) {
                 areaLabel = p.area;
-            } else if (String.isNotBlank(p.roomType)) {
-                areaLabel = p.roomType;
-            } else {
+            } //else if (String.isNotBlank(p.roomType)) {
+                //areaLabel = p.roomType;
+          //  } 
+        else {
                 areaLabel = 'OTHERS';
             }
             

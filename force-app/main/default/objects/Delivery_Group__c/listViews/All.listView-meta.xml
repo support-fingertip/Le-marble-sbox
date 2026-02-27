@@ -5,6 +5,10 @@
     <columns>Sales_Order__c</columns>
     <columns>Approval_Status__c</columns>
     <columns>Delivery_Status__c</columns>
+    <columns>Account__c</columns>
+    <columns>CREATEDBY_USER</columns>
+    <columns>Delivery_Address__c</columns>
+    <columns>OWNER.ALIAS</columns>
     <filterScope>Everything</filterScope>
     <label>All</label>
 </ListView>
