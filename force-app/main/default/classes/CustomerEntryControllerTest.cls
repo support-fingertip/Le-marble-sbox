@@ -420,6 +420,51 @@ public class CustomerEntryControllerTest {
         System.assertEquals('IN', createdCustomer.Address__CountryCode__s, 'Country should be India');
     }
 
+    @isTest
+    static void testCreateCustomerWithValidPinCode() {
+        Test.setMock(HttpCalloutMock.class, new MockHttpCallout());
+
+        Map<String, Object> customerData = new Map<String, Object>();
+        customerData.put('firstName', 'Pin');
+        customerData.put('lastName', 'Valid');
+        customerData.put('primaryPhone', '919876543229');
+        customerData.put('pinCode', '673001');
+
+        Test.startTest();
+        String customerId = CustomerEntryController.createCustomer(customerData);
+        Test.stopTest();
+
+        Customer__c createdCustomer = [
+            SELECT Id, Address__PostalCode__s
+            FROM Customer__c
+            WHERE Id = :customerId
+        ];
+        System.assertEquals('673001', createdCustomer.Address__PostalCode__s, 'Postal code should match valid pin code');
+    }
+
+    @isTest
+    static void testCreateCustomerWithInvalidPinCode() {
+        Test.setMock(HttpCalloutMock.class, new MockHttpCallout());
+
+        Map<String, Object> customerData = new Map<String, Object>();
+        customerData.put('firstName', 'Pin');
+        customerData.put('lastName', 'Invalid');
+        customerData.put('primaryPhone', '919876543230');
+        customerData.put('pinCode', '67A001');
+
+        Boolean exceptionThrown = false;
+
+        try {
+            Test.startTest();
+            CustomerEntryController.createCustomer(customerData);
+            Test.stopTest();
+        } catch (AuraHandledException ex) {
+            exceptionThrown = true;
+        }
+
+        System.assertEquals(true, exceptionThrown, 'Expected pin code validation exception.');
+    }
+
     // Test for createCustomer with lead purpose
     @isTest
     static void testCreateCustomerWithLeadPurpose() {

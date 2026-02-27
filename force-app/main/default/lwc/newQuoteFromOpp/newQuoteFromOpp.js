@@ -1325,8 +1325,8 @@ console.log(el);
             const tax = parseFloat(selectedProduct.tax) || 0;
             const sqftPerPiece = parseFloat(selectedProduct.sqftPiece) || 0;
             updated[this.activeRowIndex].mspInSqft = sqftPerPiece > 0
-                ? parseFloat(((msp * (1 + tax / 100)) / sqftPerPiece).toFixed(6))
-                : 0;
+               //
+                 ? parseFloat(((msp ) / sqftPerPiece).toFixed(6)): 0;
         } else {
             updated[this.activeRowIndex].mspInSqft = 0;
         }

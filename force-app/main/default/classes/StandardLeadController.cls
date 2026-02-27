@@ -70,6 +70,15 @@ public with sharing class StandardLeadController {
         // Address fields
         if (data.containsKey('country')) newLead.Country__c = (String)data.get('country');
         if (data.containsKey('state')) newLead.State__c = (String)data.get('state');
+        if (data.containsKey('pinCode') && data.get('pinCode') != null) {
+            String pinCode = String.valueOf(data.get('pinCode')).trim();
+            if (!String.isBlank(pinCode)) {
+                if (!Pattern.matches('^[0-9]{6}$', pinCode)) {
+                    throw new AuraHandledException('Pin Code must be exactly 6 digits.');
+                }
+                newLead.Pin_Code__c = Decimal.valueOf(pinCode);
+            }
+        }
 
         // Additional info
         if (data.containsKey('remarks')) newLead.Remarks__c = (String)data.get('remarks');

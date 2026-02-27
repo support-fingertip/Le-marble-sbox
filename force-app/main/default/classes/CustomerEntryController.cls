@@ -41,7 +41,9 @@ public with sharing class CustomerEntryController {
             
             // Contact information
             if (customerData.containsKey('primaryPhone')) {
-                newCustomer.Phone__c = (String)customerData.get('primaryPhone');
+                String primaryPhone = (String)customerData.get('primaryPhone');
+                newCustomer.Phone__c = primaryPhone;
+                newCustomer.Primary_Phone__c = primaryPhone;
             }
             
             if (customerData.containsKey('secondaryPhone')) {
@@ -63,6 +65,15 @@ public with sharing class CustomerEntryController {
             }
             if (customerData.containsKey('state')) {
                 newCustomer.Address__StateCode__s = (String)customerData.get('state');
+            }
+            if (customerData.containsKey('pinCode') && customerData.get('pinCode') != null) {
+                String pinCode = String.valueOf(customerData.get('pinCode')).trim();
+                if (!String.isBlank(pinCode)) {
+                    if (!Pattern.matches('^[0-9]{6}$', pinCode)) {
+                        throw new AuraHandledException('Pin Code must be exactly 6 digits.');
+                    }
+                    newCustomer.Address__PostalCode__s = pinCode;
+                }
             }
             if (customerData.containsKey('panchayat')) {
                 newCustomer.Address__Street__s = (String)customerData.get('panchayat');
@@ -142,6 +153,10 @@ public with sharing class CustomerEntryController {
                 newCustomer.Type__c = (String)customerData.get('type');
             } else if (customerData.containsKey('leadType')) {
                 newCustomer.Type__c = (String)customerData.get('leadType');
+            }
+
+            if (String.isBlank(newCustomer.Lead_Name__c)) {
+                newCustomer.Lead_Name__c = !String.isBlank(fullName) ? fullName.trim() : 'Lead';
             }
             
             if (customerData.containsKey('leadPurpose')) {

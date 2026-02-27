@@ -183,11 +183,13 @@ public with sharing class MobileLeadConversionController {
         Lead leadToUpdate = [
             SELECT Id, OwnerId, Company, FirstName, LastName, Phone, MobilePhone, Customer_Type__c,
                    Product_Category__c, Branch_Location__c, Check_List_Items__c,
+                   Street, City, State, PostalCode, Country,
                    GST_Type__c, GST_Number__c
             FROM Lead
             WHERE Id = :leadId
             LIMIT 1
         ];
+
         Boolean shouldUpdateLead = false;
 
         if (useExistingAccount != true && String.isNotBlank(newAccountName)) {
@@ -216,6 +218,29 @@ public with sharing class MobileLeadConversionController {
 
         if (String.isBlank(leadToUpdate.Check_List_Items__c)) {
             throw new AuraHandledException('Please select at least one Checklist item before converting the Lead.');
+        }
+
+        List<String> missingAddressFields = new List<String>();
+        if (String.isBlank(leadToUpdate.Street)) {
+            missingAddressFields.add('Street');
+        }
+        if (String.isBlank(leadToUpdate.City)) {
+            missingAddressFields.add('City');
+        }
+        if (String.isBlank(leadToUpdate.State)) {
+            missingAddressFields.add('State');
+        }
+        if (String.isBlank(leadToUpdate.PostalCode)) {
+            missingAddressFields.add('Postal Code');
+        }
+        if (String.isBlank(leadToUpdate.Country)) {
+            missingAddressFields.add('Country');
+        }
+
+        if (!missingAddressFields.isEmpty()) {
+            throw new AuraHandledException(
+                'Lead Address is required before conversion. Please fill: ' + String.join(missingAddressFields, ', ')
+            );
         }
 
 
@@ -347,6 +372,17 @@ public with sharing class MobileLeadConversionController {
                 }
             }
 
+            syncConvertedRecordsFromLead(
+                leadId,
+                conversionResult,
+                useExistingAccount,
+                newAccountName,
+                useExistingContact,
+                newContactFirstName,
+                newContactLastName,
+                useExistingOpportunity
+            );
+
             return new Map<String, Id>{
                 'leadId' => conversionResult.getLeadId(),
                 'accountId' => conversionResult.getAccountId(),
@@ -357,6 +393,33 @@ public with sharing class MobileLeadConversionController {
             throw ex;
         } catch (Exception ex) {
             throw new AuraHandledException('Error converting lead: ' + ex.getMessage());
+        }
+    }
+
+    private static void syncConvertedRecordsFromLead(
+        Id leadId,
+        Database.LeadConvertResult conversionResult,
+        Boolean useExistingAccount,
+        String newAccountName,
+        Boolean useExistingContact,
+        String newContactFirstName,
+        String newContactLastName,
+        Boolean useExistingOpportunity
+    ) {
+        if (leadId == null || conversionResult == null) {
+            return;
+        }
+
+        if (useExistingAccount != true && conversionResult.getAccountId() != null) {
+            syncLeadToExistingAccount(leadId, conversionResult.getAccountId(), newAccountName);
+        }
+
+        if (useExistingContact != true && conversionResult.getContactId() != null) {
+            syncLeadToExistingContact(leadId, conversionResult.getContactId(), newContactFirstName, newContactLastName);
+        }
+
+        if (useExistingOpportunity != true && conversionResult.getOpportunityId() != null) {
+            syncLeadToExistingOpportunity(leadId, conversionResult.getOpportunityId());
         }
     }
 
@@ -374,8 +437,45 @@ public with sharing class MobileLeadConversionController {
             return;
         }
 
-        String leadQuery = 'SELECT ' + String.join(commonFields, ',') + ' FROM Lead WHERE Id = :leadId LIMIT 1';
-        String accountQuery = 'SELECT ' + String.join(commonFields, ',') + ' FROM Account WHERE Id = :accountId LIMIT 1';
+        Map<String, Schema.SObjectField> leadFieldMap = Schema.SObjectType.Lead.fields.getMap();
+        Map<String, Schema.SObjectField> accountFieldMap = Schema.SObjectType.Account.fields.getMap();
+        Map<String, String> configuredMappings = getLeadToAccountFieldMappings();
+        Map<String, String> validMappings = new Map<String, String>();
+
+        for (String leadFieldName : configuredMappings.keySet()) {
+            String accountFieldName = configuredMappings.get(leadFieldName);
+            if (!leadFieldMap.containsKey(leadFieldName) || !accountFieldMap.containsKey(accountFieldName)) {
+                continue;
+            }
+
+            Schema.DescribeFieldResult accountDescribe = accountFieldMap.get(accountFieldName).getDescribe();
+            Schema.DescribeFieldResult leadDescribe = leadFieldMap.get(leadFieldName).getDescribe();
+
+            if (!accountDescribe.isUpdateable() || accountDescribe.isCalculated() || accountDescribe.isAutoNumber()) {
+                continue;
+            }
+
+            if (leadDescribe.getType() != accountDescribe.getType()) {
+                continue;
+            }
+
+            validMappings.put(leadFieldName, accountFieldName);
+        }
+
+        Set<String> leadFieldsToQuery = new Set<String>(commonFields);
+        leadFieldsToQuery.addAll(validMappings.keySet());
+
+        Set<String> accountFieldsToQuery = new Set<String>(commonFields);
+        accountFieldsToQuery.addAll(validMappings.values());
+
+        List<String> leadQueryFields = new List<String>(leadFieldsToQuery);
+        leadQueryFields.sort();
+
+        List<String> accountQueryFields = new List<String>(accountFieldsToQuery);
+        accountQueryFields.sort();
+
+        String leadQuery = 'SELECT ' + String.join(leadQueryFields, ',') + ' FROM Lead WHERE Id = :leadId LIMIT 1';
+        String accountQuery = 'SELECT ' + String.join(accountQueryFields, ',') + ' FROM Account WHERE Id = :accountId LIMIT 1';
 
         Lead leadForMapping = Database.query(leadQuery);
         Account accountToUpdate = Database.query(accountQuery);
@@ -393,6 +493,17 @@ public with sharing class MobileLeadConversionController {
             }
         }
 
+        for (String leadFieldName : validMappings.keySet()) {
+            String accountFieldName = validMappings.get(leadFieldName);
+            Object leadValue = leadForMapping.get(leadFieldName);
+            if (leadValue == null) {
+                continue;
+            }
+
+            accountToUpdate.put(accountFieldName, leadValue);
+            shouldUpdateAccount = true;
+        }
+
         if (String.isNotBlank(newAccountName)) {
             String normalizedName = newAccountName.trim();
             if (accountToUpdate.Name != normalizedName) {
@@ -404,6 +515,16 @@ public with sharing class MobileLeadConversionController {
         if (shouldUpdateAccount) {
             update accountToUpdate;
         }
+    }
+
+    private static Map<String, String> getLeadToAccountFieldMappings() {
+        return new Map<String, String>{
+            'Street' => 'BillingStreet',
+            'City' => 'BillingCity',
+            'State' => 'BillingState',
+            'PostalCode' => 'BillingPostalCode',
+            'Country' => 'BillingCountry'
+        };
     }
 
     private static List<String> getCommonLeadAccountFields() {
@@ -451,13 +572,49 @@ public with sharing class MobileLeadConversionController {
             return;
         }
 
-        String leadQuery = 'SELECT ' + String.join(commonFields, ',') + ' FROM Lead WHERE Id = :leadId LIMIT 1';
-        String contactQuery = 'SELECT ' + String.join(commonFields, ',') + ' FROM Contact WHERE Id = :contactId LIMIT 1';
+        Map<String, Schema.SObjectField> leadFieldMap = Schema.SObjectType.Lead.fields.getMap();
+        Map<String, Schema.SObjectField> contactFieldMap = Schema.SObjectType.Contact.fields.getMap();
+        Map<String, String> configuredMappings = getLeadToContactFieldMappings();
+        Map<String, String> validMappings = new Map<String, String>();
+
+        for (String leadFieldName : configuredMappings.keySet()) {
+            String contactFieldName = configuredMappings.get(leadFieldName);
+            if (!leadFieldMap.containsKey(leadFieldName) || !contactFieldMap.containsKey(contactFieldName)) {
+                continue;
+            }
+
+            Schema.DescribeFieldResult contactDescribe = contactFieldMap.get(contactFieldName).getDescribe();
+            Schema.DescribeFieldResult leadDescribe = leadFieldMap.get(leadFieldName).getDescribe();
+
+            if (!contactDescribe.isUpdateable() || contactDescribe.isCalculated() || contactDescribe.isAutoNumber()) {
+                continue;
+            }
+
+            if (leadDescribe.getType() != contactDescribe.getType()) {
+                continue;
+            }
+
+            validMappings.put(leadFieldName, contactFieldName);
+        }
+
+        Set<String> leadFieldsToQuery = new Set<String>(commonFields);
+        leadFieldsToQuery.addAll(validMappings.keySet());
+
+        Set<String> contactFieldsToQuery = new Set<String>(commonFields);
+        contactFieldsToQuery.addAll(validMappings.values());
+
+        List<String> leadQueryFields = new List<String>(leadFieldsToQuery);
+        leadQueryFields.sort();
+
+        List<String> contactQueryFields = new List<String>(contactFieldsToQuery);
+        contactQueryFields.sort();
+
+        String leadQuery = 'SELECT ' + String.join(leadQueryFields, ',') + ' FROM Lead WHERE Id = :leadId LIMIT 1';
+        String contactQuery = 'SELECT ' + String.join(contactQueryFields, ',') + ' FROM Contact WHERE Id = :contactId LIMIT 1';
 
         Lead leadForMapping = Database.query(leadQuery);
         Contact contactToUpdate = Database.query(contactQuery);
 
-        Map<String, Schema.SObjectField> contactFieldMap = Schema.SObjectType.Contact.fields.getMap();
         Boolean shouldUpdateContact = false;
 
         for (String fieldName : commonFields) {
@@ -484,6 +641,27 @@ public with sharing class MobileLeadConversionController {
             shouldUpdateContact = true;
         }
 
+        for (String leadFieldName : validMappings.keySet()) {
+            String contactFieldName = validMappings.get(leadFieldName);
+            Object leadValue = leadForMapping.get(leadFieldName);
+            if (leadValue == null) {
+                continue;
+            }
+
+            Schema.DescribeFieldResult contactFieldDescribe = contactFieldMap.get(contactFieldName).getDescribe();
+            if (contactFieldDescribe.getType() == Schema.DisplayType.Phone) {
+                String cleanedPhone = digitsOnly(String.valueOf(leadValue));
+                if (String.isBlank(cleanedPhone)) {
+                    continue;
+                }
+                contactToUpdate.put(contactFieldName, cleanedPhone);
+            } else {
+                contactToUpdate.put(contactFieldName, leadValue);
+            }
+
+            shouldUpdateContact = true;
+        }
+
         if (String.isNotBlank(newContactFirstName)) {
             String normalizedFirstName = newContactFirstName.trim();
             if (contactToUpdate.FirstName != normalizedFirstName) {
@@ -503,6 +681,16 @@ public with sharing class MobileLeadConversionController {
         if (shouldUpdateContact) {
             update contactToUpdate;
         }
+    }
+
+    private static Map<String, String> getLeadToContactFieldMappings() {
+        return new Map<String, String>{
+            'Street' => 'MailingStreet',
+            'City' => 'MailingCity',
+            'State' => 'MailingState',
+            'PostalCode' => 'MailingPostalCode',
+            'Country' => 'MailingCountry'
+        };
     }
 
     private static List<String> getCommonLeadContactFields() {
@@ -550,13 +738,49 @@ public with sharing class MobileLeadConversionController {
             return;
         }
 
-        String leadQuery = 'SELECT ' + String.join(fieldsToMap, ',') + ' FROM Lead WHERE Id = :leadId LIMIT 1';
-        String oppQuery = 'SELECT ' + String.join(fieldsToMap, ',') + ' FROM Opportunity WHERE Id = :opportunityId LIMIT 1';
+        Map<String, Schema.SObjectField> leadFieldMap = Schema.SObjectType.Lead.fields.getMap();
+        Map<String, Schema.SObjectField> opportunityFieldMap = Schema.SObjectType.Opportunity.fields.getMap();
+        Map<String, String> configuredMappings = getLeadToOpportunityFieldMappings();
+        Map<String, String> validMappings = new Map<String, String>();
+
+        for (String leadFieldName : configuredMappings.keySet()) {
+            String opportunityFieldName = configuredMappings.get(leadFieldName);
+            if (!leadFieldMap.containsKey(leadFieldName) || !opportunityFieldMap.containsKey(opportunityFieldName)) {
+                continue;
+            }
+
+            Schema.DescribeFieldResult leadDescribe = leadFieldMap.get(leadFieldName).getDescribe();
+            Schema.DescribeFieldResult opportunityDescribe = opportunityFieldMap.get(opportunityFieldName).getDescribe();
+
+            if (!opportunityDescribe.isUpdateable() || opportunityDescribe.isCalculated() || opportunityDescribe.isAutoNumber()) {
+                continue;
+            }
+
+            if (!areCompatibleMappedFieldTypes(leadDescribe.getType(), opportunityDescribe.getType())) {
+                continue;
+            }
+
+            validMappings.put(leadFieldName, opportunityFieldName);
+        }
+
+        Set<String> leadFieldsToQuery = new Set<String>(fieldsToMap);
+        leadFieldsToQuery.addAll(validMappings.keySet());
+
+        Set<String> opportunityFieldsToQuery = new Set<String>(fieldsToMap);
+        opportunityFieldsToQuery.addAll(validMappings.values());
+
+        List<String> leadQueryFields = new List<String>(leadFieldsToQuery);
+        leadQueryFields.sort();
+
+        List<String> opportunityQueryFields = new List<String>(opportunityFieldsToQuery);
+        opportunityQueryFields.sort();
+
+        String leadQuery = 'SELECT ' + String.join(leadQueryFields, ',') + ' FROM Lead WHERE Id = :leadId LIMIT 1';
+        String oppQuery = 'SELECT ' + String.join(opportunityQueryFields, ',') + ' FROM Opportunity WHERE Id = :opportunityId LIMIT 1';
 
         Lead leadForMapping = Database.query(leadQuery);
         Opportunity opportunityToUpdate = Database.query(oppQuery);
 
-        Map<String, Schema.SObjectField> opportunityFieldMap = Schema.SObjectType.Opportunity.fields.getMap();
         Boolean shouldUpdateOpportunity = false;
 
         for (String fieldName : fieldsToMap) {
@@ -583,9 +807,52 @@ public with sharing class MobileLeadConversionController {
             shouldUpdateOpportunity = true;
         }
 
+        for (String leadFieldName : validMappings.keySet()) {
+            String opportunityFieldName = validMappings.get(leadFieldName);
+            Object leadValue = leadForMapping.get(leadFieldName);
+            if (leadValue == null) {
+                continue;
+            }
+
+            opportunityToUpdate.put(opportunityFieldName, leadValue);
+            shouldUpdateOpportunity = true;
+        }
+
         if (shouldUpdateOpportunity) {
             update opportunityToUpdate;
         }
+    }
+
+    private static Map<String, String> getLeadToOpportunityFieldMappings() {
+        return new Map<String, String>{
+            'Street' => 'AddressLine1__c',
+            'City' => 'Place__c',
+            'State' => 'State__c',
+            'PostalCode' => 'Pin_Code__c',
+            'Country' => 'Country__c'
+        };
+    }
+
+    private static Boolean areCompatibleMappedFieldTypes(
+        Schema.DisplayType sourceType,
+        Schema.DisplayType targetType
+    ) {
+        if (sourceType == targetType) {
+            return true;
+        }
+
+        Set<Schema.DisplayType> textLikeTypes = new Set<Schema.DisplayType>{
+            Schema.DisplayType.String,
+            Schema.DisplayType.TextArea,
+            Schema.DisplayType.Phone,
+            Schema.DisplayType.Email,
+            Schema.DisplayType.Url,
+            Schema.DisplayType.EncryptedString,
+            Schema.DisplayType.Picklist,
+            Schema.DisplayType.MultiPicklist
+        };
+
+        return textLikeTypes.contains(sourceType) && textLikeTypes.contains(targetType);
     }
 
     private static List<String> getMappedLeadOpportunityFields() {
@@ -599,7 +866,11 @@ public with sharing class MobileLeadConversionController {
             'Branch_Location__c',
             'Corporation__c',
             'Country__c',
+            'Description',
             'District__c',
+            'Engagement_Type__c',
+            'GST_Number__c',
+            'GST_Type__c',
             'House_Name_No__c',
             'Municipality__c',
             'Panchayath__c',

@@ -541,7 +541,7 @@ export default class MobileLeadConvertV2 extends NavigationMixin(LightningElemen
 
             this.dispatchEvent(new CloseActionScreenEvent());
 
-            const navigationRecordId = result.opportunityId || result.accountId || result.contactId;
+            const navigationRecordId = result.accountId || result.contactId || result.opportunityId;
             if (navigationRecordId) {
                 this[NavigationMixin.Navigate]({
                     type: 'standard__recordPage',

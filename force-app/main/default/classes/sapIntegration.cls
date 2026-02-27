@@ -256,7 +256,23 @@ public class sapIntegration {
                 log.status__c='Failed';
                 log.response__c= 'BP creation failed: ' + bpResponse.getBody();
                 insert log;
-                notification.setBody('BP creation failed:' );  
+                
+                Map<String, Object> errorWrapper = (Map<String, Object>) JSON.deserializeUntyped(getResponse.getBody());
+                 String errorMessage='';
+                if (errorWrapper.containsKey('error')) {
+                    Map<String, Object> errorObj =(Map<String, Object>) errorWrapper.get('error');
+                    
+                    //   Integer errorCode = (Integer) errorObj.get('code');
+                    
+                    Map<String, Object> messageObj =
+                        (Map<String, Object>) errorObj.get('message');
+                    
+                     errorMessage = (String) messageObj.get('value');
+                    
+                }
+                
+                
+                notification.setBody('BP creation failed:'+errorMessage );  
                 try {
                     notification.send(addressee);
                     
@@ -270,6 +286,8 @@ public class sapIntegration {
             log.status__c='Failed';
             log.response__c= 'Error creating Business Partner: ' +  e.getMessage();
             insert log;
+            
+            
             notification.setBody('Error creating Business Partner n SAP: ');  
             try {
                 notification.send(addressee);
