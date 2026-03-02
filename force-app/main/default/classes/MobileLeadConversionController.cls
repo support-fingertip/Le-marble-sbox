@@ -238,23 +238,37 @@ public with sharing class MobileLeadConversionController {
         }
 
         if (!missingAddressFields.isEmpty()) {
-            throw new AuraHandledException(
-                'Lead Address is required before conversion. Please fill: ' + String.join(missingAddressFields, ', ')
-            );
+            if (missingAddressFields.size() == 1 && missingAddressFields[0] == 'Country') {
+                throw new AuraHandledException('Please select a Country before converting the Lead. The Country field is required for successful conversion.');
+            } else {
+                throw new AuraHandledException(
+                    'Lead Address is required before conversion. Please fill: ' + String.join(missingAddressFields, ', ')
+                );
+            }
         }
 
 
-        if (useExistingContact != true && String.isNotBlank(leadToUpdate.Phone)) {
+        Boolean requiresIndianPhoneValidation = isIndiaCountry(leadToUpdate.Country);
+
+        if (String.isNotBlank(leadToUpdate.Phone)) {
             String cleanedPhone = digitsOnly(leadToUpdate.Phone);
-            if (leadToUpdate.Phone != cleanedPhone) {
+            if (requiresIndianPhoneValidation && cleanedPhone.length() != 10) {
+                throw new AuraHandledException('Phone must be exactly 10 digits when Country is India.');
+            }
+
+            if (useExistingContact != true && leadToUpdate.Phone != cleanedPhone) {
                 leadToUpdate.Phone = cleanedPhone;
                 shouldUpdateLead = true;
             }
         }
 
-        if (useExistingContact != true && String.isNotBlank(leadToUpdate.MobilePhone)) {
+        if (String.isNotBlank(leadToUpdate.MobilePhone)) {
             String cleanedMobilePhone = digitsOnly(leadToUpdate.MobilePhone);
-            if (leadToUpdate.MobilePhone != cleanedMobilePhone) {
+            if (requiresIndianPhoneValidation && cleanedMobilePhone.length() != 10) {
+                throw new AuraHandledException('Mobile Phone must be exactly 10 digits when Country is India.');
+            }
+
+            if (useExistingContact != true && leadToUpdate.MobilePhone != cleanedMobilePhone) {
                 leadToUpdate.MobilePhone = cleanedMobilePhone;
                 shouldUpdateLead = true;
             }
@@ -429,6 +443,15 @@ public with sharing class MobileLeadConversionController {
         }
 
         return value.replaceAll('[^0-9]', '');
+    }
+
+    private static Boolean isIndiaCountry(String countryValue) {
+        if (String.isBlank(countryValue)) {
+            return false;
+        }
+
+        String normalizedCountry = countryValue.trim().toLowerCase();
+        return normalizedCountry == 'india' || normalizedCountry == 'in';
     }
 
     private static void syncLeadToExistingAccount(Id leadId, Id accountId, String newAccountName) {
@@ -789,7 +812,8 @@ public with sharing class MobileLeadConversionController {
             }
 
             Object leadValue = leadForMapping.get(fieldName);
-            if (leadValue == null) {
+            // Only assign if value is not null or (if String) not blank
+            if (leadValue == null || (leadValue instanceof String && String.isBlank((String)leadValue))) {
                 continue;
             }
 
@@ -810,7 +834,8 @@ public with sharing class MobileLeadConversionController {
         for (String leadFieldName : validMappings.keySet()) {
             String opportunityFieldName = validMappings.get(leadFieldName);
             Object leadValue = leadForMapping.get(leadFieldName);
-            if (leadValue == null) {
+            // Only assign if value is not null or (if String) not blank
+            if (leadValue == null || (leadValue instanceof String && String.isBlank((String)leadValue))) {
                 continue;
             }
 
@@ -827,7 +852,7 @@ public with sharing class MobileLeadConversionController {
         return new Map<String, String>{
             'Street' => 'AddressLine1__c',
             'City' => 'Place__c',
-            'State' => 'State__c',
+            // 'State' => 'State__c', // (remains commented if not needed)
             'PostalCode' => 'Pin_Code__c',
             'Country' => 'Country__c'
         };

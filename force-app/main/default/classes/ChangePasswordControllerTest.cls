@@ -1,14 +1,43 @@
-/**
- * An apex page controller that exposes the change password functionality
- */
-@IsTest public with sharing class ChangePasswordControllerTest {
-   	@IsTest(SeeAllData=true) public static void testChangePasswordController() {
-        // Instantiate a new controller with all parameters in the page
-        ChangePasswordController controller = new ChangePasswordController();
-        controller.oldPassword = '123456';
-        controller.newPassword = 'qwerty1'; 
-        controller.verifyNewPassword = 'qwerty1';                
+@isTest
+public class ChangePasswordControllerTest {
+    
+    @isTest
+    static void testChangePasswordMethod() {
         
-        System.assertEquals(controller.changePassword(),null);                           
-    }    
+        // Create test user
+        Profile p = [SELECT Id FROM Profile WHERE Name = 'Standard User' LIMIT 1];
+        
+        User u = new User(
+            FirstName = 'Test',
+            LastName = 'User',
+            Email = 'testuser@example.com',
+            Username = 'testuser' + DateTime.now().getTime() + '@example.com',
+            Alias = 'tuser',
+            TimeZoneSidKey = 'Asia/Kolkata',
+            LocaleSidKey = 'en_US',
+            EmailEncodingKey = 'UTF-8',
+            ProfileId = p.Id,
+            LanguageLocaleKey = 'en_US'
+        );
+        insert u;
+
+        System.runAs(u) {
+            
+            Test.startTest();
+            
+            ChangePasswordController controller = new ChangePasswordController();
+            
+            controller.oldPassword = 'OldPassword123';
+            controller.newPassword = 'NewPassword123';
+            controller.verifyNewPassword = 'NewPassword123';
+            
+            PageReference result = controller.changePassword();
+            
+            Test.stopTest();
+            
+            // Since Site context is not available in test,
+            // result can be null but method should execute
+            System.assertEquals(null, result);
+        }
+    }
 }

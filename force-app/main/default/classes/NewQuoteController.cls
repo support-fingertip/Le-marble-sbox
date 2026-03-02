@@ -27,7 +27,7 @@ public class NewQuoteController {
         //   @AuraEnabled public Boolean inStock;
     }
     
-    @AuraEnabled(cacheable=true)
+ /*   @AuraEnabled(cacheable=true)
     public static List<ProductWrapper> getProducts(String category,String pricebookName ) {
         //  try{
         system.debug(category+' '+pricebookName);
@@ -88,11 +88,47 @@ public class NewQuoteController {
        
         return result;
         
-        /*   } catch (Exception e) {
-throw new AuraHandledException(e.getMessage());
-}*/
+
     }
-    
+   */ 
+    @AuraEnabled(cacheable=true)
+    public static List<ProductWrapper> getProducts(
+        String category,
+        String searchKey,
+        String pricebookName
+    ) {
+        system.debug(category+' '+ searchKey);
+        
+        if(String.isBlank(category) || String.isBlank(searchKey)){
+            return new List<ProductWrapper>();
+        }
+        
+        List<ProductWrapper> results = new List<ProductWrapper>();
+        
+        for(Product2 p : [
+            SELECT Id, Name, Product_Code__c, Product_Category__c,
+            Tax__c, Sqft_Piece__c
+            FROM Product2
+            WHERE Product_Category__c = :category
+            AND (
+                Name LIKE :('%' + searchKey + '%')
+                OR Product_Code__c LIKE :('%' + searchKey + '%')
+            )
+            LIMIT 20
+        ]) {
+            
+            ProductWrapper w = new ProductWrapper();
+            w.Id = p.Id;
+            w.Name = p.Name;
+            w.productCode = p.Product_Code__c;
+            w.category = p.Product_Category__c;
+            w.tax = p.Tax__c;
+            w.sqftPiece = p.Sqft_Piece__c;
+            results.add(w);
+        }
+        
+        return results;
+    }
     @AuraEnabled(cacheable=true)
     public static List<OpportunityLineItem> getOpportunityItems(Id oppId, String pricebookName,String category) {
         Pricebook2 pb = [
@@ -105,7 +141,7 @@ throw new AuraHandledException(e.getMessage());
             Product2.Product_Category__c,Sqft__c,
             PricebookEntryId,Description
             FROM OpportunityLineItem
-            WHERE OpportunityId = :oppId and Product2.Product_Category__c=:category
+            WHERE OpportunityId = :oppId //and Product2.Product_Category__c=:category
             AND PricebookEntry.Pricebook2Id = :pb.Id  // ensure same PB
         ];
     }
@@ -390,7 +426,8 @@ lineItem.MSP__c = safeDecimalConversion(item.get('msp'));
                                             try {
                                                 insert lineItems;
                                                 if(priceLimit < orderTotal){      
-     //17/02/2026      no need the auto approval                               //          checkAndSubmitForApproval(cart,orderTotal);
+     //17/02/2026      no need the auto approval                               
+     //          checkAndSubmitForApproval(cart,orderTotal);
                                                 }  
                                                 List<Quote> quotesToUpdate = [
                                                     SELECT Id, Approval_Status__c 
@@ -483,119 +520,7 @@ throw new AuraHandledException('Error creating cart: ' + e.getMessage());
         }
     }*/
     
-    private static final String SAP_BASE_URL = 'https://lemrg.hstconnect.in:50000/b1s/v1';
-    private static final String LOGIN_URL = SAP_BASE_URL + '/Login';
-    private static final String SERIES_SERVICE_URL = SAP_BASE_URL + '/SeriesService_GetSeries';
-    
-    
-    private static final String COMPANY_DB = 'MG_LIVE_WIP_1';
-    private static final String USERNAME = 'manager';
-    private static final String PASSWORD = 'Mgsap12@';
-    
- /*   public class WarehouseStockWrapper {
-        @AuraEnabled public String warehouseCode;
-        @AuraEnabled public Decimal inStock;
-        @AuraEnabled public Decimal committed;
-        @AuraEnabled public Decimal billable;
-        @AuraEnabled public Decimal reserved;
-    }
-    
-    @AuraEnabled(cacheable=false)
-    public static List<WarehouseStockWrapper> checkLiveStock(string itemcode) {
-        String InStock;
-        List<WarehouseStockWrapper> resultList = new List<WarehouseStockWrapper>();
-        try {
-            
-            List<Apex_Log__c> logList = new List<Apex_Log__c>();
-            Apex_Log__c log = new Apex_Log__c();
-            log.Request_Type__c ='Product';
-            
-            Http http = new Http();
-            
-            // 1. Login to SAP
-            HttpRequest loginReq = new HttpRequest();
-            loginReq.setEndpoint(LOGIN_URL);
-            loginReq.setMethod('POST');
-            loginReq.setHeader('Content-Type', 'application/json');
-            loginReq.setHeader('Accept', 'application/json');
-            loginReq.setTimeout(120000);
-            
-            loginReq.setBody(JSON.serialize(new Map<String, String>{
-                'CompanyDB' => COMPANY_DB,
-                    'UserName' => USERNAME,
-                    'Password' => PASSWORD
-                    }));
-            
-            HttpResponse loginRes = http.send(loginReq);
-            if (loginRes.getStatusCode() == 200) {
-                system.debug(loginRes.getBody());
-                Map<String, Object> loginResult = (Map<String, Object>) JSON.deserializeUntyped(loginRes.getBody());
-                String sessionId = String.valueOf(loginResult.get('SessionId'));
-                if (!String.isBlank(sessionId)){
-                    String ITEMS_URL = SAP_BASE_URL + '/Items(\'' + itemcode + '\')';
-                    
-                    String decodedUrl = EncodingUtil.urlDecode(ITEMS_URL, 'UTF-8');
-                    log.Request__c =decodedUrl; 
-                    
-                    System.debug('Decoded ITEMS_URL: ' + decodedUrl);
-                    system.debug('ITEMS_URL>>>'+ITEMS_URL);
-                    HttpRequest itemReq = new HttpRequest();
-                    itemReq.setEndpoint(ITEMS_URL); 
-                    itemReq.setMethod('GET');
-                    itemReq.setHeader('Content-Type', 'application/json');
-                    itemReq.setHeader('Accept', 'application/json');
-                    itemReq.setHeader('Cookie', 'B1SESSION=' + sessionId);
-                    itemReq.setTimeout(120000);
-                    
-                    HttpResponse itemRes = http.send(itemReq);
-                    log.response__c= string.valueof(itemRes.getStatusCode());
-                    if (itemRes.getStatusCode() != 200) {
-                        System.debug('❌ Failed to fetch items: ' + itemRes.getBody());
-                        log.status__c='FAILED';
-                        log.response__c= 'Status code : '+itemRes.getStatusCode() +' Response body: '+ itemRes.getBody();
-                        log.Error_Message__c = 'Status code : '+itemRes.getStatusCode()+ ' Error: Callout failed. Please review the response for additional details.';
-                        
-                        
-                    }
-                    Map<String, Object> data = (Map<String, Object>) JSON.deserializeUntyped(itemRes.getBody());
-                    List<Object> warehouseInfoList = (List<Object>) data.get('ItemWarehouseInfoCollection');
-                    
-                    
-                    if (warehouseInfoList != null && !warehouseInfoList.isEmpty()) {    
-                        if (warehouseInfoList != null) {
-                            
-                            for (Object warehouseObj : warehouseInfoList) {
-                                Map<String, Object> warehouseInfo = (Map<String, Object>) warehouseObj;
 
-                                WarehouseStockWrapper wrap = new WarehouseStockWrapper();
-                                wrap.warehouseCode = String.valueOf(warehouseInfo.get('WarehouseCode'));
-                                wrap.inStock = (Decimal) warehouseInfo.get('InStock');
-                                wrap.committed = (Decimal) warehouseInfo.get('Committed');
-                                 wrap.reserved = (Decimal) warehouseInfo.get('U_Reserved');
-                                 wrap.billable = (Decimal) warehouseInfo.get('U_Billable');
-                                
-                                    
-                                if( wrap.inStock>0){
-                                    resultList.add(wrap);
-                                } 
-                                System.debug(' warehouseInfo: ' + warehouseInfo);
-                            }
-                        }
-                    }  
-                    
-                    
-                    
-                }
-            }
-            
-        } catch (Exception e) {
-            System.debug(' Sync failed: ' + e.getMessage() + '\\n' + e.getStackTraceString());
-        }
-        System.debug(' InStock: ' + InStock);
-        return resultList;
-        
-    }*/
-    
       @AuraEnabled(cacheable=false)
     public static List<CreateSOFromQuoteController.WarehouseStockWrapper> checkLiveStock(string itemcode) {
  	return CreateSOFromQuoteController.getBatchStock(itemcode, '');

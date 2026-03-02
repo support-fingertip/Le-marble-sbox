@@ -77,26 +77,7 @@
                 </div>
 
                 <!-- Category -->
-                <div class="slds-col slds-size_1-of-2">
-                    <label class="slds-form-element__label">Category</label>
-                    <div class="slds-form-element__control">
-                        <div class="slds-select_container">
-                            <select class="slds-select"
-                                    value={selectedCategory}
-                                    onchange={handleCategoryChange}
-                                    disabled={isCategoryDisabled}>
-                                        <template if:true={selectedCategory}>
-                                             <option value={selectedCategory}>{selectedCategory}</option>
-                                         </template>
-                                <template for:each={categories} for:item="cat">
-                                    <option key={cat.value} value={cat.value}>
-                                        {cat.label}
-                                    </option>
-                                </template>
-                            </select>
-                        </div>
-                    </div>
-                </div>
+              
 
             </div>
             </div>
@@ -115,6 +96,7 @@
                     <div class="slds-grid slds-gutters slds-p-around_small">
                             <div class="slds-col slds-size_6-of-12">
                                 <strong>{item.name}</strong>
+                                <div class="product-code">Category: {item.category}</div>
                                 <div class="product-code">Code: {item.code}</div>
                                   <template if:true={item.isNaturalStone}>
                                     <div class="product-code">Description: {item.description}</div>
@@ -144,12 +126,49 @@
                 <!-- PRODUCT DETAILS (ONLY ACTIVE ROW) -->
                 <template if:true={item.isActive}>
                     <div class="product-details slds-p-around_medium">
+                      <div class="slds-grid slds-wrap slds-gutters">
 
 
-                    <!-- Top row: Category | Product | Buttons -->
-                    <div class="slds-grid slds-wrap slds-gutters">
+                          <!--    <div class="slds-col slds-small-size_1-of-1 slds-medium-size_5-of-12 input-box">
 
+                            <div class="slds-col slds-size_1-of-2">
+                                <label class="slds-form-element__label">Category</label>
+                                <div class="slds-form-element__control">
+                                    <div class="slds-select_container">
+                                        <select class="slds-select"
+                                                value={selectedCategory}
+                                                onchange={handleCategoryChange}
+                                                disabled={isCategoryDisabled}>
+                                                    <template if:true={selectedCategory}>
+                                                            <option value={selectedCategory}>{selectedCategory}</option>
+                                                        </template>
+                                            <template for:each={categories} for:item="cat">
+                                                <option key={cat.value} value={cat.value}>
+                                                    {cat.label}
+                                                </option>
+                                            </template>
+                                        </select>
+                                    </div>
+                                </div>
+                        </div>
+                    -->
                         
+                            <!-- ROW CATEGORY -->
+                            <div class="slds-col slds-small-size_1-of-1 slds-medium-size_3-of-12">
+                                <lightning-combobox
+                                    label="Category"
+                                    value={item.category}
+                                    options={categories}
+                                    data-index={index}
+                                    onchange={handleRowCategoryChange}
+                                    required>
+                                </lightning-combobox>
+                            </div>
+
+
+                                
+
+
                         <!-- Product search -->
                         <div class="slds-col slds-small-size_1-of-1 slds-medium-size_5-of-12 input-box">
                             <div class="slds-form-element">
@@ -284,6 +303,7 @@
                                                         data-index={index}
                                                         onclick={removeRow}>
                                 </lightning-button-icon>
+                        </div>
                         </div>
                     </div>
 

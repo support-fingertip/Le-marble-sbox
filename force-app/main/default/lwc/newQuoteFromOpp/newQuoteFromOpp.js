@@ -266,13 +266,18 @@ wiredAreaPicklist({ data, error }) {
        //     return !this.selectedPB; // disable when selectedPB is false
        // }
         handlePBSelect(event) {
-           this.selectedCategory='';
-                this.selectedProducts = [];
+        //   this.selectedCategory='';
+         //       this.selectedProducts = [];
                 localStorage.removeItem('selectedProducts');
-            this.selectedPB = event.target.value;
             
+            if(this.selectedPB  !=event.target.value){
+                this.products =[];
+                this.selectedProducts=[];
+            }
             
-        //    this.loadOLIFromOpportunity();
+           this.selectedPB = event.target.value;
+  
+           this.loadOLIFromOpportunity();
 
             // Clear search results when category changes
             this.searchResults = [];
@@ -300,7 +305,7 @@ wiredAreaPicklist({ data, error }) {
             }
         }
 
-        handleCategoryChange(event) {
+     /*  handleCategoryChange(event) {
             if(this.selectedCategory  !=event.target.value){
                 this.products =[];
                 this.selectedProducts=[];
@@ -315,7 +320,7 @@ wiredAreaPicklist({ data, error }) {
             // Clear search results because category changed
             this.searchResults = [];
         }
-
+ 
         fetchProductsByCategory() {
                 this.loadOLIFromOpportunity();
 
@@ -328,7 +333,7 @@ wiredAreaPicklist({ data, error }) {
                         console.error('Error fetching products:', error);
                 });
         }
-
+*/
         loadOLIFromOpportunity() {
         if (!this.recordId || !this.selectedPB) return;
 
@@ -341,7 +346,7 @@ wiredAreaPicklist({ data, error }) {
                 compositeKey: `${Date.now()}_${Math.random()}`,
                 name: '',
                 code: '',
-                category: this.selectedCategory,
+                category: '',
                 quantity: 0,
                 unitPrice:0,
                 afterDiscPricePiece:  0,
@@ -435,7 +440,7 @@ var i=0;
                 });
         }
 
-      /*  updateProductUnitPrices() {
+        updateProductUnitPrices() {
             if (!this.products || !this.pbEntryMap) return;
 
             this.products = this.products.map(product => {
@@ -455,8 +460,7 @@ var i=0;
             console.log(JSON.stringify( this.products));
             // Reset displayedProducts
             //  this.displayedProducts = [...this.products];
-            }*/
-
+            }
 
         handleCategorySelect(event) {
             const selectedValue = event.target.value;
@@ -515,6 +519,28 @@ var i=0;
                 this.handleSearchInput({ target: { value: this.searchQuery } });
             }
         }
+
+        handleRowCategoryChange(event) {
+            const index = Number(event.target.dataset.index);
+            const value = event.detail.value;
+
+            let rows = [...this.selectedProducts];
+
+            rows[index] = {
+                ...rows[index],
+                category: value,
+                id: '',
+                name: '',
+                code: '',
+                quantity: 0,
+                unitPrice: 0,
+                totalPrice: 0,
+                showDropdown: false
+            };
+
+            this.selectedProducts = rows;
+            this.searchResults = [];
+         }
 
 
         handleQuantityChange(event) {
@@ -1218,51 +1244,53 @@ alert('hi');
 
 
         handleSearchInput(event) {
-            const index = event.target.dataset.index;
+            const index = Number(event.target.dataset.index);
             const value = event.target.value;
 
-            this.activeRowIndex = Number(index);
+            this.activeRowIndex = index;
 
-            // Update the text being typed
-            let updated = [...this.selectedProducts];
-            updated[index].name = value;   // << KEY FIX
-            this.selectedProducts = updated;
-
-            // Now process search
-            if (!value || value.length < 1) {
+            if (!value || value.length < 2) {
                 this.searchResults = [];
-                this.showSearchDropdown = false;
                 return;
             }
-const rowCategory = this.selectedProducts[index].category;
-         /*   this.searchResults = this.products.filter(p =>
-                (p.Name || '').toLowerCase().includes(value.toLowerCase()) ||
-                (p.Product_Code__c || '').toLowerCase().includes(value.toLowerCase())
-            );
 
-            this.showSearchDropdown = this.searchResults.length > 0;
-            this.selectedProducts = this.selectedProducts.map((row, i) => ({
-                ...row,
-                showDropdown: i == index
-            }));*/
+            const rowCategory = this.selectedProducts[index].category;
 
-            this.searchResults = this.products.filter(p => {
-                const matchesSearch =
-                    (p.Name || '').toLowerCase().includes(value.toLowerCase()) ||
-                    (p.productCode || '').toLowerCase().includes(value.toLowerCase());
-                if (rowCategory && rowCategory !== '' && rowCategory !== 'select') {
-                    return matchesSearch && p.category === rowCategory;
-                }
+            if (!rowCategory) {
+                this.showError('Please select category first');
+                return;
+            }
 
-                return matchesSearch; // no category filter applied
-            });
-            this.showSearchDropdown = this.searchResults.length > 0;
+            if (!this.selectedPB) {
+                this.showError('Please select Pricebook first');
+                return;
+            }
 
-            this.selectedProducts = this.selectedProducts.map((row, i) => ({
-                ...row,
-                showDropdown: i == index
-            }));
-}
+            if (this.searchTimeout) {
+                clearTimeout(this.searchTimeout);
+            }
+
+            this.searchTimeout = setTimeout(() => {
+
+                getProducts({
+                    category: rowCategory,
+                    searchKey: value,
+                    pricebookName: this.selectedPB
+                })
+                .then(result => {
+                    this.searchResults = result || [];
+
+                    this.selectedProducts = this.selectedProducts.map((row, i) => ({
+                        ...row,
+                        showDropdown: i === index
+                    }));
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+
+            }, 400);
+        }
 
 
 
@@ -1567,7 +1595,7 @@ handleAreaDesChange(event) {
                     
                     name: '',
                     code: '',
-                    category: '',
+                    category: this.selectedProducts[index]?.category || '',
                     quantity: 0,
                     unitPrice:0,
                     msp:0,

@@ -406,8 +406,8 @@ public static List<Map<String, Object>> getBatchStock1(Id orderItemId) {
         @AuraEnabled public decimal quantity;
          @AuraEnabled public decimal blkQty;
         @AuraEnabled public Id quoteLineItemId;
-        @AuraEnabled public String billable;
-        @AuraEnabled public String reserved;
+        @AuraEnabled public decimal billable;
+        @AuraEnabled public decimal reserved;
         
         
     }
@@ -480,11 +480,19 @@ public static List<Map<String, Object>> getBatchStock1(Id orderItemId) {
                                 wrap.warehouseCode = String.valueOf( warehouseInfo.get('WhsCode'));
                                 wrap.warehouseName = String.valueOf(warehouseInfo.get('WhsName')); 
                                 wrap.IsBatchEnable = String.valueOf(warehouseInfo.get('IsBatchEnable')); 
-                                wrap.reserved = String.valueOf(warehouseInfo.get('Reserved')); 
-                                wrap.billable = String.valueOf(warehouseInfo.get('Billable')); 
+                               // wrap.reserved = String.valueOf(warehouseInfo.get('Reserved')); 
+                              //  wrap.billable = String.valueOf(warehouseInfo.get('Billable')); 
+                                
                                 Object stockVal = warehouseInfo.get('Stock');
                                 wrap.inStock = stockVal != null ? Decimal.valueOf(String.valueOf(stockVal)): 0;
 
+                                Object ReservedVal = warehouseInfo.get('Stock');
+                                wrap.reserved = ReservedVal != null ? Decimal.valueOf(String.valueOf(ReservedVal)): 0;
+
+                                Object billableVal = warehouseInfo.get('Stock');
+                                wrap.billable = billableVal != null ? Decimal.valueOf(String.valueOf(billableVal)): 0;
+
+                                
                                 system.debug(wrap.inStock);
                                 wrap.Eid = wrap.warehouseCode+wrap.Batch+ system.now() ; 
                                 if(wrap.IsBatchEnable=='Yes' && wCodes.contains( wrap.warehouseCode) && wrap.inStock>0){

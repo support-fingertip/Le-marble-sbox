@@ -1,41 +1,95 @@
-@isTest
+@IsTest
 private class DealPathControllerTest {
-    @testSetup
-    static void setupTestData() {
-        // Insert one Pending_Purchase__c using a known‐good picklist value,
-        // so we can update it later.
-        List<Schema.PicklistEntry> values = Pending_Purchase__c.Stage__c
-            .getDescribe()
-            .getPicklistValues();
-        // Just grab the first active value
-        String validStage = values[0].getValue();
-        insert new Pending_Purchase__c(Stage__c = validStage);
+
+    // Utility method to get a valid picklist value dynamically
+    private static String getValidStageValue() {
+        Schema.DescribeFieldResult fieldResult = 
+            Pending_Purchase__c.Stage__c.getDescribe();
+        
+        List<Schema.PicklistEntry> picklistValues = fieldResult.getPicklistValues();
+        
+        return picklistValues.isEmpty() ? null : picklistValues[0].getValue();
     }
 
-    @isTest
-    static void testCoverAllBranches() {
-        // Grab the record we just inserted
-        Id recId = [SELECT Id FROM Pending_Purchase__c LIMIT 1].Id;
-        Date dt   = Date.today().addDays(7);
+    @TestSetup
+    static void setupData() {
 
-        // 1) Stage != 'Delayed', expectedDate ignored → skip‐if branch
-        safeUpdate(recId, 'NotDelayedStage', null);
+        String validStage = getValidStageValue();
 
-        // 2) Stage == 'Delayed' && expectedDate != null → if‐branch
-        safeUpdate(recId, 'Delayed', dt);
+        Pending_Purchase__c purchase = new Pending_Purchase__c(
+            Stage__c = validStage
+        );
 
-        // 3) Stage == 'Delayed' && expectedDate == null → skip‐if branch again
-        safeUpdate(recId, 'Delayed', null);
-
-        // 4) recordId = null → forces DML error → catch branch
-        safeUpdate(null, 'AnyStage', null);
+        insert purchase;
     }
 
-    private static void safeUpdate(Id recordId, String stage, Date expectedDate) {
+    // ✅ Test Delayed scenario
+    @IsTest
+    static void testUpdateDealStage_Delayed() {
+
+        Pending_Purchase__c purchase =
+            [SELECT Id FROM Pending_Purchase__c LIMIT 1];
+
+        Date expectedDate = Date.today().addDays(5);
+
+        Test.startTest();
+        DealPathController.updateDealStage(
+            purchase.Id,
+            'Delayed',
+            expectedDate
+        );
+        Test.stopTest();
+
+        Pending_Purchase__c updated =
+            [SELECT Stage__c, Expected_Date__c 
+             FROM Pending_Purchase__c 
+             WHERE Id = :purchase.Id];
+
+        System.assertEquals('Delayed', updated.Stage__c);
+        System.assertEquals(expectedDate, updated.Expected_Date__c);
+    }
+
+    // ✅ Test non-delayed scenario
+    @IsTest
+    static void testUpdateDealStage_NotDelayed() {
+
+        Pending_Purchase__c purchase =
+            [SELECT Id FROM Pending_Purchase__c LIMIT 1];
+
+        String validStage = getValidStageValue();
+
+        Test.startTest();
+        DealPathController.updateDealStage(
+            purchase.Id,
+            validStage,
+            Date.today().addDays(3)
+        );
+        Test.stopTest();
+
+        Pending_Purchase__c updated =
+            [SELECT Stage__c, Expected_Date__c 
+             FROM Pending_Purchase__c 
+             WHERE Id = :purchase.Id];
+
+        System.assertEquals(validStage, updated.Stage__c);
+        System.assertEquals(null, updated.Expected_Date__c);
+    }
+
+    // ✅ Exception test
+    @IsTest
+    static void testUpdateDealStage_Exception() {
+
+        Test.startTest();
         try {
-            DealPathController.updateDealStage(recordId, stage, expectedDate);
-        } catch (AuraHandledException ex) {
-            // swallow so the test never fails
+            DealPathController.updateDealStage(
+                null,
+                'Delayed',
+                Date.today()
+            );
+            System.assert(false, 'Exception should have been thrown');
+        } catch (AuraHandledException e) {
+            System.assertNotEquals(null, e.getMessage());
         }
+        Test.stopTest();
     }
 }
