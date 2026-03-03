@@ -94,14 +94,14 @@ wiredAreaPicklist({ data, error }) {
         localStorage.removeItem('selectedProducts');
 
         // Load cart from localStorage if available
-        const savedCart = localStorage.getItem('selectedProducts');
+     /*   const savedCart = localStorage.getItem('selectedProducts');
         if (savedCart) {
             try {
             //    this.selectedProducts = JSON.parse(savedCart);
             } catch (e) {
                 this.selectedProducts = [];
             }
-        }
+        }*/
 
         // Add click event listener to close dropdown when clicking outside
         this.handleClickOutside = () => {
@@ -440,7 +440,7 @@ var i=0;
                 });
         }
 
-        updateProductUnitPrices() {
+      /*  updateProductUnitPrices() {
             if (!this.products || !this.pbEntryMap) return;
 
             this.products = this.products.map(product => {
@@ -518,7 +518,7 @@ var i=0;
             if (this.searchQuery) {
                 this.handleSearchInput({ target: { value: this.searchQuery } });
             }
-        }
+        }*/
 
         handleRowCategoryChange(event) {
             const index = Number(event.target.dataset.index);
@@ -653,7 +653,7 @@ var i=0;
             const product = this.selectedProducts[productIndex];
 
           /*  const areaVal = (field === 'roomType') ? value
-                : product.roomType + (field === 'areaDesc')
+                : product.roomType + (field === 'areaDesc')Korea 
                 ? value: product.areaDesc;*/
                 
             // ✅ KEY MUST USE Area/RoomType, not any random field value
@@ -770,11 +770,6 @@ var i=0;
             this.searchQuery = event.target.value;
         }
 
-        handleImageError(event) {
-            event.target.src = 'https://www.levarusglobal.com/wp-content/uploads/2021/06/no-product-image.jpg';
-        }
-
-        
         handleImageError(event) {
             event.target.src = 'https://www.levarusglobal.com/wp-content/uploads/2021/06/no-product-image.jpg';
         }
@@ -915,7 +910,6 @@ var i=0;
             afterDiscDisplay = item.afterDiscPricePiece || 0;
             lineTotalDisplay = afterDiscDisplay * (item.quantity || 0);
         }
-this.recalculateOrderTotal();
         return {
             ...item,
             discountSymbol: item.discType === 'Percentage' ? '%' : '\u20b9',
@@ -924,6 +918,7 @@ this.recalculateOrderTotal();
             lineTotalDisplay: Number(lineTotalDisplay).toFixed(2)
         };
     });
+this.recalculateOrderTotal();
 
     // OPEN PREVIEW
     this.openPreview = true;
@@ -1011,7 +1006,7 @@ this.recalculateOrderTotal();
                 this.dispatchEvent(
                     new ShowToastEvent({
                         title: 'Error',
-                        message: 'No Deal ID found. Please start from a Deal record.',
+                        message: 'No Opp ID found. Please start from a Opp record.',
                         variant: 'error'
                     })
                 );
@@ -1110,7 +1105,7 @@ this.recalculateOrderTotal();
                 type: 'standard__recordPage',
                 attributes: {
                     recordId: cartId,
-                    objectApiName: 'Cart__c',
+                    objectApiName: 'Quote',
                     actionName: 'view'
                 }
             });
@@ -1249,8 +1244,23 @@ alert('hi');
 
             this.activeRowIndex = index;
 
+            // Update the row's name so the input reflects the user's typing
+            const updated = [...this.selectedProducts];
+            updated[index] = { ...updated[index], name: value };
+            // If user clears or changes text, reset the selected product for this row
+            if (updated[index].id && value !== updated[index].code) {
+                updated[index].id = '';
+                updated[index].code = '';
+                updated[index].stockChecked = false;
+            }
+            this.selectedProducts = updated;
+
             if (!value || value.length < 2) {
                 this.searchResults = [];
+                this.selectedProducts = this.selectedProducts.map((row, i) => ({
+                    ...row,
+                    showDropdown: i === index ? false : row.showDropdown
+                }));
                 return;
             }
 
@@ -1413,11 +1423,11 @@ console.log(el);
         if (product && product.sqftPerPiece > 0 && requiredSqft > 0) {
             // Calculate quantity by dividing required sqft by sqft per piece and rounding up
             const quantity = Math.ceil(requiredSqft / product.sqftPerPiece);
-            this.updateProduct(productId, 'quantity', quantity);
+            this.updateProduct(productId, 'quantity', quantity,idx);
             
             // Calculate actual sqft based on the rounded up quantity
             const actualSqft = quantity * product.sqftPerPiece;
-            this.updateProduct(productId, 'sqft', actualSqft);
+            this.updateProduct(productId, 'sqft', actualSqft,idx);
             
             // Calculate sqm (1 sqft = 0.092903 sqm)
             const sqm = actualSqft * 0.092903;

@@ -114,11 +114,22 @@ public class sapIntegration {
             
             // If not found (404), proceed to create
             if (getResponse.getStatusCode() != 404) {
+                String sapErrorMsg = '';
+                try {
+                    Map<String, Object> errWrapper = (Map<String, Object>) JSON.deserializeUntyped(getResponse.getBody());
+                    if (errWrapper.containsKey('error')) {
+                        Map<String, Object> errObj = (Map<String, Object>) errWrapper.get('error');
+                        Map<String, Object> msgObj = (Map<String, Object>) errObj.get('message');
+                        sapErrorMsg = (String) msgObj.get('value');
+                    }
+                } catch (Exception ex) {
+                    sapErrorMsg = getResponse.getBody();
+                }
                 log.status__c='Failed';
                 log.response__c= 'Status code : '+getResponse.getStatusCode() +' Response body: '+ getResponse.getBody();
-                log.Error_Message__c = 'Status code : '+getResponse.getStatusCode()+ 'Error ';
+                log.Error_Message__c = 'Status code : '+getResponse.getStatusCode()+ ' Error: ' + sapErrorMsg;
                 insert  log;  
-                notification.setBody('Error While sending Account to SAP: '+ 'Status code : '+getResponse.getStatusCode()+ ' Error: Callout failed.');    
+                notification.setBody('Error While sending Account to SAP: Status code: '+getResponse.getStatusCode()+ ' Error: ' + sapErrorMsg);    
                 // Some other error
                 System.debug(LoggingLevel.ERROR, 'Error checking BP in SAP: ' + getResponse.getBody());
                 try {
@@ -1000,7 +1011,35 @@ public class sapIntegration {
                     
                     Map<String, Object> json = (Map<String, Object>) JSON.deserializeUntyped(itemRes.getBody());
                     List<Object> items = (List<Object>) json.get('value');
-                    
+
+                    // Collect all lookup codes first
+                    Set<String> accountCodes = new Set<String>();
+                    Set<String> salesPersonCodes = new Set<String>();
+                    Set<String> saleOrderNumbers = new Set<String>();
+                    for (Object o : items) {
+                        Map<String, Object> it = (Map<String, Object>) o;
+                        String cc = String.valueOf(it.get('CardCode'));
+                        String sp = String.valueOf(it.get('SalesPersonCode'));
+                        String so = String.valueOf(it.get('U_Saleorder'));
+                        if (cc != null && cc != '') accountCodes.add(cc);
+                        if (sp != null && sp != '') salesPersonCodes.add(sp);
+                        if (so != null && so != '') saleOrderNumbers.add(so);
+                    }
+
+                    // Build lookup maps
+                    Map<String, Id> accountMap = new Map<String, Id>();
+                    for (Account a : [SELECT Id, Customer_Number__c FROM Account WHERE Customer_Number__c IN :accountCodes]) {
+                        accountMap.put(a.Customer_Number__c, a.Id);
+                    }
+                    Map<String, Id> userMap = new Map<String, Id>();
+                    for (User u : [SELECT Id, SAP_Emp_Code__c FROM User WHERE SAP_Emp_Code__c IN :salesPersonCodes]) {
+                        userMap.put(u.SAP_Emp_Code__c, u.Id);
+                    }
+                    Map<String, Id> orderMap = new Map<String, Id>();
+                    for (Order ord : [SELECT Id, SAP_Doc_Num__c FROM Order WHERE SAP_Doc_Num__c IN :saleOrderNumbers]) {
+                        orderMap.put(ord.SAP_Doc_Num__c, ord.Id);
+                    }
+
                     for (Object obj : items) {
                         Map<String, Object> item = (Map<String, Object>) obj;
                         Invoice__c inv = new Invoice__c();
@@ -1017,14 +1056,30 @@ public class sapIntegration {
                         inv.Comments__c= String.valueOf(item.get('Comments'));
                         inv.Account_Code__c= String.valueOf(item.get('CardCode'));
                         inv.SalesPersonCode__c= String.valueOf(item.get('SalesPersonCode'));
-                        inv.Cancel_Status__c= String.valueOf(item.get('CancelStatus'));
+                        inv.Cancel_Status__c= String.valueOf(item.get('Cancelled'));
                         inv.Total_Discount__c =     Decimal.valueOf(String.valueOf(item.get('TotalDiscount')));
 						inv.SaleOrder_Number__c = String.valueOf(item.get('U_Saleorder'));
-                    invList.add(inv);    
-                        List<Object> documentLines =
-                            (List<Object>) item.get('DocumentLines');
-                        
-                        if (documentLines != null) {  
+                        inv.Payment_Mode__c = String.valueOf(item.get('U_Payment_method'));
+                        inv.Branch_Name__c = String.valueOf(item.get('BPLName'));
+                        if (inv.Account_Code__c != null && inv.Account_Code__c != '' && accountMap.containsKey(inv.Account_Code__c)) {
+                            inv.Account__c = accountMap.get(inv.Account_Code__c);
+                        }
+                        if (inv.SalesPersonCode__c != null && inv.SalesPersonCode__c != '' && userMap.containsKey(inv.SalesPersonCode__c)) {
+                            inv.OwnerId = userMap.get(inv.SalesPersonCode__c);
+                        }
+                        if (inv.SaleOrder_Number__c != null && inv.SaleOrder_Number__c != '' && orderMap.containsKey(inv.SaleOrder_Number__c)) {
+                            inv.Sales_Order__c = orderMap.get(inv.SaleOrder_Number__c);
+                        }
+
+                        inv.Vehicle_No__c = String.valueOf(item.get('VehicleNo'));
+                        inv.VehicleType__c = String.valueOf(item.get('VehicleType'));
+                        inv.TransportationMode__c = String.valueOf(item.get('TransportationMode'));
+                        inv.Driver__c = String.valueOf(item.get('U_DRIVER'));
+                invList.add(inv);    
+                    List<Object> documentLines =
+                        (List<Object>) item.get('DocumentLines');
+                    
+                    if (documentLines != null) {  
                             for (Object lineObj : documentLines) {
                                 Map<String, Object> line = (Map<String, Object>) lineObj;
                                 Invoice_Item__c invItem = new Invoice_Item__c(); 
@@ -1037,9 +1092,10 @@ public class sapIntegration {
                             //    invItem.Product__c= String.valueOf(line.get('CancelStatus'));
                                 invItem.Quantity__c= (decimal) line.get('Quantity');
                                 if(item.get('ShipDate') != null){
-                                    invItem.Ship_Date__c =
-                                        Date.valueOf(String.valueOf(item.get('ShipDate')));
+                                    invItem.Ship_Date__c = Date.valueOf(String.valueOf(item.get('ShipDate')));
                                 }
+                               if( invItem.Item_Code__c!= null &&  invItem.Item_Code__c != '')  invItem.Product__r = new Product2(Product_Code__c = invItem.Item_Code__c);
+
                                 invItem.Tax_Amount__c= (decimal) line.get('TaxTotal');
                                 invItem.Unit_Price__c= (decimal) line.get('UnitPrice');
                                 invItem.Warehouse_Code__c= String.valueOf(line.get('WarehouseCode'));
@@ -1149,7 +1205,100 @@ public class sapIntegration {
         }
         
         system.debug(CurrentAccountBalance);
-        return CurrentAccountBalance;
-        
+        return CurrentAccountBalance;  
+    }
+
+
+   @AuraEnabled(cacheable=false)   
+    public static void getPayments() {
+        String sessionId = loginToSAP();
+        if (sessionId != null) {
+            
+            List<Apex_Log__c> logList = new List<Apex_Log__c>();
+            Apex_Log__c log = new Apex_Log__c();
+            log.Request_Type__c = 'Payment';
+            
+            Date today = Date.today();
+            String formattedDate = String.valueOf(today);
+            
+            String fullUrl = SAP_BASE_URL + '/IncomingPayments?$filter=(' +
+                EncodingUtil.urlEncode('DocDate eq \'' + formattedDate + '\' or TaxDate eq \'' + formattedDate + '\'', 'UTF-8') + ')';
+            
+            String outcomeMsg;
+            if (Limits.getCallouts() >= Limits.getLimitCallouts()) {
+                outcomeMsg = 'Maximum number of callouts has been reached.';
+                log.Status__c = 'FAILED';
+                log.Error_Message__c = outcomeMsg;
+            } else {
+                
+                HttpRequest itemReq = new HttpRequest();
+                itemReq.setEndpoint(fullUrl);
+                itemReq.setMethod('GET');
+                itemReq.setHeader('Content-Type', 'application/json');
+                itemReq.setHeader('Accept', 'application/json');
+                itemReq.setHeader('Cookie', 'B1SESSION=' + sessionId);
+                itemReq.setTimeout(120000);
+           system.debug(' fullUrl>>'+fullUrl);          
+                Http http = new Http();
+                HttpResponse itemRes = http.send(itemReq);
+           system.debug(' itemRes>>'+itemRes);
+                log.response__c = String.valueOf(itemRes.getStatusCode());
+                log.Request__c = fullUrl;
+                
+                if ((itemRes.getStatusCode() == 200 || itemRes.getStatusCode() == 201) && itemRes.getBody() != null) {
+                    log.status__c = 'SUCCESS';
+                    
+                    List<Payment__c> paymentList = new List<Payment__c>();
+                    
+                    Map<String, Object> json = (Map<String, Object>) JSON.deserializeUntyped(itemRes.getBody());
+                    List<Object> items = (List<Object>) json.get('value');
+                  system.debug(' items>>'+items);     
+                    // Collect CardCodes to build Account lookup map
+                    Set<String> cardCodes = new Set<String>();
+                    for (Object o : items) {
+                        Map<String, Object> it = (Map<String, Object>) o;
+                        String cc = String.valueOf(it.get('CardCode'));
+                        if (cc != null && cc != '') cardCodes.add(cc);
+                    }
+                    Map<String, Id> accountMap = new Map<String, Id>();
+                    for (Account a : [SELECT Id, Customer_Number__c FROM Account WHERE Customer_Number__c IN :cardCodes]) {
+                        accountMap.put(a.Customer_Number__c, a.Id);
+                    }
+                    
+                    for (Object obj : items) {
+                        Map<String, Object> item = (Map<String, Object>) obj;
+                        Payment__c pmt = new Payment__c();
+                        
+                        pmt.Doc_Entry__c = String.valueOf(item.get('DocEntry'));
+                        pmt.Doc_Num__c = String.valueOf(item.get('DocNum'));
+                        pmt.Name = String.valueOf(item.get('DocNum'));
+                        if (item.get('DocDate') != null) {
+                            pmt.Payment_Date__c = Date.valueOf(String.valueOf(item.get('DocDate')));
+                        }
+                        if (item.get('TransferSum') != null) {
+                            pmt.Amount__c = Decimal.valueOf(String.valueOf(item.get('TransferSum')));
+                        }
+                        pmt.Payment_Type__c = String.valueOf(item.get('PaymentType'));
+                        
+                        String cardCode = String.valueOf(item.get('CardCode'));
+                        if (cardCode != null && cardCode != '' && accountMap.containsKey(cardCode)) {
+                            pmt.Account__c = accountMap.get(cardCode);
+                        }
+                        
+                        paymentList.add(pmt);
+                    }
+                    
+                    if (!paymentList.isEmpty()) {
+                        Database.upsert(paymentList, Payment__c.Doc_Entry__c, false);
+                    }
+                    
+                    insert log;
+                } else {
+                    log.Status__c = 'FAILED';
+                    log.Error_Message__c = 'Failed to fetch payments. Status: ' + itemRes.getStatusCode();
+                    insert log;
+                }
+            }
+        }
     }
 }

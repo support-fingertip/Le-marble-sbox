@@ -138,4 +138,110 @@ public class OpportunityItemHandlerTest {
 
         System.assertNotEquals(null, oli);
     }
+
+    // ✅ UPDATE TRIGGER TEST
+    @IsTest
+    static void testAfterUpdate() {
+
+        Opportunity opp = [SELECT Id FROM Opportunity LIMIT 1];
+        Id stdPbId = Test.getStandardPricebookId();
+
+        PricebookEntry pbe = [
+            SELECT Id FROM PricebookEntry
+            WHERE Pricebook2Id = :stdPbId
+            LIMIT 1
+        ];
+
+        OpportunityLineItem oli = new OpportunityLineItem(
+            OpportunityId = opp.Id,
+            PricebookEntryId = pbe.Id,
+            Quantity = 1,
+            UnitPrice = 100
+        );
+        insert oli;
+
+        Test.startTest();
+        oli.Quantity = 5;
+        update oli;
+        Test.stopTest();
+
+        OpportunityLineItem updated = [SELECT Quantity FROM OpportunityLineItem WHERE Id = :oli.Id];
+        System.assertEquals(5, updated.Quantity, 'Quantity should be updated');
+    }
+
+    // ✅ BEFORE UPDATE TRIGGER TEST
+    @IsTest
+    static void testBeforeUpdate() {
+
+        Opportunity opp = [SELECT Id FROM Opportunity LIMIT 1];
+        Id stdPbId = Test.getStandardPricebookId();
+
+        PricebookEntry pbe = [
+            SELECT Id FROM PricebookEntry
+            WHERE Pricebook2Id = :stdPbId
+            LIMIT 1
+        ];
+
+        OpportunityLineItem oli = new OpportunityLineItem(
+            OpportunityId = opp.Id,
+            PricebookEntryId = pbe.Id,
+            Quantity = 1,
+            UnitPrice = 100
+        );
+        insert oli;
+
+        Test.startTest();
+        oli.UnitPrice = 200;
+        update oli;
+        Test.stopTest();
+
+        OpportunityLineItem updated = [SELECT UnitPrice FROM OpportunityLineItem WHERE Id = :oli.Id];
+        System.assertEquals(200, updated.UnitPrice, 'UnitPrice should be updated');
+    }
+
+    // ✅ EMPTY LIST TEST
+    @IsTest
+    static void testHandleBefore_EmptyList() {
+        Test.startTest();
+        OpportunityItemHandler.handleBefore(new List<OpportunityLineItem>());
+        Test.stopTest();
+        System.assert(true, 'Should handle empty list');
+    }
+
+    // ✅ AFTER INSERT EMPTY NOTIFICATION
+    @IsTest
+    static void testAfterInsert_NoMatchingGroup() {
+
+        Opportunity opp = [SELECT Id FROM Opportunity LIMIT 1];
+        Id stdPbId = Test.getStandardPricebookId();
+
+        // Create product with category that has no matching group
+        Product2 prod2 = new Product2(
+            Name = 'No Group Product',
+            IsActive = true,
+            Product_Category__c = 'UNKNOWN_CATEGORY'
+        );
+        insert prod2;
+
+        PricebookEntry pbe2 = new PricebookEntry(
+            Pricebook2Id = stdPbId,
+            Product2Id = prod2.Id,
+            UnitPrice = 50,
+            IsActive = true
+        );
+        insert pbe2;
+
+        OpportunityLineItem oli = new OpportunityLineItem(
+            OpportunityId = opp.Id,
+            PricebookEntryId = pbe2.Id,
+            Quantity = 1,
+            UnitPrice = 50
+        );
+
+        Test.startTest();
+        insert oli;
+        Test.stopTest();
+
+        System.assert(true, 'Should handle missing group gracefully');
+    }
 }

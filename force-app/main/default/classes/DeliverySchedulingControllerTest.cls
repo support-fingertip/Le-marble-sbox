@@ -46,15 +46,29 @@ private class DeliverySchedulingControllerTest {
         Sales_Confirmation__c salesCon = new Sales_Confirmation__c();
         insert salesCon;
 
-        // 5) Delivery Group
-        //    - pick a valid Status__c
-        //    - pick a valid Choose_Vehicle__c
+        // 5) Order — required by Delivery_Group__c.Sales_Order__c
+        Account acc = new Account(Name = 'Test Account');
+        insert acc;
+
+        Order ord = new Order(
+            AccountId     = acc.Id,
+            EffectiveDate = Date.today(),
+            Status        = 'Draft',
+            Pricebook2Id  = Test.getStandardPricebookId()
+        );
+        SalesOrderTriggerHandler.isRunning = true;
+        insert ord;
+        SalesOrderTriggerHandler.isRunning = false;
+
+        // 6) Delivery Group
         String validStatus  = getAnyActiveValue(Delivery_Group__c.Status__c);
         String validVehicle = getAnyActiveValue(Delivery_Group__c.Choose_Vehicle__c);
         System.assert(validStatus  != null, 'No active Status__c values found');
         System.assert(validVehicle != null, 'No active Choose_Vehicle__c values found');
 
         Delivery_Group__c grp = new Delivery_Group__c(
+            Sales_Order__c        = ord.Id,
+            Delivery_Status__c    = 'Draft',
             Status__c             = validStatus,
             Delivery_Date__c      = Date.today(),
             Choose_Vehicle__c     = validVehicle,
@@ -63,7 +77,7 @@ private class DeliverySchedulingControllerTest {
         );
         insert grp;
 
-        // 6) One Delivery_Line_Item__c under that group
+        // 7) One Delivery_Line_Item__c under that group
         Delivery_Line_Item__c dli = new Delivery_Line_Item__c(
             Delivery_Group__c   = grp.Id,
             Cart_Line_Item__c   = cli.Id

@@ -127,7 +127,6 @@ private class OrderProductTriggerTest {
 
         Test.startTest();
         insert items;
-        Test.stopTest();
 
         System.assertEquals(10, items.size());
 
@@ -135,7 +134,6 @@ private class OrderProductTriggerTest {
             oi.Quantity = 3;
         }
 
-        Test.startTest();
         update items;
         Test.stopTest();
 

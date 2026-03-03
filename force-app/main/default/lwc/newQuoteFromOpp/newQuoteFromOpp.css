@@ -541,6 +541,22 @@
 
 /* Mobile Responsive Styles */
 @media (max-width: 768px) {
+    .page-wrapper {
+        padding: 6px;
+    }
+
+    .item-card {
+        padding: 8px;
+        margin-bottom: 8px;
+        border-radius: 8px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .header-card {
+        padding: 8px;
+    }
+
     .modal-container {
         width: 100%;
         height: 100vh;
