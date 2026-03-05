@@ -27,7 +27,7 @@ private class ProductControllerTest {
             In_Stock__c         = 50
         );
         insert new Deals__c(Name='D1', Remarks__c='R1');
-        insert new Lead(LastName='L1', Company='C1', Remarks__c='R1', Country__c='IN', Country_Code__c='+91');
+        insert new Lead(LastName='L1', Company='C1', Remarks__c='R1', Country='India', Country_Code__c='+91');
     }
 
     private static Product__c anyProduct() {

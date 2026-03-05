@@ -17,7 +17,7 @@ const ALLOWED_WAREHOUSE_CODES = [
 ];
 
 export default class CreateSOFromQuote extends NavigationMixin(LightningElement) {
-    showCreateSOButton = false;
+    showCreateSOButton = true;
 
 
     @track isQuoteItemsLoaded = false;
@@ -93,7 +93,7 @@ wiredQuoteInfo({ error, data }) {
         const quote = data.quote; 
             this.isAccountBlocked=quote.Account.Blocked_Account__c;
 
-        this.showCreateSOButton = !quote.Sales_Order_Created__c;
+     //   this.showCreateSOButton = !quote.Sales_Order_Created__c;
 
         this.customerInfo = {
             name: quote.Name || 'N/A',

@@ -56,7 +56,7 @@ public class LeadTriggerTest {
             Phone = '9876543210',
             Campaign_ID__c = c.Name,
             Sales_Executive__c = salesUser.Id,
-            Country__c = 'IN'
+            Country = 'India'
         );
         insert l;
         Test.stopTest();
@@ -87,7 +87,7 @@ public class LeadTriggerTest {
             Phone = '9876543211',
             Status = 'Unqualified',
             Unqualified_Reason__c = 'Not Interested',
-            Country__c = 'IN'
+            Country = 'India'
         );
         insert l;
 
@@ -118,7 +118,7 @@ public class LeadTriggerTest {
             LastName = 'Lead',
             Email = 'dup@test.com',
             Phone = '9876543212',
-            Country__c = 'IN'
+            Country = 'India'
         );
         insert l1;
 
@@ -127,7 +127,7 @@ public class LeadTriggerTest {
             LastName = 'Lead',
             Email = 'dup2@test.com',
             Phone = '9876543213',
-            Country__c = 'IN'
+            Country = 'India'
         );
 
         Test.startTest();
@@ -151,7 +151,7 @@ public class LeadTriggerTest {
             Customer_Type__c = 'B2B',
             Email = 'b2b.lead@test.com',
             Phone = '9100000001',
-            Country__c = 'IN'
+            Country = 'India'
         );
 
         Test.startTest();
@@ -174,7 +174,7 @@ public class LeadTriggerTest {
             LastName = 'AutoFill',
             Email = 'country.autofill@test.com',
             Phone = '9100000002',
-            Country__c = 'IN'
+            Country = 'India'
         );
 
         Test.startTest();
@@ -185,8 +185,29 @@ public class LeadTriggerTest {
         System.assertEquals('India', inserted.Country, 'Country should be auto-filled to India when blank on insert');
     }
 
+    // =====================    // beforeInsert — Country_Code__c auto-filled to +91 when Country is India on insert
     // =====================
-    // beforeInsert â€” no Sales_Executive__c, non-admin profile uses assignment rule off
+    @IsTest
+    static void testCountryCodeAutoFillOnInsert() {
+        Test.setMock(HttpCalloutMock.class, new DummyHttpCalloutMock());
+
+        Lead l = new Lead(
+            FirstName = 'CodeInsert',
+            LastName  = 'AutoFill',
+            Email     = 'code.insert.autofill@test.com',
+            Phone     = '9100000099',
+            Country   = 'India'
+        );
+
+        Test.startTest();
+        insert l;
+        Test.stopTest();
+
+        Lead inserted = [SELECT Country_Code__c FROM Lead WHERE Id = :l.Id];
+        System.assertEquals('+91', inserted.Country_Code__c, 'Country_Code__c should be auto-filled to +91 on insert when Country is India');
+    }
+
+    // =====================    // beforeInsert â€” no Sales_Executive__c, non-admin profile uses assignment rule off
     // =====================
     @IsTest
     static void testInsertWithoutSalesExecutive() {
@@ -197,7 +218,7 @@ public class LeadTriggerTest {
             LastName = 'Test',
             Email = 'noexec.test@test.com',
             Phone = '9100000009',
-            Country__c = 'IN'
+            Country = 'India'
         );
 
         Test.startTest();
@@ -209,7 +230,35 @@ public class LeadTriggerTest {
     }
 
     // =====================
-    // beforeUpdate â€” Country_Code__c auto-filled to +91 when Country is India
+    // beforeUpdate — Country_Code__c cleared when country changes away from India
+    // =====================
+    @IsTest
+    static void testCountryCodeClearedOnCountryChange() {
+        Test.setMock(HttpCalloutMock.class, new DummyHttpCalloutMock());
+
+        Lead l = new Lead(
+            FirstName = 'CodeClear',
+            LastName  = 'Test',
+            Email     = 'codeclear.test@test.com',
+            Phone     = '9100000199',
+            Country   = 'India',
+            Country_Code__c = '+91'
+        );
+        insert l;
+
+        // Change country away from India
+        l.Country = 'United States';
+
+        Test.startTest();
+        update l;
+        Test.stopTest();
+
+        Lead updated = [SELECT Country_Code__c FROM Lead WHERE Id = :l.Id];
+        System.assert(String.isBlank(updated.Country_Code__c), 'Country_Code__c should be cleared when country changes away from India');
+    }
+
+    // =====================
+    // beforeUpdate — Country_Code__c auto-filled to +91 when Country is India
     // =====================
     @IsTest
     static void testCountryCodeAutoFillOnUpdate() {
@@ -220,8 +269,7 @@ public class LeadTriggerTest {
             LastName = 'AutoFill',
             Email = 'code.autofill@test.com',
             Phone = '9100000003',
-            Country = 'India',
-            Country__c = 'IN'
+            Country = 'India'
         );
         insert l;
 
@@ -246,7 +294,7 @@ public class LeadTriggerTest {
             LastName = 'Customer',
             Email = 'interested.customer@test.com',
             Phone = '9100000004',
-            Country__c = 'IN',
+            Country = 'India',
             Customer_Interested__c = false
         );
         insert l;
@@ -272,7 +320,7 @@ public class LeadTriggerTest {
             LastName = 'OldLast',
             Email = 'b2c.update@test.com',
             Phone = '9100000010',
-            Country__c = 'IN'
+            Country = 'India'
         );
         insert l;
 
@@ -298,7 +346,7 @@ public class LeadTriggerTest {
             LastName = 'Lead',
             Email = 'unqual.lead@test.com',
             Phone = '9100000011',
-            Country__c = 'IN',
+            Country = 'India',
             Status = 'Open'
         );
         insert l;
@@ -327,7 +375,7 @@ public class LeadTriggerTest {
             LastName = 'Lead',
             Email = 'ownerchange.lead@test.com',
             Phone = '9100000012',
-            Country__c = 'IN'
+            Country = 'India'
         );
         insert l;
 
@@ -352,7 +400,7 @@ public class LeadTriggerTest {
             LastName = 'Mobile',
             Email = 'whatsapp.mobile@test.com',
             MobilePhone = '9100000013',  // Phone is null, MobilePhone used
-            Country__c = 'IN'
+            Country = 'India'
         );
 
         Test.startTest();
@@ -375,7 +423,7 @@ public class LeadTriggerTest {
             LastName = 'Test',
             Email = 'dupemail.block@test.com',
             Phone = '9100000005',
-            Country__c = 'IN'
+            Country = 'India'
         );
         insert l1;
 
@@ -384,7 +432,7 @@ public class LeadTriggerTest {
             LastName = 'Test',
             Email = 'dupemail.block@test.com',
             Phone = '9100000006',
-            Country__c = 'IN'
+            Country = 'India'
         );
 
         Boolean didThrow = false;
@@ -412,7 +460,7 @@ public class LeadTriggerTest {
             LastName = 'Test',
             Email = 'dupphone1.block@test.com',
             Phone = '9100000007',
-            Country__c = 'IN'
+            Country = 'India'
         );
         insert l1;
 
@@ -421,7 +469,7 @@ public class LeadTriggerTest {
             LastName = 'Test',
             Email = 'dupphone2.block@test.com',
             Phone = '9100000007',
-            Country__c = 'IN'
+            Country = 'India'
         );
 
         Boolean didThrow = false;
@@ -450,7 +498,7 @@ public class LeadTriggerTest {
             Email = 'secemail1.block@test.com',
             Secondary_Email__c = 'shared.sec@test.com',
             Phone = '9100000020',
-            Country__c = 'IN'
+            Country = 'India'
         );
         insert l1;
 
@@ -460,7 +508,7 @@ public class LeadTriggerTest {
             Email = 'secemail2.block@test.com',
             Secondary_Email__c = 'shared.sec@test.com',
             Phone = '9100000021',
-            Country__c = 'IN'
+            Country = 'India'
         );
 
         Boolean didThrow = false;
@@ -488,7 +536,7 @@ public class LeadTriggerTest {
             Email = 'secphone1.block@test.com',
             Secondary_Phone__c = '9100000022',
             Phone = '9100000023',
-            Country__c = 'IN'
+            Country = 'India'
         );
         insert l1;
 
@@ -498,7 +546,7 @@ public class LeadTriggerTest {
             Email = 'secphone2.block@test.com',
             Secondary_Phone__c = '9100000022',
             Phone = '9100000024',
-            Country__c = 'IN'
+            Country = 'India'
         );
 
         Boolean didThrow = false;
@@ -527,7 +575,7 @@ public class LeadTriggerTest {
             LastName = 'Update',
             Email = 'salesex.update@test.com',
             Phone = '9100000008',
-            Country__c = 'IN'
+            Country = 'India'
         );
         insert l;
 
@@ -555,7 +603,7 @@ public class LeadTriggerTest {
             LastName           = 'Test',
             Email              = 'execowner.insert@test.com',
             Phone              = '9300000001',
-            Country__c         = 'IN',
+            Country            = 'India',
             Sales_Executive__c = salesUser.Id
         );
         insert l;
@@ -578,7 +626,7 @@ public class LeadTriggerTest {
             LastName   = 'Sharma',
             Email      = 'raj.sharma.trigger@test.com',
             Phone      = '9300000002',
-            Country__c = 'IN'
+            Country    = 'India'
         );
         insert l;
         Test.stopTest();
@@ -599,8 +647,7 @@ public class LeadTriggerTest {
             LastName   = 'Country',
             Email      = 'clear.country@test.com',
             Phone      = '9300000003',
-            Country    = 'India',
-            Country__c = 'IN'
+            Country    = 'India'
         );
         insert l;
 
@@ -627,7 +674,7 @@ public class LeadTriggerTest {
             Phone                 = '9300000004',
             Status                = 'Unqualified',
             Unqualified_Reason__c = 'Not Interested',
-            Country__c            = 'IN'
+            Country               = 'India'
         );
         insert l;
 
@@ -652,7 +699,7 @@ public class LeadTriggerTest {
             FirstName  = 'NoPhone',
             LastName   = 'AfterInsert',
             Email      = 'nophone.afterinsert@test.com',
-            Country__c = 'IN'
+            Country    = 'India'
             // No Phone or MobilePhone
         );
         insert l;
@@ -674,7 +721,6 @@ public class LeadTriggerTest {
             Email               = 'convert.afterupdate@test.com',
             Phone               = '9300000005',
             Country             = 'India',
-            Country__c          = 'IN',
             Check_List_Items__c = 'TILE',
             Product_Category__c = 'Tile',
             Branch_Location__c  = 'HO',
@@ -715,7 +761,7 @@ public class LeadTriggerTest {
             LastName   = 'Test',
             Email      = 'selfupd.trigger@test.com',
             Phone      = '9300000006',
-            Country__c = 'IN'
+            Country    = 'India'
         );
         insert l;
 

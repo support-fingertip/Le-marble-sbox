@@ -35,6 +35,7 @@ trigger Account_Trigger on Account (before insert, before update,after insert, a
                 oldDeal.Address_Line1__c != newDeal.Address_Line1__c ||
                 oldDeal.Address_Line2__c != newDeal.Address_Line2__c ||
                 oldDeal.Address_Line3__c != newDeal.Address_Line3__c ||
+                 oldDeal.Pin_code__c != newDeal.Pin_code__c ||
                 
                 oldDeal.corporation__c != newDeal.corporation__c ||
                 oldDeal.State__c != newDeal.State__c ||

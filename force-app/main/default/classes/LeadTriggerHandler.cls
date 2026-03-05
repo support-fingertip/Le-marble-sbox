@@ -43,6 +43,13 @@ public class LeadTriggerHandler {
             if (ls.Country == null || ls.Country == '') {
                 ls.Country = 'India';
             }
+            
+            // Auto-fill Country Code
+            if ((ls.Country_Code__c == null || ls.Country_Code__c == '')
+                && ls.Country != null
+                && ls.Country.toLowerCase() == 'india') {
+                    ls.Country_Code__c = '+91';
+            }
         }
         
         
@@ -108,13 +115,17 @@ public class LeadTriggerHandler {
                 ls.Country = 'India';
             }
             
-            // Auto-fill Country Code (NEW)
-            if ((ls.Country_Code__c == null || ls.Country_Code__c == '')
-                && ls.Country != null
-                && ls.Country.toLowerCase() == 'india') {
-                    
+            // Auto-fill Country Code when India, clear when country is not India
+            if (ls.Country != null && ls.Country.equalsIgnoreCase('India')) {
+                if (String.isBlank(ls.Country_Code__c)) {
                     ls.Country_Code__c = '+91';
                 }
+            } else {
+                // Country is not India — clear Country Code
+                if (String.isNotBlank(ls.Country_Code__c)) {
+                    ls.Country_Code__c = null;
+                }
+            }
         }
         
         

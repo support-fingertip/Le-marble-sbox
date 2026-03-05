@@ -48,7 +48,7 @@
             <div class="header-left  slds-col slds-size_1-of-1 slds-large-size_2-of-3">
                 <h1 class="header-title">Add Quote Line Items.</h1>
                 <p class="header-sub">
-                    Select a Price Book and start adding products
+                <!--    Select a Price Book and start adding products-->    
                 </p>
             </div>
 
@@ -64,7 +64,7 @@
                                     onchange={handlePBSelect}
                                     value={selectedPB}>
                                     <template if:true={selectedPB}>
-                                             <option value={selectedPB}>{selectedPB}</option>
+                                             <option value={selectedPB}>{selectedPBLabel}</option>
                                          </template>
                                 <template for:each={priceNames} for:item="pb">
                                     <option key={pb.value} value={pb.value}>
@@ -175,9 +175,10 @@
                             <label class="slds-form-element__label">Product</label>
                             <div class="slds-form-element__control">
                                 <div class="slds-input-has-icon slds-input-has-icon_left search-input-wrapper">
+                                  <div class="search-input-inner">
                                     <lightning-icon icon-name="utility:search" alternative-text="Search" class="search-icon" size="x-small"></lightning-icon>
                                     <input type="text"
-                                            class="slds-input"
+                                            class="slds-input search-input-field"
                                             placeholder="Search by product name or code..."
                                             data-index={index}
                                             value={item.name}
@@ -185,6 +186,15 @@
                                             onkeyup={handleSearchInput}
                                             onfocus={handleSearchFocus}
                                             onblur={handleSearchBlur} />
+                                    <template if:true={item.name}>
+                                        <button class="search-clear-btn"
+                                                data-index={index}
+                                                onclick={handleClearSearch}
+                                                title="Clear">
+                                            <lightning-icon icon-name="utility:close" alternative-text="Clear" size="xx-small"></lightning-icon>
+                                        </button>
+                                    </template>
+                                  </div>
                             
                             <template if:true={item.id}>
                                 <span class="product-code">Code: {item.code}</span>
@@ -270,7 +280,9 @@
                                                     data-product-id={prod.Id}
                                                     data-index={index}
                                                     onmousedown={handleSearchResultClick}
-                                                ontouchstart={handleSearchResultClick}>
+                                                    ontouchstart={handleTouchStart}
+                                                    ontouchmove={handleTouchMove}
+                                                    ontouchend={handleTouchEnd}>
                                                 <div class="search-result-name">{prod.Name}</div>
                                                 <div class="search-result-code">Code: {prod.productCode}</div>
                                             </div>

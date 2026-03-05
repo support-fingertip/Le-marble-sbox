@@ -18,9 +18,11 @@ public class LeadThankYouEmailHelperTest {
         Lead l = new Lead(
             FirstName  = firstName,
             LastName   = 'TestLead',
+            Company    = (String.isNotBlank(firstName) ? firstName + ' ' : '') + 'TestLead',
             Email      = email,
             Phone      = phone,
-            Country__c = 'IN'
+            Country    = 'India',
+            Status     = 'New'
         );
         insert l;
         return l;
@@ -49,8 +51,10 @@ public class LeadThankYouEmailHelperTest {
         Lead l = new Lead(
             FirstName  = 'NoEmail',
             LastName   = 'TestLead',
+            Company    = 'NoEmail TestLead',
             Phone      = '9100000002',
-            Country__c = 'IN'
+            Country    = 'India',
+            Status     = 'New'
             // Email intentionally omitted
         );
         insert l;
@@ -67,9 +71,11 @@ public class LeadThankYouEmailHelperTest {
         Test.setMock(HttpCalloutMock.class, new DummyHttpCalloutMock());
         Lead l = new Lead(
             LastName   = 'NoFirstNameLead',
+            Company    = 'NoFirstNameLead',
             Email      = 'nofirstname@example.com',
             Phone      = '9100000003',
-            Country__c = 'IN'
+            Country    = 'India',
+            Status     = 'New'
             // FirstName intentionally omitted
         );
         insert l;
@@ -103,8 +109,10 @@ public class LeadThankYouEmailHelperTest {
         Lead l2 = new Lead(
             FirstName  = 'NoMail',
             LastName   = 'TestLead',
+            Company    = 'NoMail TestLead',
             Phone      = '9100000008',
-            Country__c = 'IN'
+            Country    = 'India',
+            Status     = 'New'
         );
         insert l2;
 
@@ -131,14 +139,18 @@ public class LeadThankYouEmailHelperTest {
         Lead l1 = new Lead(
             FirstName  = 'NoMail1',
             LastName   = 'TestLead',
+            Company    = 'NoMail1 TestLead',
             Phone      = '9100000009',
-            Country__c = 'IN'
+            Country    = 'India',
+            Status     = 'New'
         );
         Lead l2 = new Lead(
             FirstName  = 'NoMail2',
             LastName   = 'TestLead',
+            Company    = 'NoMail2 TestLead',
             Phone      = '9100000010',
-            Country__c = 'IN'
+            Country    = 'India',
+            Status     = 'New'
         );
         insert new List<Lead>{ l1, l2 };
 

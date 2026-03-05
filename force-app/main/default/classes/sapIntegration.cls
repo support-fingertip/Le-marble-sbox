@@ -639,7 +639,8 @@ public class sapIntegration {
                 AddressLine3__c,
                 District__c,
                 State__c,
-                Country__c
+                Country__c,
+                opportunity.Sale_Type__c
             FROM Order
             WHERE Id = :order
             LIMIT 1
@@ -756,31 +757,31 @@ public class sapIntegration {
     
     public class SAPOrderPayload {
 
-        public String CardCode;
-                public String DocDate;
-                public String DocDueDate;
-                public String TaxDate;
-                public String DocCurrency;
-                public String BPL_IDAssignedToInvoice;
-        
-        public String U_To_Delivery_date;
-      //  public String StartDeliveryDate;
-        //public String StartDeliveryTime;
-        //public String EndDeliveryDate;
-        
-       // public String EndDeliveryTime;
-        public String U_TYPE;
-        public String U_Approval;
-        public String U_DELIVERY_TIME;
-        
-        public String SalesPersonCode;
-        public String DocumentsOwner;
-
-                public String ShipToCode;
-                public String ShipToDescription;
-
-                public List<DocumentLine> DocumentLines;
-                public List<BPAddress> BPAddresses;
+            public String CardCode;
+            public String DocDate;
+            public String DocDueDate;
+            public String TaxDate;
+            public String DocCurrency;
+            public String BPL_IDAssignedToInvoice;
+            
+            public String U_To_Delivery_date;
+            //  public String StartDeliveryDate;
+            //public String StartDeliveryTime;
+            //public String EndDeliveryDate;
+            
+            // public String EndDeliveryTime;
+            public String U_TYPE;
+            public String U_Approval;
+            public String U_DELIVERY_TIME;
+            
+            public String SalesPersonCode;
+            public String DocumentsOwner;
+            
+            public String ShipToCode;
+            public String ShipToDescription;
+            
+            public List<DocumentLine> DocumentLines;
+            public List<BPAddress> BPAddresses;
         }
         public class BPAddress {
             public String AddressName;
@@ -836,6 +837,10 @@ public class sapIntegration {
         } else {
             uType= 'RETAIL';
         }
+        if(order.opportunity.Sale_Type__c != null){
+            uType = order.opportunity.Sale_Type__c;
+        }
+
         payload.CardCode = order.account.Customer_Number__c;
         payload.DocDate = docDate;
         payload.DocDueDate = dueDate;

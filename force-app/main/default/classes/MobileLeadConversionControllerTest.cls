@@ -38,7 +38,7 @@ private class MobileLeadConversionControllerTest {
             LastName = 'Kumar',
             Company = 'Lead Company',
             Email = 'rahul.kumar@test.com',
-            Country__c = 'IN'
+            Country = 'India'
         );
         insert leadRecord;
 
@@ -71,8 +71,7 @@ private class MobileLeadConversionControllerTest {
             City = 'test city',
             State = 'Karnataka',
             PostalCode = '890765',
-            Country = 'IN',
-            Country__c = 'IN',
+            Country = 'India',
             Check_List_Items__c = 'TILE',
             Product_Category__c = 'Tile',
             Branch_Location__c = 'HO'
@@ -131,12 +130,12 @@ private class MobileLeadConversionControllerTest {
         System.assertEquals('test city', convertedAccount.BillingCity);
         System.assertEquals('Karnataka', convertedAccount.BillingState);
         System.assertEquals('890765', convertedAccount.BillingPostalCode);
-        System.assertEquals('IN', convertedAccount.BillingCountry);
+        System.assertEquals('India', convertedAccount.BillingCountry);
         System.assertEquals('test street', convertedContact.MailingStreet);
         System.assertEquals('test city', convertedContact.MailingCity);
         System.assertEquals('Karnataka', convertedContact.MailingState);
         System.assertEquals('890765', convertedContact.MailingPostalCode);
-        System.assertEquals('IN', convertedContact.MailingCountry);
+        System.assertEquals('India', convertedContact.MailingCountry);
 
         assertFieldEqualsIfPresent('Account', result.get('accountId'), 'Branch_Location__c', 'HO');
         assertFieldEqualsIfPresent('Contact', result.get('contactId'), 'Branch_Location__c', 'HO');
@@ -158,8 +157,7 @@ private class MobileLeadConversionControllerTest {
             City = 'Kochi',
             State = 'Kerala',
             PostalCode = '682001',
-            Country = 'IN',
-            Country__c = 'IN',
+            Country = 'India',
             Check_List_Items__c = 'TILE',
             Product_Category__c = 'Tile',
             Branch_Location__c = 'HO'
@@ -230,7 +228,7 @@ private class MobileLeadConversionControllerTest {
             City = 'Bengaluru',
             State = 'Karnataka',
             PostalCode = '560001',
-            Country = 'IN',
+            Country = 'India',
             Country__c = 'IN',
             Check_List_Items__c = 'TILE',
             Product_Category__c = 'Tile',
@@ -306,7 +304,7 @@ private class MobileLeadConversionControllerTest {
             City = 'Kozhikode',
             State = 'Kerala',
             PostalCode = '673001',
-            Country = 'IN',
+            Country = 'India',
             Country__c = 'IN',
             Description = 'Opportunity conversion notes',
             Check_List_Items__c = 'TILE',
@@ -365,7 +363,7 @@ private class MobileLeadConversionControllerTest {
             LastName = 'Missing',
             Company = 'No Address Co',
             Email = 'address.missing@test.com',
-            Country__c = 'IN',
+            Country = 'India',
             Check_List_Items__c = 'TILE',
             Product_Category__c = 'Tile',
             Branch_Location__c = 'HO'
@@ -415,7 +413,7 @@ private class MobileLeadConversionControllerTest {
             LastName = 'Checklist',
             Company = 'Validation Company',
             Email = 'no.checklist@test.com',
-            Country__c = 'IN',
+            Country = 'India',
             Product_Category__c = 'Tile',
             Branch_Location__c = 'HO'
         );
@@ -559,7 +557,7 @@ private class MobileLeadConversionControllerTest {
     // =====================
     @IsTest
     static void testConvertUseExistingAccountNoId() {
-        Lead lead = new Lead(FirstName = 'Test', LastName = 'Guard1', Company = 'Guard Co 1', Country__c = 'IN');
+        Lead lead = new Lead(FirstName = 'Test', LastName = 'Guard1', Company = 'Guard Co 1', Country = 'India');
         insert lead;
         String status = [SELECT MasterLabel FROM LeadStatus WHERE IsConverted = true LIMIT 1].MasterLabel;
 
@@ -584,7 +582,7 @@ private class MobileLeadConversionControllerTest {
     // =====================
     @IsTest
     static void testConvertBlankAccountName() {
-        Lead lead = new Lead(FirstName = 'Test', LastName = 'Guard2', Company = 'Guard Co 2', Country__c = 'IN');
+        Lead lead = new Lead(FirstName = 'Test', LastName = 'Guard2', Company = 'Guard Co 2', Country = 'India');
         insert lead;
         String status = [SELECT MasterLabel FROM LeadStatus WHERE IsConverted = true LIMIT 1].MasterLabel;
 
@@ -609,7 +607,7 @@ private class MobileLeadConversionControllerTest {
     // =====================
     @IsTest
     static void testConvertUseExistingContactNoId() {
-        Lead lead = new Lead(FirstName = 'Test', LastName = 'Guard3', Company = 'Guard Co 3', Country__c = 'IN');
+        Lead lead = new Lead(FirstName = 'Test', LastName = 'Guard3', Company = 'Guard Co 3', Country = 'India');
         insert lead;
         String status = [SELECT MasterLabel FROM LeadStatus WHERE IsConverted = true LIMIT 1].MasterLabel;
 
@@ -634,7 +632,7 @@ private class MobileLeadConversionControllerTest {
     // =====================
     @IsTest
     static void testConvertBlankContactLastName() {
-        Lead lead = new Lead(FirstName = 'Test', LastName = 'Guard4', Company = 'Guard Co 4', Country__c = 'IN');
+        Lead lead = new Lead(FirstName = 'Test', LastName = 'Guard4', Company = 'Guard Co 4', Country = 'India');
         insert lead;
         String status = [SELECT MasterLabel FROM LeadStatus WHERE IsConverted = true LIMIT 1].MasterLabel;
 
@@ -659,7 +657,7 @@ private class MobileLeadConversionControllerTest {
     // =====================
     @IsTest
     static void testConvertUseExistingOpportunityNoId() {
-        Lead lead = new Lead(FirstName = 'Test', LastName = 'Guard5', Company = 'Guard Co 5', Country__c = 'IN');
+        Lead lead = new Lead(FirstName = 'Test', LastName = 'Guard5', Company = 'Guard Co 5', Country = 'India');
         insert lead;
         String status = [SELECT MasterLabel FROM LeadStatus WHERE IsConverted = true LIMIT 1].MasterLabel;
 
@@ -685,7 +683,7 @@ private class MobileLeadConversionControllerTest {
     // =====================
     @IsTest
     static void testConvertBlankOpportunityName() {
-        Lead lead = new Lead(FirstName = 'Test', LastName = 'Guard6', Company = 'Guard Co 6', Country__c = 'IN');
+        Lead lead = new Lead(FirstName = 'Test', LastName = 'Guard6', Company = 'Guard Co 6', Country = 'India');
         insert lead;
         String status = [SELECT MasterLabel FROM LeadStatus WHERE IsConverted = true LIMIT 1].MasterLabel;
 
@@ -721,8 +719,7 @@ private class MobileLeadConversionControllerTest {
             City = 'Pune',
             State = 'Maharashtra',
             PostalCode = '411001',
-            Country = 'IN',
-            Country__c = 'IN',
+            Country = 'India',
             Check_List_Items__c = 'TILE',
             Product_Category__c = 'Tile',
             Branch_Location__c = 'HO'
@@ -752,6 +749,7 @@ private class MobileLeadConversionControllerTest {
     @IsTest
     static void testConvertPhoneValidationFails() {
         Test.setMock(HttpCalloutMock.class, new DummyHttpCalloutMock());
+
         Lead lead = new Lead(
             FirstName = 'Phone',
             LastName = 'Bad',
@@ -761,13 +759,13 @@ private class MobileLeadConversionControllerTest {
             City = 'Chennai',
             State = 'Tamil Nadu',
             PostalCode = '600001',
-            Country = 'IN',
-            Country__c = 'IN',
+            Country = 'India',
             Check_List_Items__c = 'TILE',
             Product_Category__c = 'Tile',
             Branch_Location__c = 'HO'
         );
         insert lead;
+
         String status = [SELECT MasterLabel FROM LeadStatus WHERE IsConverted = true LIMIT 1].MasterLabel;
 
         Boolean didThrow = false;
@@ -801,7 +799,7 @@ private class MobileLeadConversionControllerTest {
             City = 'Hyderabad',
             State = 'Telangana',
             PostalCode = '500001',
-            Country = 'IN',
+            Country = 'India',
             Country__c = 'IN',
             Check_List_Items__c = 'TILE',
             Product_Category__c = 'Tile',
@@ -844,8 +842,7 @@ private class MobileLeadConversionControllerTest {
             City = 'Pune',
             State = 'Maharashtra',
             PostalCode = '411001',
-            Country = 'IN',
-            Country__c = 'IN',
+            Country = 'India',
             Check_List_Items__c = 'TILE',
             Product_Category__c = 'Tile',
             Branch_Location__c = 'HO'

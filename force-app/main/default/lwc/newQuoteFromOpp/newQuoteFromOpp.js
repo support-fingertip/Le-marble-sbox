@@ -43,6 +43,11 @@ openPreview=false;
     get isCategoryDisabled() {
         return !this.selectedPB || this.selectedPB === 'select';  // disabled when no Pricebook selected
     }
+
+    get selectedPBLabel() {
+        const entry = this.priceNames.find(pb => pb.value === this.selectedPB);
+        return entry ? entry.label : this.selectedPB;
+    }
     
    /* get priceModeLabel() {
         return this.useMRP ? 'Using MRP' : 'Using MSP';
@@ -92,6 +97,10 @@ wiredAreaPicklist({ data, error }) {
 
         this.selectedProducts = [];
         localStorage.removeItem('selectedProducts');
+
+        // If pricebook was already auto-selected by wire but recordId wasn't ready,
+        // trigger the load now that recordId is available
+        this.tryLoadDefaultPricebook();
 
         // Load cart from localStorage if available
      /*   const savedCart = localStorage.getItem('selectedProducts');
@@ -207,10 +216,46 @@ wiredAreaPicklist({ data, error }) {
                         value: priceName
                     }))
                 ];
+
+                // Auto-select RETAIL/MRP (Standard Price Book) as default
+                const retailEntry = this.priceNames.find(
+                    pb => pb.label === 'RETAIL/MRP'
+                );
+                if (retailEntry && (!this.selectedPB || this.selectedPB === 'select')) {
+                    this.selectedPB = retailEntry.value;
+                }
+                // Try loading — will only proceed if recordId is also ready
+                this.tryLoadDefaultPricebook();
             } else if (error) {
                 this.error = error;
                 console.error('Error fetching priceNames:', error);
             }
+        }
+
+        _defaultPBLoaded = false;
+
+        tryLoadDefaultPricebook() {
+            // Only proceed when both recordId and selectedPB are available, and not already loaded
+            if (!this.recordId || !this.selectedPB || this.selectedPB === 'select' || this._defaultPBLoaded) {
+                return;
+            }
+            this._defaultPBLoaded = true;
+
+            console.log('Loading default pricebook data for:', this.selectedPB);
+            this.loadOLIFromOpportunity();
+            getPBEntries({ pbName: this.selectedPB })
+                .then(result => {
+                    console.log('Default Pricebook Entries:', result);
+                    this.pbEntryMap = new Map();
+                    this.pbEntryIdMap = new Map();
+                    result.forEach(entry => {
+                        this.pbEntryMap.set(entry.Product2Id, entry.UnitPrice);
+                        this.pbEntryIdMap.set(entry.Product2Id, entry.Id);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading default PB entries:', error);
+                });
         }
 
       @wire(getProductCategories)
@@ -337,7 +382,7 @@ wiredAreaPicklist({ data, error }) {
         loadOLIFromOpportunity() {
         if (!this.recordId || !this.selectedPB) return;
 
-        getOpportunityItems({ oppId: this.recordId, pricebookName: this.selectedPB, category: this.selectedCategory })
+        getOpportunityItems({ oppId: this.recordId, pricebookName: this.selectedPB })
         .then(data => {
             if (data.length === 0) {
                    const cartItem1 = {
@@ -1220,10 +1265,69 @@ alert('hi');
 
 
 
+        // ── Touch handling for search results (prevents scroll = select on mobile) ──
+        _touchStartY = 0;
+        _touchMoved = false;
+
+        handleTouchStart(event) {
+            this._touchStartY = event.touches[0].clientY;
+            this._touchMoved = false;
+        }
+
+        handleTouchMove() {
+            this._touchMoved = true;
+        }
+
+        handleTouchEnd(event) {
+            // Only select if the user tapped (did not scroll)
+            if (!this._touchMoved) {
+                this.handleSearchResultClick(event);
+            }
+        }
+
         handleSearchFocus(event) {
             // optional: set activeRowIndex when the input gets focus
             const idx = event.currentTarget.dataset.index;
             this.activeRowIndex = typeof idx !== 'undefined' ? Number(idx) : null;
+        }
+
+        handleClearSearch(event) {
+            event.stopPropagation();
+            const index = Number(event.currentTarget.dataset.index);
+            const updated = [...this.selectedProducts];
+            updated[index] = {
+                ...updated[index],
+                id: '',
+                name: '',
+                code: '',
+                quantity: 0,
+                unitPrice: 0,
+                msp: 0,
+                unitPriceAfterTax: 0,
+                afterDiscPricePiece: 0,
+                afterDiscPriceSqft: 0,
+                afterDiscPriceUnit: 0,
+                pricePerSqft: 0,
+                totalPrice: 0,
+                description: '',
+                discType: 'Amount',
+                discValue: 0,
+                requiredSqft: 0,
+                sqft: 0,
+                sqm: 0,
+                sqftPerPiece: 0,
+                Tax: 0,
+                pricebookEntryId: '',
+                isNaturalStone: false,
+                isTile: false,
+                stockChecked: false,
+                stockList: [],
+                showDropdown: false
+            };
+            this.selectedProducts = updated;
+            this.searchResults = [];
+            this.showSearchDropdown = false;
+            this.recalculateOrderTotal();
         }
 
         handleSearchBlur() {
@@ -1735,6 +1839,7 @@ handleAreaDesChange(event) {
             items.splice(droppedIndex, 0, draggedItem);
 
             this.selectedProducts = items;
+            this.updateLineNumbers();
             this.draggedIndex = null;
         }
         

@@ -1,145 +1,201 @@
 @IsTest
-private class DeliveryLineItemHelperTest {
+public class DeliveryLineItemHelperTest {
 
-    @TestSetup
-    static void setupData() {
+    // ─── shared setup ────────────────────────────────────────────────────────
 
+    private static OrderItem createOrderItemWithDLIs(Integer oiQty, List<Integer> dliQuantities) {
         Account acc = new Account(Name = 'Test Account');
         insert acc;
 
-        Product2 prod = new Product2(
-            Name = 'Test Product',
-            IsActive = true
+        Id stdPb = Test.getStandardPricebookId();
+
+        Order ord = new Order(
+            AccountId     = acc.Id,
+            EffectiveDate = Date.today(),
+            Status        = 'Draft',
+            Pricebook2Id  = stdPb
         );
+        SalesOrderTriggerHandler.isRunning = true;
+        insert ord;
+        SalesOrderTriggerHandler.isRunning = false;
+
+        Product2 prod = new Product2(Name = 'Test Product', IsActive = true);
         insert prod;
 
-        Id standardPricebookId = Test.getStandardPricebookId();
-
         PricebookEntry pbe = new PricebookEntry(
-            Pricebook2Id = standardPricebookId,
-            Product2Id = prod.Id,
-            UnitPrice = 100,
-            IsActive = true
+            Pricebook2Id = stdPb,
+            Product2Id   = prod.Id,
+            UnitPrice    = 100,
+            IsActive     = true
         );
         insert pbe;
 
-        Order ord = new Order(
-            AccountId = acc.Id,
-            EffectiveDate = Date.today(),
-            Status = 'Draft',
-            Pricebook2Id = standardPricebookId
+        OrderItem oi = new OrderItem(
+            OrderId          = ord.Id,
+            Quantity         = oiQty,
+            UnitPrice        = 100,
+            PricebookEntryId = pbe.Id
         );
-        insert ord;
+        insert oi;
 
-        List<OrderItem> orderItems = new List<OrderItem>{
-            new OrderItem(
-                OrderId = ord.Id,
-                PricebookEntryId = pbe.Id,
-                Quantity = 10,
-                UnitPrice = 100
-            ),
-            new OrderItem(
-                OrderId = ord.Id,
-                PricebookEntryId = pbe.Id,
-                Quantity = 20,
-                UnitPrice = 100
-            ),
-            new OrderItem(
-                OrderId = ord.Id,
-                PricebookEntryId = pbe.Id,
-                Quantity = 5,
-                UnitPrice = 100
-            )
-        };
-        insert orderItems;
+        if (dliQuantities != null && !dliQuantities.isEmpty()) {
+            Delivery_Group__c dg = new Delivery_Group__c(
+                Sales_Order__c     = ord.Id,
+                Quantity__c        = oiQty,
+                Delivery_Status__c = 'Draft',
+                Approval_Status__c = 'Draft'
+            );
+            insert dg;
 
-        // 🔥 Dynamically get valid picklist value
-        String validStatus;
-        Schema.DescribeFieldResult fieldResult =
-            Delivery_Group__c.Delivery_Status__c.getDescribe();
-
-        for (Schema.PicklistEntry pe : fieldResult.getPicklistValues()) {
-            if (pe.isActive()) {
-                validStatus = pe.getValue();
-                break;
+            List<Delivery_Line_Item__c> dlis = new List<Delivery_Line_Item__c>();
+            for (Integer q : dliQuantities) {
+                dlis.add(new Delivery_Line_Item__c(
+                    Delivery_Group__c        = dg.Id,
+                    Sales_Order_Line_Item__c = oi.Id,
+                    Quantity__c              = q
+                ));
             }
+            insert dlis;
         }
 
-        // Delivery Group with valid picklist value
-        Delivery_Group__c dg = new Delivery_Group__c(
-            Sales_Order__c = ord.Id,
-            Delivery_Status__c = validStatus
-        );
-        insert dg;
-
-        List<Delivery_Line_Item__c> deliveries = new List<Delivery_Line_Item__c>{
-            new Delivery_Line_Item__c(
-                Delivery_Group__c = dg.Id,
-                Sales_Order_Line_Item__c = orderItems[0].Id,
-                Quantity__c = 10
-            ),
-            new Delivery_Line_Item__c(
-                Delivery_Group__c = dg.Id,
-                Sales_Order_Line_Item__c = orderItems[1].Id,
-                Quantity__c = 5
-            ),
-            new Delivery_Line_Item__c(
-                Delivery_Group__c = dg.Id,
-                Sales_Order_Line_Item__c = orderItems[2].Id,
-                Quantity__c = 7
-            )
-        };
-        insert deliveries;
+        return oi;
     }
 
-    @IsTest
-    static void testRollupLogic() {
-
-        Set<Id> orderItemIds = new Set<Id>();
-        for (OrderItem oi : [SELECT Id FROM OrderItem]) {
-            orderItemIds.add(oi.Id);
-        }
-
-        Test.startTest();
-        DeliveryLineItemHelper.updateOrderProductRollups(orderItemIds);
-        Test.stopTest();
-
-        List<OrderItem> results = [
-            SELECT Quantity,
-                   Delivered_Quantity__c,
-                   Pending_Quantity__c,
-                   Delivery_Status__c
-            FROM OrderItem
-        ];
-
-        for (OrderItem oi : results) {
-
-            if (oi.Quantity == 10) {
-                System.assertEquals(10, oi.Delivered_Quantity__c);
-                System.assertEquals(0, oi.Pending_Quantity__c);
-                System.assertEquals('Delivered', oi.Delivery_Status__c);
-            }
-
-            if (oi.Quantity == 20) {
-                System.assertEquals(5, oi.Delivered_Quantity__c);
-                System.assertEquals(15, oi.Pending_Quantity__c);
-                System.assertEquals('Partial', oi.Delivery_Status__c);
-            }
-
-            if (oi.Quantity == 5) {
-                System.assertEquals(7, oi.Delivered_Quantity__c);
-                System.assertEquals(0, oi.Pending_Quantity__c);
-                System.assertEquals('Delivered', oi.Delivery_Status__c);
-            }
-        }
-    }
+    // ─── TEST 1: Null input — early return ───────────────────────────────────
 
     @IsTest
-    static void testNullAndEmptyInput() {
+    static void testNullInput_NoError() {
         Test.startTest();
         DeliveryLineItemHelper.updateOrderProductRollups(null);
+        Test.stopTest();
+        // No exception = pass
+    }
+
+    // ─── TEST 2: Empty set — early return ────────────────────────────────────
+
+    @IsTest
+    static void testEmptySet_NoError() {
+        Test.startTest();
         DeliveryLineItemHelper.updateOrderProductRollups(new Set<Id>());
         Test.stopTest();
-        System.assert(true);
+    }
+
+    // ─── TEST 3: No DLIs exist — status = Pending, delivered = 0 ─────────────
+
+    @IsTest
+    static void testNoDLIs_StatusPending() {
+        OrderItem oi = createOrderItemWithDLIs(10, null);
+
+        Test.startTest();
+        DeliveryLineItemHelper.updateOrderProductRollups(new Set<Id>{ oi.Id });
+        Test.stopTest();
+
+        OrderItem updated = [SELECT Delivered_Quantity__c, Pending_Quantity__c, Delivery_Status__c
+                             FROM OrderItem WHERE Id = :oi.Id];
+        System.assertEquals(0, updated.Delivered_Quantity__c, 'Delivered should be 0');
+        System.assertEquals(10, updated.Pending_Quantity__c, 'Pending should be 10');
+        System.assertEquals('Pending', updated.Delivery_Status__c, 'Status should be Pending');
+    }
+
+    // ─── TEST 4: Partial delivery — status = Partial ─────────────────────────
+
+    @IsTest
+    static void testPartialDelivery_StatusPartial() {
+        OrderItem oi = createOrderItemWithDLIs(10, new List<Integer>{ 4 });
+
+        Test.startTest();
+        DeliveryLineItemHelper.updateOrderProductRollups(new Set<Id>{ oi.Id });
+        Test.stopTest();
+
+        OrderItem updated = [SELECT Delivered_Quantity__c, Pending_Quantity__c, Delivery_Status__c
+                             FROM OrderItem WHERE Id = :oi.Id];
+        System.assertEquals(4, updated.Delivered_Quantity__c, 'Delivered should be 4');
+        System.assertEquals(6, updated.Pending_Quantity__c, 'Pending should be 6');
+        System.assertEquals('Partial', updated.Delivery_Status__c, 'Status should be Partial');
+    }
+
+    // ─── TEST 5: Full delivery — status = Delivered ──────────────────────────
+
+    @IsTest
+    static void testFullDelivery_StatusDelivered() {
+        OrderItem oi = createOrderItemWithDLIs(10, new List<Integer>{ 10 });
+
+        Test.startTest();
+        DeliveryLineItemHelper.updateOrderProductRollups(new Set<Id>{ oi.Id });
+        Test.stopTest();
+
+        OrderItem updated = [SELECT Delivered_Quantity__c, Pending_Quantity__c, Delivery_Status__c
+                             FROM OrderItem WHERE Id = :oi.Id];
+        System.assertEquals(10, updated.Delivered_Quantity__c, 'Delivered should be 10');
+        System.assertEquals(0, updated.Pending_Quantity__c, 'Pending should be 0');
+        System.assertEquals('Delivered', updated.Delivery_Status__c, 'Status should be Delivered');
+    }
+
+    // ─── TEST 6: Over-delivery — pending clamped to 0 ────────────────────────
+
+    @IsTest
+    static void testOverDelivery_PendingClampedToZero() {
+        OrderItem oi = createOrderItemWithDLIs(5, new List<Integer>{ 8 });
+
+        Test.startTest();
+        DeliveryLineItemHelper.updateOrderProductRollups(new Set<Id>{ oi.Id });
+        Test.stopTest();
+
+        OrderItem updated = [SELECT Delivered_Quantity__c, Pending_Quantity__c, Delivery_Status__c
+                             FROM OrderItem WHERE Id = :oi.Id];
+        System.assertEquals(8, updated.Delivered_Quantity__c, 'Delivered should be 8');
+        System.assertEquals(0, updated.Pending_Quantity__c, 'Pending should be clamped to 0');
+        System.assertEquals('Delivered', updated.Delivery_Status__c, 'Status should be Delivered');
+    }
+
+    // ─── TEST 7: Multiple DLIs summed ────────────────────────────────────────
+
+    @IsTest
+    static void testMultipleDLIs_QuantitiesSummed() {
+        OrderItem oi = createOrderItemWithDLIs(10, new List<Integer>{ 3, 2, 1 });
+
+        Test.startTest();
+        DeliveryLineItemHelper.updateOrderProductRollups(new Set<Id>{ oi.Id });
+        Test.stopTest();
+
+        OrderItem updated = [SELECT Delivered_Quantity__c, Pending_Quantity__c, Delivery_Status__c
+                             FROM OrderItem WHERE Id = :oi.Id];
+        System.assertEquals(6, updated.Delivered_Quantity__c, 'Delivered should be 3+2+1=6');
+        System.assertEquals(4, updated.Pending_Quantity__c, 'Pending should be 4');
+        System.assertEquals('Partial', updated.Delivery_Status__c, 'Status should be Partial');
+    }
+
+    // ─── TEST 8: Already up-to-date — no unnecessary DML ────────────────────
+
+    @IsTest
+    static void testAlreadyUpToDate_NoRedundantUpdate() {
+        OrderItem oi = createOrderItemWithDLIs(10, new List<Integer>{ 5 });
+
+        // First call sets the values
+        DeliveryLineItemHelper.updateOrderProductRollups(new Set<Id>{ oi.Id });
+
+        Test.startTest();
+        // Second call with same data — needsUpdate should be false, no DML
+        DeliveryLineItemHelper.updateOrderProductRollups(new Set<Id>{ oi.Id });
+        Test.stopTest();
+
+        OrderItem updated = [SELECT Delivered_Quantity__c, Pending_Quantity__c, Delivery_Status__c
+                             FROM OrderItem WHERE Id = :oi.Id];
+        System.assertEquals(5, updated.Delivered_Quantity__c, 'Delivered should still be 5');
+        System.assertEquals(5, updated.Pending_Quantity__c, 'Pending should still be 5');
+        System.assertEquals('Partial', updated.Delivery_Status__c, 'Status should still be Partial');
+    }
+
+    // ─── TEST 9: Invalid OrderItem Id — no exception ─────────────────────────
+
+    @IsTest
+    static void testInvalidOrderItemId_NoError() {
+        // Pass a fabricated Id that doesn't exist — should not throw
+        Id fakeId = OrderItem.SObjectType.getDescribe().getKeyPrefix() + '000000000001';
+
+        Test.startTest();
+        DeliveryLineItemHelper.updateOrderProductRollups(new Set<Id>{ fakeId });
+        Test.stopTest();
+        // No exception = pass
     }
 }

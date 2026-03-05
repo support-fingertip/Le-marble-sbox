@@ -79,8 +79,9 @@ private class DeliverySchedulingControllerTest {
 
         // 7) One Delivery_Line_Item__c under that group
         Delivery_Line_Item__c dli = new Delivery_Line_Item__c(
-            Delivery_Group__c   = grp.Id,
-            Cart_Line_Item__c   = cli.Id
+            Delivery_Group__c = grp.Id,
+            Cart_Line_Item__c = cli.Id,
+            Quantity__c       = 3
         );
         insert dli;
     }

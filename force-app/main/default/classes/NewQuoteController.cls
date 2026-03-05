@@ -27,10 +27,10 @@ public class NewQuoteController {
         //   @AuraEnabled public Boolean inStock;
     }
     
- /*   @AuraEnabled(cacheable=true)
-    public static List<ProductWrapper> getProducts(String category,String pricebookName ) {
+    @AuraEnabled(cacheable=true)
+    public static List<ProductWrapper> getProducts(String category, String searchKey, String pricebookName ) {
         //  try{
-        system.debug(category+' '+pricebookName);
+        system.debug(category+' '+searchKey+' '+pricebookName);
         
         Pricebook2 pb = [
             SELECT Id
@@ -38,6 +38,8 @@ public class NewQuoteController {
             WHERE Name = :pricebookName
             LIMIT 1
         ];
+
+        String searchFilter = (String.isNotBlank(searchKey)) ? '%' + searchKey + '%' : '%';
         
         List<PricebookEntry> pbeList = [
             SELECT
@@ -53,11 +55,13 @@ public class NewQuoteController {
             Product2.Sqft_Piece__c,
             Product2.In_Stock__c
             FROM PricebookEntry
-            WHERE Pricebook2Id = :pb.Id and UnitPrice >0
+            WHERE Pricebook2Id = :pb.Id AND UnitPrice > 0
            // AND IsActive = true
             AND Product2.IsActive = true
             AND Product2.Product_Category__c = :category
+            AND (Product2.Name LIKE :searchFilter OR Product2.Product_Code__c LIKE :searchFilter)
             ORDER BY Product2.Name ASC
+            LIMIT 50
         ];
         
         List<ProductWrapper> result = new List<ProductWrapper>();
@@ -88,49 +92,13 @@ public class NewQuoteController {
        
         return result;
         
-
+        /*   } catch (Exception e) {
+throw new AuraHandledException(e.getMessage());
+}*/
     }
-   */ 
+    
     @AuraEnabled(cacheable=true)
-    public static List<ProductWrapper> getProducts(
-        String category,
-        String searchKey,
-        String pricebookName
-    ) {
-        system.debug(category+' '+ searchKey);
-        
-        if(String.isBlank(category) || String.isBlank(searchKey)){
-            return new List<ProductWrapper>();
-        }
-        
-        List<ProductWrapper> results = new List<ProductWrapper>();
-        
-        for(Product2 p : [
-            SELECT Id, Name, Product_Code__c, Product_Category__c,
-            Tax__c, Sqft_Piece__c
-            FROM Product2
-            WHERE Product_Category__c = :category
-            AND (
-                Name LIKE :('%' + searchKey + '%')
-                OR Product_Code__c LIKE :('%' + searchKey + '%')
-            )
-            LIMIT 20
-        ]) {
-            
-            ProductWrapper w = new ProductWrapper();
-            w.Id = p.Id;
-            w.Name = p.Name;
-            w.productCode = p.Product_Code__c;
-            w.category = p.Product_Category__c;
-            w.tax = p.Tax__c;
-            w.sqftPiece = p.Sqft_Piece__c;
-            results.add(w);
-        }
-        
-        return results;
-    }
-    @AuraEnabled(cacheable=true)
-    public static List<OpportunityLineItem> getOpportunityItems(Id oppId, String pricebookName,String category) {
+    public static List<OpportunityLineItem> getOpportunityItems(Id oppId, String pricebookName) {
         Pricebook2 pb = [
             SELECT Id FROM Pricebook2 WHERE Name = :pricebookName LIMIT 1
         ];
@@ -141,7 +109,7 @@ public class NewQuoteController {
             Product2.Product_Category__c,Sqft__c,
             PricebookEntryId,Description
             FROM OpportunityLineItem
-            WHERE OpportunityId = :oppId //and Product2.Product_Category__c=:category
+            WHERE OpportunityId = :oppId
             AND PricebookEntry.Pricebook2Id = :pb.Id  // ensure same PB
         ];
     }
@@ -253,37 +221,37 @@ public static List<Map<String, String>> getAreaPicklistValues() {
                                         Decimal priceLimit = Decimal.valueOf(Label.Quote_Approval_limit); 
                                         
                                         opportunity oppParent=[select id,name,Account.name,Account.BillingStreet,Account.BillingCity,Account.BillingState,Account.BillingCountry,Account.Email__c,Account.Phone,Account.BillingPostalCode,              
-                                                               Contact_Person_Name__c,Contact_Number__c,AddressLine1__c,AddressLine2__c,AddressLine3__c,Corporation__c,District__c,Municipality__c,Panchayath__c,State__c,Village__c,pin_code__c from Opportunity where id=:customerId];          
-                                        //Country__c
+                                                               Contact_Person_Name__c,Contact_Number__c,AddressLine1__c,AddressLine2__c,AddressLine3__c,Corporation__c,Country__c,District__c,Municipality__c,Panchayath__c,State__c,Village__c,pin_code__c,Product_Category__c from Opportunity where id=:customerId];          
+                                        
                                         // Create new Cart record
                                         Quote cart = new Quote();
-                                        cart.OpportunityId=customerId;
-                                        cart.Name=oppName+'- V'+vQuote;
-                                        cart.Pricebook2Id = pb.id;  
-                                        cart.Quote_Category__c=category;
-                                        cart.Round_Off__c=roundOff;
-                                        cart.Contact_Person_Name__c =oppParent.Contact_Person_Name__c;
-                                        cart.Contact_Person_Number__c=oppParent.Contact_Number__c;
-                                        
-                                        cart.BillingStreet   = oppParent.Account.BillingStreet;
-                                        cart.BillingCity     = oppParent.Account.BillingCity;
-                                        cart.BillingState    = oppParent.Account.BillingState;
-                                        cart.BillingPostalCode = oppParent.Account.BillingPostalCode;
-                                        cart.BillingCountry  = oppParent.Account.BillingCountry;
-                                        
-                                        //     cart.BillingAddress=oppParent.Account.BillingAddress;
-                                        cart.Email=oppParent.Account.Email__c;
-                                        cart.Phone=oppParent.Account.Phone;
-                                        
-                                        
-                                        cart.AddressLine1__c= oppParent.AddressLine1__c;
-                                        cart.AddressLine2__c= oppParent.AddressLine2__c;
-                                        cart.AddressLine3__c= oppParent.AddressLine3__c;
-                                        cart.District__c= oppParent.District__c;
-                                        cart.State__c= oppParent.State__c;
-                                       // cart.Country__c= oppParent.country__c;
-                                          cart.pin_code__c= oppParent.pin_code__c;
-          								cart.ExpirationDate=system.today().addDays(14);
+                                                                                cart.OpportunityId=customerId;
+                                                                                cart.Name=oppName+'- V'+vQuote;
+                                                                                cart.Pricebook2Id = pb.id;  
+                                                                                cart.Quote_Category__c=category;
+                                                                                cart.Round_Off__c=roundOff;
+                                                                                cart.Contact_Person_Name__c =oppParent.Contact_Person_Name__c;
+                                                                                cart.Contact_Person_Number__c=oppParent.Contact_Number__c;
+
+                                                                                cart.BillingStreet   = oppParent.Account.BillingStreet;
+                                                                                cart.BillingCity     = oppParent.Account.BillingCity;
+                                                                                cart.BillingState    = oppParent.Account.BillingState;
+                                                                                cart.BillingPostalCode = oppParent.Account.BillingPostalCode;
+                                                                                cart.BillingCountry  = oppParent.Account.BillingCountry;
+
+                                                                                //     cart.BillingAddress=oppParent.Account.BillingAddress;
+                                                                                cart.Email=oppParent.Account.Email__c;
+                                                                                cart.Phone=oppParent.Account.Phone;
+
+                                                                                cart.AddressLine1__c= oppParent.AddressLine1__c;
+                                                                                cart.AddressLine2__c= oppParent.AddressLine2__c;
+                                                                                cart.AddressLine3__c= oppParent.AddressLine3__c;
+                                                                                cart.District__c= oppParent.District__c;
+                                                                                cart.State__c= oppParent.State__c;
+                                                                                cart.Country__c= oppParent.country__c;
+                                                                                cart.pin_code__c= oppParent.pin_code__c;
+                                                                                cart.Quote_Category__c = oppParent.Product_Category__c;
+                                                                                cart.ExpirationDate=system.today().addDays(14);
                                         
                                         // Set other fields
                                         cart.Freight_Charge__c = freightCharge != null ? freightCharge : 0;
@@ -426,8 +394,8 @@ lineItem.MSP__c = safeDecimalConversion(item.get('msp'));
                                             try {
                                                 insert lineItems;
                                                 if(priceLimit < orderTotal){      
-     //17/02/2026      no need the auto approval                               
-     //          checkAndSubmitForApproval(cart,orderTotal);
+     //17/02/2026      no need the auto approval                               //
+               checkAndSubmitForApproval(cart,orderTotal);
                                                 }  
                                                 List<Quote> quotesToUpdate = [
                                                     SELECT Id, Approval_Status__c 
@@ -502,7 +470,7 @@ throw new AuraHandledException('Error creating cart: ' + e.getMessage());
         }
     }
     
-  /*  public static void checkAndSubmitForApproval(quote newQuotes, decimal grandTotal){
+    public static void checkAndSubmitForApproval(quote newQuotes, decimal grandTotal){
         Decimal priceLimit = Decimal.valueOf(Label.Quote_Approval_limit); 
         
         List<Approval.ProcessSubmitRequest> requests = new List<Approval.ProcessSubmitRequest>();
@@ -518,9 +486,121 @@ throw new AuraHandledException('Error creating cart: ' + e.getMessage());
         for(Approval.ProcessSubmitRequest req : requests){
             Approval.ProcessResult result = Approval.process(req);
         }
+    }
+    
+    private static final String SAP_BASE_URL = 'https://lemrg.hstconnect.in:50000/b1s/v1';
+    private static final String LOGIN_URL = SAP_BASE_URL + '/Login';
+    private static final String SERIES_SERVICE_URL = SAP_BASE_URL + '/SeriesService_GetSeries';
+    
+    
+    private static final String COMPANY_DB = 'MG_LIVE_WIP_1';
+    private static final String USERNAME = 'manager';
+    private static final String PASSWORD = 'Mgsap12@';
+    
+ /*   public class WarehouseStockWrapper {
+        @AuraEnabled public String warehouseCode;
+        @AuraEnabled public Decimal inStock;
+        @AuraEnabled public Decimal committed;
+        @AuraEnabled public Decimal billable;
+        @AuraEnabled public Decimal reserved;
+    }
+    
+    @AuraEnabled(cacheable=false)
+    public static List<WarehouseStockWrapper> checkLiveStock(string itemcode) {
+        String InStock;
+        List<WarehouseStockWrapper> resultList = new List<WarehouseStockWrapper>();
+        try {
+            
+            List<Apex_Log__c> logList = new List<Apex_Log__c>();
+            Apex_Log__c log = new Apex_Log__c();
+            log.Request_Type__c ='Product';
+            
+            Http http = new Http();
+            
+            // 1. Login to SAP
+            HttpRequest loginReq = new HttpRequest();
+            loginReq.setEndpoint(LOGIN_URL);
+            loginReq.setMethod('POST');
+            loginReq.setHeader('Content-Type', 'application/json');
+            loginReq.setHeader('Accept', 'application/json');
+            loginReq.setTimeout(120000);
+            
+            loginReq.setBody(JSON.serialize(new Map<String, String>{
+                'CompanyDB' => COMPANY_DB,
+                    'UserName' => USERNAME,
+                    'Password' => PASSWORD
+                    }));
+            
+            HttpResponse loginRes = http.send(loginReq);
+            if (loginRes.getStatusCode() == 200) {
+                system.debug(loginRes.getBody());
+                Map<String, Object> loginResult = (Map<String, Object>) JSON.deserializeUntyped(loginRes.getBody());
+                String sessionId = String.valueOf(loginResult.get('SessionId'));
+                if (!String.isBlank(sessionId)){
+                    String ITEMS_URL = SAP_BASE_URL + '/Items(\'' + itemcode + '\')';
+                    
+                    String decodedUrl = EncodingUtil.urlDecode(ITEMS_URL, 'UTF-8');
+                    log.Request__c =decodedUrl; 
+                    
+                    System.debug('Decoded ITEMS_URL: ' + decodedUrl);
+                    system.debug('ITEMS_URL>>>'+ITEMS_URL);
+                    HttpRequest itemReq = new HttpRequest();
+                    itemReq.setEndpoint(ITEMS_URL); 
+                    itemReq.setMethod('GET');
+                    itemReq.setHeader('Content-Type', 'application/json');
+                    itemReq.setHeader('Accept', 'application/json');
+                    itemReq.setHeader('Cookie', 'B1SESSION=' + sessionId);
+                    itemReq.setTimeout(120000);
+                    
+                    HttpResponse itemRes = http.send(itemReq);
+                    log.response__c= string.valueof(itemRes.getStatusCode());
+                    if (itemRes.getStatusCode() != 200) {
+                        System.debug('❌ Failed to fetch items: ' + itemRes.getBody());
+                        log.status__c='FAILED';
+                        log.response__c= 'Status code : '+itemRes.getStatusCode() +' Response body: '+ itemRes.getBody();
+                        log.Error_Message__c = 'Status code : '+itemRes.getStatusCode()+ ' Error: Callout failed. Please review the response for additional details.';
+                        
+                        
+                    }
+                    Map<String, Object> data = (Map<String, Object>) JSON.deserializeUntyped(itemRes.getBody());
+                    List<Object> warehouseInfoList = (List<Object>) data.get('ItemWarehouseInfoCollection');
+                    
+                    
+                    if (warehouseInfoList != null && !warehouseInfoList.isEmpty()) {    
+                        if (warehouseInfoList != null) {
+                            
+                            for (Object warehouseObj : warehouseInfoList) {
+                                Map<String, Object> warehouseInfo = (Map<String, Object>) warehouseObj;
+
+                                WarehouseStockWrapper wrap = new WarehouseStockWrapper();
+                                wrap.warehouseCode = String.valueOf(warehouseInfo.get('WarehouseCode'));
+                                wrap.inStock = (Decimal) warehouseInfo.get('InStock');
+                                wrap.committed = (Decimal) warehouseInfo.get('Committed');
+                                 wrap.reserved = (Decimal) warehouseInfo.get('U_Reserved');
+                                 wrap.billable = (Decimal) warehouseInfo.get('U_Billable');
+                                
+                                    
+                                if( wrap.inStock>0){
+                                    resultList.add(wrap);
+                                } 
+                                System.debug(' warehouseInfo: ' + warehouseInfo);
+                            }
+                        }
+                    }  
+                    
+                    
+                    
+                }
+            }
+            
+        } catch (Exception e) {
+            System.debug(' Sync failed: ' + e.getMessage() + '\\n' + e.getStackTraceString());
+        }
+        System.debug(' InStock: ' + InStock);
+        return resultList;
+        
     }*/
     
-
       @AuraEnabled(cacheable=false)
     public static List<CreateSOFromQuoteController.WarehouseStockWrapper> checkLiveStock(string itemcode) {
  	return CreateSOFromQuoteController.getBatchStock(itemcode, '');

@@ -1,108 +1,92 @@
 @isTest
-private class WhatsAppMessageSenderTest {
+public class WhatsAppMessageSenderTest {
 
-    /*
-     * -----------------------------
-     * SUCCESS MOCK (200 Response)
-     * -----------------------------
-     */
-    private class SuccessMock implements HttpCalloutMock {
+    // ─── Mock: successful 200 response ──
+    private class MockSuccessCallout implements HttpCalloutMock {
         public HTTPResponse respond(HTTPRequest req) {
             HttpResponse res = new HttpResponse();
+            res.setHeader('Content-Type', 'application/json');
             res.setStatusCode(200);
-            res.setBody('Message Sent Successfully');
+            res.setBody('{"status":"success","message":"Message sent"}');
             return res;
         }
     }
 
-    /*
-     * -----------------------------
-     * ERROR MOCK (500 Response)
-     * -----------------------------
-     */
-    private class ErrorMock implements HttpCalloutMock {
+    // ─── Mock: failure 500 response ──
+    private class MockFailureCallout implements HttpCalloutMock {
         public HTTPResponse respond(HTTPRequest req) {
             HttpResponse res = new HttpResponse();
+            res.setHeader('Content-Type', 'application/json');
             res.setStatusCode(500);
-            res.setBody('Server Error');
+            res.setBody('{"status":"error","message":"Internal Server Error"}');
             return res;
         }
     }
 
+    // ═══════════════════════════════════════════════════════════════════
+    //  sendDeliveryNotification — success
+    // ═══════════════════════════════════════════════════════════════════
 
-    /*
-     * -----------------------------
-     * Test: sendDeliveryNotification
-     * -----------------------------
-     */
     @isTest
-    static void testSendDeliveryNotification() {
-
-        Test.setMock(HttpCalloutMock.class, new SuccessMock());
+    static void testSendDeliveryNotification_Success() {
+        Test.setMock(HttpCalloutMock.class, new MockSuccessCallout());
 
         Test.startTest();
-        WhatsAppMessageSender.sendDeliveryNotification('9876543210');
+        WhatsAppMessageSender.sendDeliveryNotification('919876543210');
         Test.stopTest();
 
-        System.assert(true); // Method executed successfully
+        // No exception means success
+        System.assert(true, 'Delivery notification sent successfully');
     }
 
+    // ═══════════════════════════════════════════════════════════════════
+    //  sendDeliveryNotification — HTTP error (throws WhatsAppException)
+    // ═══════════════════════════════════════════════════════════════════
 
-    /*
-     * -----------------------------
-     * Test: sendThanksMessage
-     * -----------------------------
-     */
     @isTest
-    static void testSendThanksMessage() {
+    static void testSendDeliveryNotification_Failure() {
+        Test.setMock(HttpCalloutMock.class, new MockFailureCallout());
 
-        Test.setMock(HttpCalloutMock.class, new SuccessMock());
+        Boolean exceptionThrown = false;
 
         Test.startTest();
-        WhatsAppMessageSender.sendThanksMessage('9876543210');
-        Test.stopTest();
+        WhatsAppMessageSender.sendDeliveryNotification('919876543210');
+        try {
+            Test.stopTest();
+        } catch (Exception ex) {
+            exceptionThrown = true;
+        }
 
-        System.assert(true);
+        System.assertEquals(true, exceptionThrown, 'Should throw WhatsAppException on HTTP error');
     }
 
+    // ═══════════════════════════════════════════════════════════════════
+    //  sendThanksMessage — success
+    // ═══════════════════════════════════════════════════════════════════
 
-    /*
-     * ---------------------------------------------------
-     * Test: sendDeliveryNotificationWithDate
-     * ---------------------------------------------------
-     */
     @isTest
-    static void testSendDeliveryNotificationWithDate() {
-
-        Test.setMock(HttpCalloutMock.class, new SuccessMock());
+    static void testSendThanksMessage_Success() {
+        Test.setMock(HttpCalloutMock.class, new MockSuccessCallout());
 
         Test.startTest();
-        WhatsAppMessageSender.sendDeliveryNotificationWithDate(
-            '9876543210',
-            '25-12-2026'
-        );
+        WhatsAppMessageSender.sendThanksMessage('919876543210');
         Test.stopTest();
 
-        System.assert(true);
+        System.assert(true, 'Thanks message sent successfully');
     }
 
+    // ═══════════════════════════════════════════════════════════════════
+    //  sendDeliveryNotificationWithDate — success
+    // ═══════════════════════════════════════════════════════════════════
 
-    /*
-     * ---------------------------------------------------
-     * Test: Error Scenario (Non-200 Response)
-     * ---------------------------------------------------
-     */
     @isTest
-    static void testErrorScenario() {
-
-        Test.setMock(HttpCalloutMock.class, new ErrorMock());
+    static void testSendDeliveryNotificationWithDate_Success() {
+        Test.setMock(HttpCalloutMock.class, new MockSuccessCallout());
 
         Test.startTest();
-        WhatsAppMessageSender.sendDeliveryNotification('9876543210');
+        WhatsAppMessageSender.sendDeliveryNotificationWithDate('919876543210', '2026-03-15');
         Test.stopTest();
 
-        System.assert(true); 
-        // Since we removed throwing exception,
-        // this should execute without failing.
+        System.assert(true, 'Delivery notification with date sent successfully');
     }
 }
