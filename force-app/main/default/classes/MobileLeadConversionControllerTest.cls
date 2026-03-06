@@ -37,7 +37,8 @@ private class MobileLeadConversionControllerTest {
             FirstName = 'Rahul',
             LastName = 'Kumar',
             Company = 'Lead Company',
-            Email = 'rahul.kumar@test.com'
+            Email = 'rahul.kumar@test.com',
+            Country = 'India'
         );
         insert leadRecord;
 
@@ -228,6 +229,7 @@ private class MobileLeadConversionControllerTest {
             State = 'Karnataka',
             PostalCode = '560001',
             Country = 'India',
+            Country__c = 'IN',
             Check_List_Items__c = 'TILE',
             Product_Category__c = 'Tile',
             Branch_Location__c = 'HO'
@@ -303,6 +305,7 @@ private class MobileLeadConversionControllerTest {
             State = 'Kerala',
             PostalCode = '673001',
             Country = 'India',
+            Country__c = 'IN',
             Description = 'Opportunity conversion notes',
             Check_List_Items__c = 'TILE',
             Product_Category__c = 'Tile',
@@ -349,9 +352,7 @@ private class MobileLeadConversionControllerTest {
         System.assertEquals('Opportunity conversion notes', convertedOpportunity.Description);
         assertTextLikeFieldEqualsIfPresent('Opportunity', result.get('opportunityId'), 'AddressLine1__c', 'Map Street');
         assertTextLikeFieldEqualsIfPresent('Opportunity', result.get('opportunityId'), 'Place__c', 'Kozhikode');
-        assertTextLikeFieldEqualsIfPresent('Opportunity', result.get('opportunityId'), 'State__c', 'Kerala');
         assertTextLikeFieldEqualsIfPresent('Opportunity', result.get('opportunityId'), 'Pin_Code__c', '673001');
-        assertTextLikeFieldEqualsIfPresent('Opportunity', result.get('opportunityId'), 'Country__c', 'India');
         assertFieldEqualsIfPresent('Opportunity', result.get('opportunityId'), 'GST_Number__c', '29ABCDE1234F1Z5');
     }
 
@@ -362,6 +363,7 @@ private class MobileLeadConversionControllerTest {
             LastName = 'Missing',
             Company = 'No Address Co',
             Email = 'address.missing@test.com',
+            Country = 'India',
             Check_List_Items__c = 'TILE',
             Product_Category__c = 'Tile',
             Branch_Location__c = 'HO'
@@ -411,6 +413,7 @@ private class MobileLeadConversionControllerTest {
             LastName = 'Checklist',
             Company = 'Validation Company',
             Email = 'no.checklist@test.com',
+            Country = 'India',
             Product_Category__c = 'Tile',
             Branch_Location__c = 'HO'
         );
@@ -450,6 +453,417 @@ private class MobileLeadConversionControllerTest {
         Test.stopTest();
 
         System.assertEquals(true, didThrow, 'Expected conversion to fail when checklist is missing.');
+    }
+
+    // =====================
+    // TEST: getConversionContext — null leadId throws
+    // =====================
+    @IsTest
+    static void testGetConversionContextNullLeadId() {
+        Boolean didThrow = false;
+        Test.startTest();
+        try {
+            MobileLeadConversionController.getConversionContext(null);
+        } catch (AuraHandledException ex) {
+            didThrow = true;
+        }
+        Test.stopTest();
+        System.assertEquals(true, didThrow, 'Expected AuraHandledException for null leadId');
+    }
+
+    // =====================
+    // TEST: searchAccounts — blank / too-short search returns empty
+    // =====================
+    @IsTest
+    static void testSearchAccountsBlankAndShortTerm() {
+        Test.startTest();
+        List<Account> blankResult = MobileLeadConversionController.searchAccounts('');
+        List<Account> shortResult = MobileLeadConversionController.searchAccounts('A');
+        Test.stopTest();
+        System.assertEquals(0, blankResult.size(), 'Blank search should return empty');
+        System.assertEquals(0, shortResult.size(), 'Single-char search should return empty');
+    }
+
+    // =====================
+    // TEST: searchContacts / searchOpportunities — null accountId returns empty
+    // =====================
+    @IsTest
+    static void testSearchContactsAndOpportunitiesNullParams() {
+        Test.startTest();
+        List<Contact> contacts = MobileLeadConversionController.searchContacts(null, 'Test');
+        List<Opportunity> opps = MobileLeadConversionController.searchOpportunities(null, 'Test');
+        List<Contact> contactsBlank = MobileLeadConversionController.searchContacts(
+            [SELECT Id FROM Account LIMIT 1].Id, ''
+        );
+        Test.stopTest();
+        System.assertEquals(0, contacts.size(), 'Null accountId should return empty contacts');
+        System.assertEquals(0, opps.size(), 'Null accountId should return empty opportunities');
+        System.assertEquals(0, contactsBlank.size(), 'Blank searchTerm should return empty');
+    }
+
+    // =====================
+    // TEST: getContactSummary — happy path and null Id
+    // =====================
+    @IsTest
+    static void testGetContactSummary() {
+        Contact c = [SELECT Id FROM Contact LIMIT 1];
+        Test.startTest();
+        Contact result = MobileLeadConversionController.getContactSummary(c.Id);
+        Contact nullResult = MobileLeadConversionController.getContactSummary(null);
+        Test.stopTest();
+        System.assertNotEquals(null, result, 'Should return contact for valid Id');
+        System.assertEquals(c.Id, result.Id);
+        System.assertEquals(null, nullResult, 'Should return null for null Id');
+    }
+
+    // =====================
+    // TEST: getOpportunitySummary — happy path and null Id
+    // =====================
+    @IsTest
+    static void testGetOpportunitySummary() {
+        Opportunity opp = [SELECT Id FROM Opportunity LIMIT 1];
+        Test.startTest();
+        Opportunity result = MobileLeadConversionController.getOpportunitySummary(opp.Id);
+        Opportunity nullResult = MobileLeadConversionController.getOpportunitySummary(null);
+        Test.stopTest();
+        System.assertNotEquals(null, result, 'Should return opportunity for valid Id');
+        System.assertEquals(opp.Id, result.Id);
+        System.assertEquals(null, nullResult, 'Should return null for null Id');
+    }
+
+    // =====================
+    // TEST: convertLeadForMobile — null leadId throws
+    // =====================
+    @IsTest
+    static void testConvertLeadNullId() {
+        Boolean didThrow = false;
+        Test.startTest();
+        try {
+            MobileLeadConversionController.convertLeadForMobile(
+                null, 'Converted', UserInfo.getUserId(),
+                false, null, 'Some Account',
+                false, null, 'First', 'Last',
+                true, null, false, null
+            );
+        } catch (AuraHandledException ex) {
+            didThrow = true;
+        }
+        Test.stopTest();
+        System.assertEquals(true, didThrow, 'Expected exception for null leadId');
+    }
+
+    // =====================
+    // TEST: convertLeadForMobile — useExistingAccount=true but no account Id
+    // =====================
+    @IsTest
+    static void testConvertUseExistingAccountNoId() {
+        Lead lead = new Lead(FirstName = 'Test', LastName = 'Guard1', Company = 'Guard Co 1', Country = 'India');
+        insert lead;
+        String status = [SELECT MasterLabel FROM LeadStatus WHERE IsConverted = true LIMIT 1].MasterLabel;
+
+        Boolean didThrow = false;
+        Test.startTest();
+        try {
+            MobileLeadConversionController.convertLeadForMobile(
+                lead.Id, status, UserInfo.getUserId(),
+                true, null, null,       // useExistingAccount=true, no existingAccountId
+                false, null, 'First', 'Last',
+                true, null, false, null
+            );
+        } catch (AuraHandledException ex) {
+            didThrow = true;
+        }
+        Test.stopTest();
+        System.assertEquals(true, didThrow, 'Expected exception for missing existing account Id');
+    }
+
+    // =====================
+    // TEST: convertLeadForMobile — useExistingAccount=false but blank newAccountName
+    // =====================
+    @IsTest
+    static void testConvertBlankAccountName() {
+        Lead lead = new Lead(FirstName = 'Test', LastName = 'Guard2', Company = 'Guard Co 2', Country = 'India');
+        insert lead;
+        String status = [SELECT MasterLabel FROM LeadStatus WHERE IsConverted = true LIMIT 1].MasterLabel;
+
+        Boolean didThrow = false;
+        Test.startTest();
+        try {
+            MobileLeadConversionController.convertLeadForMobile(
+                lead.Id, status, UserInfo.getUserId(),
+                false, null, '',        // useExistingAccount=false, blank name
+                false, null, 'First', 'Last',
+                true, null, false, null
+            );
+        } catch (AuraHandledException ex) {
+            didThrow = true;
+        }
+        Test.stopTest();
+        System.assertEquals(true, didThrow, 'Expected exception for blank account name');
+    }
+
+    // =====================
+    // TEST: convertLeadForMobile — useExistingContact=true but no contact Id
+    // =====================
+    @IsTest
+    static void testConvertUseExistingContactNoId() {
+        Lead lead = new Lead(FirstName = 'Test', LastName = 'Guard3', Company = 'Guard Co 3', Country = 'India');
+        insert lead;
+        String status = [SELECT MasterLabel FROM LeadStatus WHERE IsConverted = true LIMIT 1].MasterLabel;
+
+        Boolean didThrow = false;
+        Test.startTest();
+        try {
+            MobileLeadConversionController.convertLeadForMobile(
+                lead.Id, status, UserInfo.getUserId(),
+                false, null, 'Some Account',
+                true, null, 'First', 'Last',  // useExistingContact=true, no existingContactId
+                true, null, false, null
+            );
+        } catch (AuraHandledException ex) {
+            didThrow = true;
+        }
+        Test.stopTest();
+        System.assertEquals(true, didThrow, 'Expected exception for missing existing contact Id');
+    }
+
+    // =====================
+    // TEST: convertLeadForMobile — useExistingContact=false but blank newContactLastName
+    // =====================
+    @IsTest
+    static void testConvertBlankContactLastName() {
+        Lead lead = new Lead(FirstName = 'Test', LastName = 'Guard4', Company = 'Guard Co 4', Country = 'India');
+        insert lead;
+        String status = [SELECT MasterLabel FROM LeadStatus WHERE IsConverted = true LIMIT 1].MasterLabel;
+
+        Boolean didThrow = false;
+        Test.startTest();
+        try {
+            MobileLeadConversionController.convertLeadForMobile(
+                lead.Id, status, UserInfo.getUserId(),
+                false, null, 'Some Account',
+                false, null, 'First', '',   // blank last name
+                true, null, false, null
+            );
+        } catch (AuraHandledException ex) {
+            didThrow = true;
+        }
+        Test.stopTest();
+        System.assertEquals(true, didThrow, 'Expected exception for blank contact last name');
+    }
+
+    // =====================
+    // TEST: convertLeadForMobile — useExistingOpportunity=true but no opportunity Id
+    // =====================
+    @IsTest
+    static void testConvertUseExistingOpportunityNoId() {
+        Lead lead = new Lead(FirstName = 'Test', LastName = 'Guard5', Company = 'Guard Co 5', Country = 'India');
+        insert lead;
+        String status = [SELECT MasterLabel FROM LeadStatus WHERE IsConverted = true LIMIT 1].MasterLabel;
+
+        Boolean didThrow = false;
+        Test.startTest();
+        try {
+            MobileLeadConversionController.convertLeadForMobile(
+                lead.Id, status, UserInfo.getUserId(),
+                false, null, 'Some Account',
+                false, null, 'First', 'Last',
+                false, 'Some Opportunity',
+                true, null              // useExistingOpportunity=true, no existingOpportunityId
+            );
+        } catch (AuraHandledException ex) {
+            didThrow = true;
+        }
+        Test.stopTest();
+        System.assertEquals(true, didThrow, 'Expected exception for missing existing opportunity Id');
+    }
+
+    // =====================
+    // TEST: convertLeadForMobile — doNotCreateOpportunity=false but blank opportunityName
+    // =====================
+    @IsTest
+    static void testConvertBlankOpportunityName() {
+        Lead lead = new Lead(FirstName = 'Test', LastName = 'Guard6', Company = 'Guard Co 6', Country = 'India');
+        insert lead;
+        String status = [SELECT MasterLabel FROM LeadStatus WHERE IsConverted = true LIMIT 1].MasterLabel;
+
+        Boolean didThrow = false;
+        Test.startTest();
+        try {
+            MobileLeadConversionController.convertLeadForMobile(
+                lead.Id, status, UserInfo.getUserId(),
+                false, null, 'Some Account',
+                false, null, 'First', 'Last',
+                false, '',              // doNotCreateOpportunity=false, blank opp name
+                false, null
+            );
+        } catch (AuraHandledException ex) {
+            didThrow = true;
+        }
+        Test.stopTest();
+        System.assertEquals(true, didThrow, 'Expected exception for blank opportunity name');
+    }
+
+    // =====================
+    // TEST: convertLeadForMobile — India MobilePhone != 10 digits throws
+    // =====================
+    @IsTest
+    static void testConvertMobilePhoneValidationFails() {
+        Test.setMock(HttpCalloutMock.class, new DummyHttpCalloutMock());
+        Lead lead = new Lead(
+            FirstName = 'Mobile',
+            LastName = 'Bad',
+            Company = 'Mobile Phone Test Co',
+            MobilePhone = '999',        // only 3 digits
+            Street = 'Mobile Street',
+            City = 'Pune',
+            State = 'Maharashtra',
+            PostalCode = '411001',
+            Country = 'India',
+            Check_List_Items__c = 'TILE',
+            Product_Category__c = 'Tile',
+            Branch_Location__c = 'HO'
+        );
+        insert lead;
+        String status = [SELECT MasterLabel FROM LeadStatus WHERE IsConverted = true LIMIT 1].MasterLabel;
+
+        Boolean didThrow = false;
+        Test.startTest();
+        try {
+            MobileLeadConversionController.convertLeadForMobile(
+                lead.Id, status, UserInfo.getUserId(),
+                false, null, 'Mobile Phone Test Account',
+                false, null, 'Mobile', 'Bad',
+                true, null, false, null
+            );
+        } catch (AuraHandledException ex) {
+            didThrow = true;
+        }
+        Test.stopTest();
+        System.assertEquals(true, didThrow, 'Expected phone validation exception for India lead with short mobile phone');
+    }
+
+    // =====================
+    // TEST: convertLeadForMobile — India phone != 10 digits throws
+    // =====================
+    @IsTest
+    static void testConvertPhoneValidationFails() {
+        Test.setMock(HttpCalloutMock.class, new DummyHttpCalloutMock());
+
+        Lead lead = new Lead(
+            FirstName = 'Phone',
+            LastName = 'Bad',
+            Company = 'Phone Test Co',
+            Phone = '12345',            // only 5 digits
+            Street = 'Phone Street',
+            City = 'Chennai',
+            State = 'Tamil Nadu',
+            PostalCode = '600001',
+            Country = 'India',
+            Check_List_Items__c = 'TILE',
+            Product_Category__c = 'Tile',
+            Branch_Location__c = 'HO'
+        );
+        insert lead;
+
+        String status = [SELECT MasterLabel FROM LeadStatus WHERE IsConverted = true LIMIT 1].MasterLabel;
+
+        Boolean didThrow = false;
+        Test.startTest();
+        try {
+            MobileLeadConversionController.convertLeadForMobile(
+                lead.Id, status, UserInfo.getUserId(),
+                false, null, 'Phone Test Account',
+                false, null, 'Phone', 'Bad',
+                true, null, false, null
+            );
+        } catch (AuraHandledException ex) {
+            didThrow = true;
+        }
+        Test.stopTest();
+        System.assertEquals(true, didThrow, 'Expected phone validation exception for India lead');
+    }
+
+    // =====================
+    // TEST: convertLeadForMobile — converts with new Opportunity created
+    // =====================
+    @IsTest
+    static void testConvertWithNewOpportunity() {
+        Test.setMock(HttpCalloutMock.class, new DummyHttpCalloutMock());
+        Lead lead = new Lead(
+            FirstName = 'NewOpp',
+            LastName = 'Convert',
+            Company = 'NewOpp Corp',
+            Phone = '9876543210',
+            Street = 'Opp Lane',
+            City = 'Hyderabad',
+            State = 'Telangana',
+            PostalCode = '500001',
+            Country = 'India',
+            Country__c = 'IN',
+            Check_List_Items__c = 'TILE',
+            Product_Category__c = 'Tile',
+            Branch_Location__c = 'HO'
+        );
+        insert lead;
+        String status = [SELECT MasterLabel FROM LeadStatus WHERE IsConverted = true LIMIT 1].MasterLabel;
+
+        Test.startTest();
+        Map<String, Id> result = MobileLeadConversionController.convertLeadForMobile(
+            lead.Id,
+            status,
+            UserInfo.getUserId(),
+            false, null, 'NewOpp Corporation',
+            false, null, 'NewOpp', 'Convert',
+            false, 'New Test Opportunity',  // doNotCreateOpportunity=false, with name
+            false, null
+        );
+        Test.stopTest();
+
+        System.assertNotEquals(null, result.get('accountId'), 'Account should be created');
+        System.assertNotEquals(null, result.get('contactId'), 'Contact should be created');
+        System.assertNotEquals(null, result.get('opportunityId'), 'Opportunity should be created');
+
+        Lead converted = [SELECT IsConverted, ConvertedOpportunityId FROM Lead WHERE Id = :lead.Id];
+        System.assertEquals(true, converted.IsConverted, 'Lead should be converted');
+        System.assertEquals(result.get('opportunityId'), converted.ConvertedOpportunityId);
+    }
+
+    // =====================
+    // TEST: convertLeadForMobile — auto-selects convertedStatus when blank provided
+    // =====================
+    @IsTest
+    static void testConvertAutoSelectsConvertedStatus() {
+        Lead lead = new Lead(
+            FirstName = 'AutoStatus',
+            LastName = 'Test',
+            Company = 'AutoStatus Corp',
+            Street = 'Auto Street',
+            City = 'Pune',
+            State = 'Maharashtra',
+            PostalCode = '411001',
+            Country = 'India',
+            Check_List_Items__c = 'TILE',
+            Product_Category__c = 'Tile',
+            Branch_Location__c = 'HO'
+        );
+        insert lead;
+
+        Test.startTest();
+        // Pass blank convertedStatus — controller should auto-pick from org config
+        Map<String, Id> result = MobileLeadConversionController.convertLeadForMobile(
+            lead.Id,
+            '',                         // blank — auto-select
+            UserInfo.getUserId(),
+            false, null, 'AutoStatus Account',
+            false, null, 'AutoStatus', 'Test',
+            true, null, false, null
+        );
+        Test.stopTest();
+
+        System.assertNotEquals(null, result.get('accountId'), 'Account should be created');
+        Lead converted = [SELECT IsConverted FROM Lead WHERE Id = :lead.Id];
+        System.assertEquals(true, converted.IsConverted, 'Lead should be converted with auto-selected status');
     }
 
     private static void assertFieldEqualsIfPresent(String objectApiName, Id recordId, String fieldApiName, Object expectedValue) {

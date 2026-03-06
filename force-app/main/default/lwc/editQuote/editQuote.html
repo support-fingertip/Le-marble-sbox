@@ -1,0 +1,805 @@
+<template>
+    <div class="page-wrapper">
+
+        <template if:false={openPreview}>
+            <!-- HEADER
+        <div class="header-card">
+            <div class="header-left">
+                <h1 class="header-title">Add Quote Line Items</h1>
+                <p class="header-sub">Select a Price Book and start adding products</p>
+            </div>
+
+            <div class="header-right">
+                <div class="slds-form-element">
+                    <label class="slds-form-element__label">Price Book</label>
+                    <div class="slds-form-element__control">
+                        <div class="slds-select_container">
+                            <select class="slds-select" onchange={handlePBSelect} value={selectedPB}>
+                            <template if:true={selectedPB}>
+                                <option value={selectedPB}>{selectedPB}</option>
+                            </template> 
+                                <template for:each={priceNames} for:item="pb">
+                                    <option key={pb.value} value={pb.value}>{pb.label}</option>
+                                </template>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="slds-form-element category-select">
+                <label class="slds-form-element__label">Category</label>
+                <div class="slds-form-element__control">
+                    <div class="slds-select_container">
+                        <select class="slds-select" value={selectedCategory} onchange={handleCategoryChange} disabled={isCategoryDisabled}>
+                            <template if:true={selectedCategory}>
+                                    <option value={selectedCategory}>{selectedCategory}</option>
+                            </template>
+                            <template for:each={categories} for:item="cat">
+                                <option key={cat.value} value={cat.value}>{cat.label}</option>
+                            </template>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>-->
+
+        <template if:false={isQuoteRecordId}>
+            <div class="header-card slds-grid slds-wrap slds-grid_vertical-align-center">
+                <!-- Left -->
+                <div class="header-left  slds-col slds-size_1-of-1 slds-large-size_2-of-3">
+                    <template if:true={isEditMode}>
+                        <h1 class="header-title">Edit Quote</h1>
+                        <p class="header-sub">Modify quote items</p>
+                    </template>
+                    <template if:false={isEditMode}>
+                        <h1 class="header-title">Add Quote Line Items.</h1>
+                        <p class="header-sub">
+                        <!--    Select a Price Book and start adding products-->    
+                        </p>
+                    </template>
+                </div>
+
+                <!-- Right -->
+                <template if:false={isEditMode}>
+                    <div class="header-right slds-col slds-size_1-of-1 slds-large-size_1-of-3">
+                        <div class="slds-grid slds-gutters">
+                            <!-- Price Book -->
+                            <div class="slds-col slds-size_1-of-2">
+                                <label class="slds-form-element__label">Price Book</label>
+                                <div class="slds-form-element__control">
+                                    <div class="slds-select_container">
+                                        <select class="slds-select"
+                                                onchange={handlePBSelect}
+                                                value={selectedPB}>
+                                            <template if:true={selectedPB}>
+                                                <option value={selectedPB}>{selectedPBLabel}</option>
+                                            </template>
+                                            <template for:each={priceNames} for:item="pb">
+                                                <option key={pb.value} value={pb.value}>
+                                                    {pb.label}
+                                                </option>
+                                            </template>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Category -->
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </template>
+
+
+        <!-- LINE ITEM CARDS -->
+        <div>
+        <template for:each={selectedProducts} for:item="item" for:index="index">
+        <div key={item.compositeKey} class={item.rowClass} data-index={index} onclick={handleRowClick}>
+
+            <div class="line-no-box">
+                    {item.lineNo}.
+            </div>
+            <template if:false={item.isActive}>
+                <div class="slds-grid slds-gutters slds-p-around_small">
+                        <div class="slds-col slds-size_6-of-12">
+                            <strong>{item.name}</strong>
+                            <div class="product-code">Category: {item.category}</div>
+                            <div class="product-code">Code: {item.code}</div>
+                                <template if:true={item.isNaturalStone}>
+                                <div class="product-code">Description: {item.description}</div>
+                                </template>
+
+                                <div class="product-code">Area: {item.roomType} {item.areaDesc}</div>
+                                <div class="product-code">Quantity: {item.quantity} </div>
+                        </div>
+
+                        <div class="slds-col slds-size_6-of-12 slds-text-align_right">
+                            <lightning-button-icon
+                                icon-name="utility:add"
+                                alternative-text="Add Row"
+                                data-index={index}
+                                onclick={addRow}>
+                            </lightning-button-icon>
+
+                            <lightning-button-icon
+                                icon-name="utility:delete"
+                                alternative-text="Delete Row"
+                                data-index={index}
+                                onclick={removeRow}>
+                            </lightning-button-icon>
+                        </div>
+                </div>
+            </template>
+            <!-- PRODUCT DETAILS (ONLY ACTIVE ROW) -->
+            <template if:true={item.isActive}>
+                <div class="product-details slds-p-around_medium">
+                    <div class="slds-grid slds-wrap slds-gutters">
+
+
+                        <!--    <div class="slds-col slds-small-size_1-of-1 slds-medium-size_5-of-12 input-box">
+
+                        <div class="slds-col slds-size_1-of-2">
+                            <label class="slds-form-element__label">Category</label>
+                            <div class="slds-form-element__control">
+                                <div class="slds-select_container">
+                                    <select class="slds-select"
+                                            value={selectedCategory}
+                                            onchange={handleCategoryChange}
+                                            disabled={isCategoryDisabled}>
+                                                <template if:true={selectedCategory}>
+                                                        <option value={selectedCategory}>{selectedCategory}</option>
+                                                    </template>
+                                        <template for:each={categories} for:item="cat">
+                                            <option key={cat.value} value={cat.value}>
+                                                {cat.label}
+                                            </option>
+                                        </template>
+                                    </select>
+                                </div>
+                            </div>
+                    </div>
+                -->
+                    
+                        <!-- ROW CATEGORY -->
+                        <div class="slds-col slds-small-size_1-of-1 slds-medium-size_3-of-12">
+                            <lightning-combobox
+                                label="Category"
+                                value={item.category}
+                                options={categories}
+                                data-index={index}
+                                onchange={handleRowCategoryChange}
+                                required>
+                            </lightning-combobox>
+                        </div>
+
+
+                            
+
+
+                    <!-- Product search -->
+                    <div class="slds-col slds-small-size_1-of-1 slds-medium-size_5-of-12 input-box">
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label">Product</label>
+                            <div class="slds-form-element__control">
+                                <div class="slds-input-has-icon slds-input-has-icon_left search-input-wrapper">
+                                  <div class="search-input-inner">
+                                    <lightning-icon icon-name="utility:search" alternative-text="Search" class="search-icon" size="x-small"></lightning-icon>
+                                    <input type="text"
+                                            class="slds-input search-input-field"
+                                            placeholder="Search by product name or code..."
+                                            data-index={index}
+                                            value={item.name}
+                                            autocomplete="off"
+                                            onkeyup={handleSearchInput}
+                                            onfocus={handleSearchFocus}
+                                            onblur={handleSearchBlur} />
+                                    <template if:true={item.name}>
+                                        <button class="search-clear-btn"
+                                                data-index={index}
+                                                onclick={handleClearSearch}
+                                                title="Clear">
+                                            <lightning-icon icon-name="utility:close" alternative-text="Clear" size="xx-small"></lightning-icon>
+                                        </button>
+                                    </template>
+                                  </div>
+                            
+                            <template if:true={item.id}>
+                                <span class="product-code">Code: {item.code}</span>
+                            <template if:false={item.stockChecked}>
+                                <button class="slds-button slds-button_neutral check-stock-btn"
+                                        data-index={index}
+                                        onclick={handleCheckStock}>
+                                    Check Stock
+                                </button>
+                            </template>
+                            <template if:true={item.stockChecked}>
+                                <section class="stock-popup">
+
+                                    <div class="stock-popup-header">
+                                        <span>Stock Availability</span>
+                                        <button class="close-btn"
+                                                data-index={index}
+                                                onclick={handleCloseStockPopup}>
+                                            ✕
+                                        </button>
+                                    </div>
+
+                                    <div class="stock-table-wrapper">
+                                        <table class="stock-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Warehouse</th>
+                                                    <th>Batch</th>
+                                                    <th>In Stock</th>
+                                                    <th>Reserved</th>
+                                                    <th>billable</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <template for:each={item.stockList} for:item="stk">
+                                                    <tr key={stk.warehouseCode}>
+                                                        <td>{stk.warehouseCode}</td>
+                                                        <td>{stk.Batch}</td>
+                                                        <td>{stk.inStock}</td>
+                                                        <td>
+                                                            <lightning-formatted-number
+                                                                value={stk.reserved}
+                                                                minimum-fraction-digits="2"
+                                                                maximum-fraction-digits="2">
+                                                            </lightning-formatted-number>
+                                                        </td>
+                                                            <td>
+                                                            <lightning-formatted-number
+                                                                value={stk.billable}
+                                                                minimum-fraction-digits="2"
+                                                                maximum-fraction-digits="2">
+                                                            </lightning-formatted-number>
+                                                            </td>
+
+                                                    </tr>
+                                                </template>
+                                            </tbody>
+                                            <template if:false={item.stockList.length}>
+                                                    <div class="slds-text-color_error slds-m-top_medium slds-align_absolute-center">
+                                                        ❌ No stock available for this product.
+                                                    </div>
+                                            </template>
+                                        </table>
+                                    </div>
+
+                                </section>
+
+                                
+                            </template>
+
+
+                            </template>     
+                                </div>
+                            </div>
+
+                            <!-- dropdown -->
+                            <template if:true={item.showDropdown}>
+                                <div class="search-results slds-box">
+                                    <template if:true={searchResults}>
+                                        <template for:each={searchResults} for:item="prod">
+                                            <div key={prod.Id}
+                                                    class="search-result-item"
+                                                    data-product-id={prod.Id}
+                                                    data-index={index}
+                                                    onmousedown={handleSearchResultClick}
+                                                    ontouchstart={handleTouchStart}
+                                                    ontouchmove={handleTouchMove}
+                                                    ontouchend={handleTouchEnd}>
+                                                <div class="search-result-name">{prod.Name}</div>
+                                                <div class="search-result-code">Code: {prod.productCode}</div>
+                                            </div>
+                                        </template>
+                                    </template>
+                                    <template if:false={searchResults}>
+                                        <div class="search-result-item">No results</div>
+                                    </template>
+                                </div>
+                            </template>
+                        </div>
+
+                        
+                    </div>
+
+                    <!-- buttons -->
+                    <div class="slds-col slds-small-size_1-of-1 slds-medium-size_3-of-12 
+                            slds-grid slds-align-middle slds-grid_align-end btn-set">
+
+                            <lightning-button-icon icon-name="utility:add"
+                                                    alternative-text="Add"
+                                                    class="add-btn"
+                                                    data-index={index}
+                                                    onclick={addRow}>
+                            </lightning-button-icon>
+
+                            <lightning-button-icon icon-name="utility:delete"
+                                                    alternative-text="Delete"
+                                                    class="delete-btn"
+                                                    data-index={index}
+                                                    onclick={removeRow}>
+                            </lightning-button-icon>
+                    </div>
+                    </div>
+                </div>
+
+                <!-- If product selected show specific inputs -->
+                <div if:true={item.id} class="product-details">
+
+                    <!-- Natural Stone branch -->
+                    <template if:true={item.isNaturalStone}>
+                        <div class="slds-grid slds-wrap slds-gutters">
+                        <!--    <div class="slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8 qty-box">
+                                <lightning-input type="number" label="Unit Price (₹)"
+                                                    value={item.msp}
+                                                    data-product-id={item.id}
+                                                    data-index={index}
+                                                    disabled="true">
+                                </lightning-input>
+                            </div>-->   
+
+                            <div class="slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8 qty-box">
+                                <lightning-input type="number" label="Unit Price (₹)"
+                                                    value={item.unitPrice}
+                                                    data-product-id={item.id}
+                                                    data-index={index}
+                                                    onchange={handleNaturalStoneUnitPriceChange}>
+                                </lightning-input>
+                            </div>
+
+                            <div class="slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8 qty-box">
+                                <lightning-input type="number" label="Required Sqft"
+                                                    value={item.requiredSqft}
+                                                    data-product-id={item.id}
+                                                    data-index={index}
+                                                    required="true"
+                                                    onchange={handleNaturalStoneRequiredSqftChange}>
+                                </lightning-input>
+                            </div>
+
+                            <div class="slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
+                                <div class="input-field full-width">
+                                    <label class="slds-form-element__label">Description</label>
+                                    <input type="text" class="slds-input"
+                                            value={item.description}
+                                            data-product-id={item.id}
+                                            data-index={index}
+                                            onchange={handleNaturalStoneDescriptionChange}/>
+                                </div>
+                            </div>
+
+                        <!--  <div class="slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
+                                <lightning-input type="number" label="Total Price (₹)"
+                                                    value={item.totalPrice}
+                                                    data-index={index}
+                                                    data-product-id={item.id}
+                                                    disabled="true">
+                                </lightning-input>
+                            </div>
+
+                            </div>
+
+                    <div class="slds-grid slds-wrap slds-gutters">-->   
+                            <div class="slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
+                    <lightning-combobox
+                                        label="Area"
+                                        value={item.roomType}
+                                        options={areaOptions}
+                                        data-index={index}
+                                        data-product-id={item.id}
+                                        onchange={handleRoomTypeChange}
+                                        required>
+                                    </lightning-combobox>
+                            </div>
+
+                                <div class="slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
+                        <lightning-input type="text" label="Area Desc"
+                                                            value={item.areaDesc}
+                                                            data-index={index}
+                                                            data-product-id={item.id}
+                                                            onchange={handleAreaDesChange}>
+                                        </lightning-input>
+                                </div>
+                            <!--   <template if:true={showDiscountSection}> -->     
+                                <div class="slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
+                                    <div class="slds-form-element">
+                                        <label class="slds-form-element__label">Disc Type</label>
+                                        <div class="slds-form-element__control">
+                                            <div class="slds-select_container">
+                                                <select class="slds-select"
+                                                        data-index={index}
+                                                        onchange={handleDiscTypeChange}
+                                                        value={item.discType}>
+                                                        <template if:true={item.discType}>
+                                                            <option value={item.discType}>{item.discType}</option>
+                                                        </template> 
+                                                        <option  value=''>Select</option>
+                                                    <template for:each={discountTypeOptions} for:item="option">
+                                                        <option key={option.value} value={option.value}>{option.label}</option>
+                                                    </template>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
+                                    <lightning-input type="number" label="Disc Value"
+                                                        value={item.discValue}
+                                                        data-index={index}
+                                                        data-product-id={item.id}
+                                                        onchange={handleDiscValueChange}>
+                                    </lightning-input>
+                                </div>
+                                    <div class="slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
+                                    <lightning-input type="number" label="After Disc (₹)"
+                                                        value={item.afterDiscPrice}
+                                                        step="0.000001"
+                                                        data-product-id={item.id}
+                                                        data-index={index}
+                                                        disabled="true">
+                                    </lightning-input>
+                                </div>
+                        <!--    </template> -->
+                        </div> 
+                    </template>
+
+                    <!-- Non-natural stone (tiles / others) -->
+                    <template if:false={item.isNaturalStone}>
+
+                        <!-- top row for qty/area/price -->
+                        <div class="item-row slds-grid slds-wrap slds-gutters">
+                            <!-- Qty -->
+                            <div class="field-box slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
+                                <lightning-input type="number" label="Qty" min="0"
+                                                    value={item.quantity}
+                                                    data-index={index}
+                                                    data-product-id={item.id}
+                                                    onchange={handleQuantityChange}
+                                                        onblur={handleQuantityBlur}>
+                                </lightning-input>
+                            </div>
+
+                            <!-- Area -->
+                            <div class="field-box slds-col slds-small-size_1-of-1 slds-medium-size_2-of-8">
+                                <lightning-combobox
+                                    label="Area"
+                                    value={item.roomType}
+                                    options={areaOptions}
+                                    data-index={index}
+                                    data-product-id={item.id}
+                                    onchange={handleRoomTypeChange}
+                                    required>
+                                </lightning-combobox>
+                                </div>
+
+                            <div class="slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
+                                <lightning-input type="text" label="Area Desc"
+                                                            value={item.areaDesc}
+                                                            data-index={index}
+                                                            data-product-id={item.id}
+                                                            onchange={handleAreaDesChange}>
+                                        </lightning-input>
+                            </div>
+
+                            <!-- Only tile-specific fields -->
+                            <template if:true={item.isTile}>
+                                <div class="field-box slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
+                                    <lightning-input type="number" label="Final Sqft"
+                                                        value={item.sqft}
+                                                        data-index={index}
+                                                        data-product-id={item.id}
+                                                        onchange={handleSqftChange}
+                                                        step="0.01">
+                                                        
+                                    </lightning-input>
+
+                                </div>
+                                <template if:true={showMRPSection}>
+                                    <div class="field-box slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
+                                    <lightning-input type="number" label="MRP/Sqft"
+                                                        value={item.mspInSqft}
+                                                        disabled>
+                                    </lightning-input>
+                                </div></template>
+                                <div class="field-box slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
+                                    <lightning-input type="number" label="Unit Price"
+                                                        value={item.msp}
+                                                        disabled>
+                                    </lightning-input>
+                                </div>
+
+                                    <!--  <div class="field-box slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
+                                    <lightning-input type="number" label="Unit Price "
+                                                        value={item.unitPriceAfterTax}
+                                                        disabled>
+                                    </lightning-input>
+                                </div>
+
+                                <div class="field-box slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
+                                    <lightning-input type="number" label="Price/Sqft"
+                                                        value={item.pricePerSqft}
+                                                            step="0.000001"
+                                                        disabled>
+                                    </lightning-input>
+                                </div>-->
+
+                                    <div class="field-box slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
+                                                    <lightning-input type="number" label="Required Sqft"
+                                                        value={item.requiredSqft}
+                                                        data-index={index}
+                                                        data-product-id={item.id}
+                                                        onchange={handleRequiredSqftChange}
+                                                        disabled="true">
+                                    </lightning-input>
+                                </div>
+
+                            </template>
+                        
+
+                        <!-- Discounts, unit price, after-disc row -->
+                        
+
+                            <!-- Sqm (tile) -->
+                            <template if:true={item.isTile}>
+                                <div class="input-box slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
+                                    <div class="slds-form-element">
+                                        <label class="slds-form-element__label">Sqm</label>
+                                        <div class="slds-form-element__control">
+                                            <input type="number" class="slds-input" value={item.sqm} disabled />
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        <!--     <template if:true={showDiscountSection}>-->
+                                    <!-- Disc Type -->
+                                    <div class="input-field slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
+                                        <label class="slds-form-element__label">Disc Type</label>
+                                        <select class="disc-type-select slds-select"
+                                                data-product-id={item.id}
+                                                    data-index={index}
+                                                onchange={handleDiscTypeChange}
+                                                value={item.discType}>
+                                                    <template if:true={item.discType}>
+                                                            <option value={item.discType}>{item.discType}</option>
+                                                </template> 
+                                                <option  value=''>Select</option>
+                                            <template for:each={discountTypeOptions} for:item="option">
+                                                <option key={option.value} value={option.value}>{option.label}</option>
+                                            </template>
+                                        </select>
+                                    </div>
+
+                                    <!-- Disc Value -->
+                                    <div class="qty-box slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
+                                        <lightning-input type="number" label="Disc Value"
+                                                            value={item.discValue}
+                                                            data-index={index}
+                                                            data-product-id={item.id}
+                                                            onchange={handleDiscValueChange}>
+                                        </lightning-input>
+                                    </div>
+                            <!-- </template>-->
+                            <!-- Unit Price (After Tax) for non-tile -->
+                            <template if:false={item.isTile}>
+                                <template if:true={showMRPSection}>
+                                    <div class="field-box slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
+                                    <lightning-input type="number" label="MRP"
+                                                        value={item.msp}
+                                                        disabled><!--(After Tax)-->
+                                    </lightning-input>
+                                </div></template>
+                                <div class="qty-box slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
+                                    <lightning-input type="number" label="Unit Price"
+                                                        value={item.unitPriceAfterTax}
+                                                        disabled><!--(After Tax)-->
+                                    </lightning-input>
+                                </div>
+                                <!--  <template if:true={showDiscountSection}>-->
+                                    <div class="qty-box slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
+                                        <lightning-input type="number" label="After Disc/Piece (₹)"
+                                                            value={item.afterDiscPricePiece}
+                                                                step="0.000001"
+                                                            disabled>
+                                        </lightning-input>
+                                    </div>
+                                <!-- </template>-->
+                            </template>
+
+                            <!-- After Disc/Sqft (tile) -->
+                            <!-- <template if:true={showDiscountSection}>-->
+                                <template if:true={item.isTile}>
+                                    <div class="qty-box slds-col slds-small-size_1-of-1 slds-medium-size_2-of-12">
+                                        <lightning-input type="number" label="After Disc/Sqft (₹)"
+                                                        value={item.afterDiscPriceSqft}
+                                                        step="0.000001" disabled>
+                                        </lightning-input>
+                                    </div>
+
+                                    <div class="qty-box slds-col slds-small-size_1-of-1 slds-medium-size_2-of-12">
+                                        <lightning-input type="number" label="After Disc/Unit (₹)"
+                                                        value={item.afterDiscPriceUnit}
+                                                        step="0.000001" disabled>
+                                        </lightning-input>
+                                    </div>
+
+                                </template>
+                            <!--  </template> -->
+                        </div>
+
+                    </template>
+
+                                    
+                    <div class="qty-box slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
+                            <lightning-input type="number" label="Total Price"
+                                            value={item.totalPrice} disabled>
+                            </lightning-input>
+                    </div>
+                </div>
+        </div></template>
+                </div>
+            </template>
+        </div>
+
+
+            <template if:true={selectedProducts}>
+            <div class="slds-modal__footer footer-actions">
+
+                    <button class="slds-button slds-button_neutral" onclick={closeComponent}>Cancel</button>
+                        <lightning-button label="Preview" onclick={handlePreview}></lightning-button>
+                    
+
+            <!--   <button class="slds-button slds-button_brand" onclick={handleConfirm}>Save</button>--> 
+            </div>
+        </template>
+
+
+        </template>
+        
+        <!-- PREVIEW MODAL -->
+    <template if:true={openPreview}>
+
+<div class="cart-wrapper">
+            <div class="cart-content ">
+        <!-- Cart Items -->
+        <div class="cart-items">
+            <table class="cart-table">
+                <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Quantity</th>
+                    <th>Required Sqft</th>
+                    <th>Unit Price</th>
+                    <th>Disc Value</th>
+                    <th>{afterDiscPriceLabel}</th>
+                    <th>Line Total</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <template for:each={selectedProducts} for:item="item" for:index="index">
+                    <tr key={item.id} class="cart-item"  draggable="true"
+                        data-index={index}
+                        ondragstart={handleDragStart}
+                        ondragover={handleDragOver}
+                        ondrop={handleDrop}>
+                    <td class="product-info">
+                        <img src={item.imageUrl} alt={item.name} />
+                        <div>
+                        <h3>{item.name}</h3>
+                        <div class="product-code">{item.code}</div>
+                        </div>
+                    </td>
+                    <td data-label="Quantity">
+                        <div class="quantity-controls">
+                <!--       <button class="qty-btn" onclick={handleDecrease} data-id={item.id}>-</button>--> 
+                        <input type="number" value={item.quantity} min="1" data-id={item.id} data-index={index} data-product-id={item.id}
+                            onchange={handleQuantityBlur}   disabled={item.isNaturalStone}/>
+                        <!--     <button class="qty-btn" onclick={handleIncrease} data-id={item.id}>+</button>--> 
+                        </div>
+                    </td>
+
+                <td data-label="Required Sqft">
+                        <template if:false={item.isNaturalStone}>  
+                            {item.requiredSqft}
+                        </template>
+                    <template if:true={item.isNaturalStone}>        
+                    <input 
+                        type="number" value={item.requiredSqft} data-product-id={item.id} data-id={item.id} data-index={index} onchange={handleNaturalStoneRequiredSqftChange}/>
+                </template> 
+                </td>
+                                    
+                    <td data-label="Unit Price">₹{item.unitPriceDisplay}</td>
+                    <td data-label="Disc Value">{item.discValue} {item.discountSymbol}</td>
+                    <td data-label={afterDiscPriceLabel}>₹{item.afterDiscDisplay}</td>
+                    <td data-label="Line Total" class="line-total">₹{item.totalPrice}</td>
+                    <td>
+                        <div class="action-buttons">
+                        <button class="remove-button" data-id={item.id} onclick={removeRow}>
+                            <svg class="trash-icon" viewBox="0 0 24 24">
+                            <path
+                                d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" />
+                            </svg>
+                        </button>
+                        </div>
+                    </td>
+                    </tr>
+                </template>
+                </tbody>
+            </table>
+        
+
+        </div>
+
+        <!-- Cart Summary -->
+        <div class="cart-summary">
+            <h3>Quote Summary</h3>
+            <div class="summary-row">
+            <span>Subtotal</span>
+            <span>₹{subtotal}</span>
+            </div>
+
+            <!-- Additional Charges -->
+            <div class="charges-section">
+            <h4>Additional Charges</h4>
+            <div class="charge-row">
+                <label>Freight Charge (₹)</label>
+                <input type="number" value={freightCharge} onchange={handleFreightChargeChange} />
+            </div>
+            <div class="charge-row">
+                <label>Loading Charge (₹)</label>
+                <input type="number" value={loadingCharge} onchange={handleLoadingChargeChange} />
+            </div>
+            <div class="charge-row">
+                <label>Unloading Charge (₹)</label>
+                <input type="number" value={unloadingCharge} onchange={handleUnloadingChargeChange} />
+            </div>
+            <div class="charge-row">
+            </div>
+            <div class="charge-row">
+                <label>Round Off (₹)</label>
+                <input type="number" value={roundOff} max="15" min="0" onchange={handleroundOffChargeChange} />
+            </div>
+
+            </div>
+
+            <div class="summary-row total">
+            <span>Quote Total</span>
+            <span>₹{orderTotal}</span>
+            </div>
+            <button class="checkout-button" onclick={handleConfirm}>
+            Confirm Quote
+            </button>
+        </div>
+        </div>
+        <template if:true={selectedProducts}>
+            <div class="slds-modal__footer footer-actions preview-footer">
+                    <button class="slds-button slds-button_destructive"  onclick={handleClosePreview}>Edit Items</button>
+
+            <!--   <button class="slds-button slds-button_brand" onclick={handleConfirm}>Save</button>--> 
+            </div>
+        </template>
+     </div>   
+    </template>
+
+
+
+        <!-- FOOTER 
+        <template if:true={selectedProducts}>
+            <div class="slds-modal__footer footer-actions">
+                    <template if:true={openPreview}>
+                    <button class="slds-button slds-button_destructive"  onclick={handleClosePreview}>Edit Items</button>
+                </template>
+                <template if:false={openPreview}>
+                    <button class="slds-button slds-button_neutral" onclick={closeComponent}>Cancel</button>
+                        <lightning-button label="Preview" onclick={handlePreview}></lightning-button>
+                </template>
+                    
+
+            </div>
+        </template>-->
+
+    </div>
+    </template>

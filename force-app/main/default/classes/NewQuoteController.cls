@@ -28,9 +28,9 @@ public class NewQuoteController {
     }
     
     @AuraEnabled(cacheable=true)
-    public static List<ProductWrapper> getProducts(String category,String pricebookName ) {
+    public static List<ProductWrapper> getProducts(String category, String searchKey, String pricebookName ) {
         //  try{
-        system.debug(category+' '+pricebookName);
+        system.debug(category+' '+searchKey+' '+pricebookName);
         
         Pricebook2 pb = [
             SELECT Id
@@ -38,6 +38,8 @@ public class NewQuoteController {
             WHERE Name = :pricebookName
             LIMIT 1
         ];
+
+        String searchFilter = (String.isNotBlank(searchKey)) ? '%' + searchKey + '%' : '%';
         
         List<PricebookEntry> pbeList = [
             SELECT
@@ -53,11 +55,13 @@ public class NewQuoteController {
             Product2.Sqft_Piece__c,
             Product2.In_Stock__c
             FROM PricebookEntry
-            WHERE Pricebook2Id = :pb.Id and UnitPrice >0
+            WHERE Pricebook2Id = :pb.Id AND UnitPrice > 0
            // AND IsActive = true
             AND Product2.IsActive = true
             AND Product2.Product_Category__c = :category
+            AND (Product2.Name LIKE :searchFilter OR Product2.Product_Code__c LIKE :searchFilter)
             ORDER BY Product2.Name ASC
+            LIMIT 50
         ];
         
         List<ProductWrapper> result = new List<ProductWrapper>();
@@ -94,7 +98,7 @@ throw new AuraHandledException(e.getMessage());
     }
     
     @AuraEnabled(cacheable=true)
-    public static List<OpportunityLineItem> getOpportunityItems(Id oppId, String pricebookName,String category) {
+    public static List<OpportunityLineItem> getOpportunityItems(Id oppId, String pricebookName) {
         Pricebook2 pb = [
             SELECT Id FROM Pricebook2 WHERE Name = :pricebookName LIMIT 1
         ];
@@ -105,10 +109,106 @@ throw new AuraHandledException(e.getMessage());
             Product2.Product_Category__c,Sqft__c,
             PricebookEntryId,Description
             FROM OpportunityLineItem
-            WHERE OpportunityId = :oppId and Product2.Product_Category__c=:category
+            WHERE OpportunityId = :oppId
             AND PricebookEntry.Pricebook2Id = :pb.Id  // ensure same PB
         ];
     }
+
+  @AuraEnabled(cacheable=true)
+public static Map<String,Object> getQuoteLineItems(Id quoteId){
+
+    Quote q = [
+        SELECT Id,
+               Freight_Charge__c,
+               Loading_Charge__c,
+               Unloading_Charge__c,
+               Round_Off__c,
+               PriceBook__c
+        FROM Quote
+        WHERE Id = :quoteId
+        LIMIT 1
+    ];
+
+    List<QuoteLineItem> items = [
+        SELECT Id,
+               Quantity,
+               UnitPrice,
+               TotalPrice,
+               Disc_Type__c,
+               Dis_Value__c,
+               Sqft__c,
+               Area__c,
+               Room_Type__c,
+               PricebookEntryId,
+               Product2Id,
+               Product2.Name,
+               Product2.Product_Code__c,
+               Product2.Product_Category__c,
+               Product2.Tax__c,
+               Product2.Sqft_Piece__c
+        FROM QuoteLineItem
+        WHERE QuoteId = :quoteId
+    ];
+
+    return new Map<String,Object>{
+        'quoteRecord' => q,
+        'lineItems' => items
+    };
+}
+
+@AuraEnabled
+public static Id updateQuoteCart(
+    Id quoteId,
+    List<Object> cartItems,
+    Decimal freightCharge,
+    Decimal loadingCharge,
+    Decimal unloadingCharge,
+    Decimal roundOff,
+    String pbName,
+    Decimal orderTotal,
+    String category
+){
+
+    Quote q = new Quote(
+        Id = quoteId,
+        Freight_Charge__c = freightCharge,
+        Loading_Charge__c = loadingCharge,
+        Unloading_Charge__c = unloadingCharge,
+        Round_Off__c = roundOff
+    );
+
+    update q;
+
+    // Delete existing lines
+    delete [SELECT Id FROM QuoteLineItem WHERE QuoteId = :quoteId];
+
+    List<QuoteLineItem> items = new List<QuoteLineItem>();
+
+    for(Object obj : cartItems){
+
+        Map<String,Object> row = (Map<String,Object>)obj;
+
+        QuoteLineItem qli = new QuoteLineItem();
+
+        qli.QuoteId = quoteId;
+        qli.Product2Id = (Id)row.get('id');
+        qli.PricebookEntryId = (Id)row.get('pricebookEntryId');
+        qli.Quantity = (Decimal)row.get('quantity');
+        qli.UnitPrice = (Decimal)row.get('unitPrice');
+
+        qli.Disc_Type__c = (String)row.get('discType');
+        qli.Dis_Value__c = (Decimal)row.get('discValue');
+        qli.Sqft__c = (Decimal)row.get('requiredSqft');
+        qli.Area__c = (String)row.get('roomType');
+        qli.Room_Type__c = (String)row.get('areaDesc');
+
+        items.add(qli);
+    }
+
+    insert items;
+
+    return quoteId;
+}
     
     @AuraEnabled(cacheable=true)
     public static List<Quote> getPendingQuotes(Id oppId){
@@ -217,37 +317,37 @@ public static List<Map<String, String>> getAreaPicklistValues() {
                                         Decimal priceLimit = Decimal.valueOf(Label.Quote_Approval_limit); 
                                         
                                         opportunity oppParent=[select id,name,Account.name,Account.BillingStreet,Account.BillingCity,Account.BillingState,Account.BillingCountry,Account.Email__c,Account.Phone,Account.BillingPostalCode,              
-                                                               Contact_Person_Name__c,Contact_Number__c,AddressLine1__c,AddressLine2__c,AddressLine3__c,Corporation__c,District__c,Municipality__c,Panchayath__c,State__c,Village__c,pin_code__c from Opportunity where id=:customerId];          
-                                        //Country__c
+                                                               Contact_Person_Name__c,Contact_Number__c,AddressLine1__c,AddressLine2__c,AddressLine3__c,Corporation__c,Country__c,District__c,Municipality__c,Panchayath__c,State__c,Village__c,pin_code__c,Product_Category__c from Opportunity where id=:customerId];          
+                                        
                                         // Create new Cart record
                                         Quote cart = new Quote();
-                                        cart.OpportunityId=customerId;
-                                        cart.Name=oppName+'- V'+vQuote;
-                                        cart.Pricebook2Id = pb.id;  
-                                        cart.Quote_Category__c=category;
-                                        cart.Round_Off__c=roundOff;
-                                        cart.Contact_Person_Name__c =oppParent.Contact_Person_Name__c;
-                                        cart.Contact_Person_Number__c=oppParent.Contact_Number__c;
-                                        
-                                        cart.BillingStreet   = oppParent.Account.BillingStreet;
-                                        cart.BillingCity     = oppParent.Account.BillingCity;
-                                        cart.BillingState    = oppParent.Account.BillingState;
-                                        cart.BillingPostalCode = oppParent.Account.BillingPostalCode;
-                                        cart.BillingCountry  = oppParent.Account.BillingCountry;
-                                        
-                                        //     cart.BillingAddress=oppParent.Account.BillingAddress;
-                                        cart.Email=oppParent.Account.Email__c;
-                                        cart.Phone=oppParent.Account.Phone;
-                                        
-                                        
-                                        cart.AddressLine1__c= oppParent.AddressLine1__c;
-                                        cart.AddressLine2__c= oppParent.AddressLine2__c;
-                                        cart.AddressLine3__c= oppParent.AddressLine3__c;
-                                        cart.District__c= oppParent.District__c;
-                                        cart.State__c= oppParent.State__c;
-                                       // cart.Country__c= oppParent.country__c;
-                                          cart.pin_code__c= oppParent.pin_code__c;
-          								cart.ExpirationDate=system.today().addDays(14);
+                                                                                cart.OpportunityId=customerId;
+                                                                                cart.Name=oppName+'- V'+vQuote;
+                                                                                cart.Pricebook2Id = pb.id;  
+                                                                                cart.Quote_Category__c=category;
+                                                                                cart.Round_Off__c=roundOff;
+                                                                                cart.Contact_Person_Name__c =oppParent.Contact_Person_Name__c;
+                                                                                cart.Contact_Person_Number__c=oppParent.Contact_Number__c;
+
+                                                                                cart.BillingStreet   = oppParent.Account.BillingStreet;
+                                                                                cart.BillingCity     = oppParent.Account.BillingCity;
+                                                                                cart.BillingState    = oppParent.Account.BillingState;
+                                                                                cart.BillingPostalCode = oppParent.Account.BillingPostalCode;
+                                                                                cart.BillingCountry  = oppParent.Account.BillingCountry;
+
+                                                                                //     cart.BillingAddress=oppParent.Account.BillingAddress;
+                                                                                cart.Email=oppParent.Account.Email__c;
+                                                                                cart.Phone=oppParent.Account.Phone;
+
+                                                                                cart.AddressLine1__c= oppParent.AddressLine1__c;
+                                                                                cart.AddressLine2__c= oppParent.AddressLine2__c;
+                                                                                cart.AddressLine3__c= oppParent.AddressLine3__c;
+                                                                                cart.District__c= oppParent.District__c;
+                                                                                cart.State__c= oppParent.State__c;
+                                                                                cart.Country__c= oppParent.country__c;
+                                                                                cart.pin_code__c= oppParent.pin_code__c;
+                                                                                cart.Quote_Category__c = oppParent.Product_Category__c;
+                                                                                cart.ExpirationDate=system.today().addDays(14);
                                         
                                         // Set other fields
                                         cart.Freight_Charge__c = freightCharge != null ? freightCharge : 0;
@@ -390,7 +490,8 @@ lineItem.MSP__c = safeDecimalConversion(item.get('msp'));
                                             try {
                                                 insert lineItems;
                                                 if(priceLimit < orderTotal){      
-     //17/02/2026      no need the auto approval                               //          checkAndSubmitForApproval(cart,orderTotal);
+     //17/02/2026      no need the auto approval                               //
+               checkAndSubmitForApproval(cart,orderTotal);
                                                 }  
                                                 List<Quote> quotesToUpdate = [
                                                     SELECT Id, Approval_Status__c 
@@ -465,7 +566,7 @@ throw new AuraHandledException('Error creating cart: ' + e.getMessage());
         }
     }
     
-  /*  public static void checkAndSubmitForApproval(quote newQuotes, decimal grandTotal){
+    public static void checkAndSubmitForApproval(quote newQuotes, decimal grandTotal){
         Decimal priceLimit = Decimal.valueOf(Label.Quote_Approval_limit); 
         
         List<Approval.ProcessSubmitRequest> requests = new List<Approval.ProcessSubmitRequest>();
@@ -481,7 +582,7 @@ throw new AuraHandledException('Error creating cart: ' + e.getMessage());
         for(Approval.ProcessSubmitRequest req : requests){
             Approval.ProcessResult result = Approval.process(req);
         }
-    }*/
+    }
     
     private static final String SAP_BASE_URL = 'https://lemrg.hstconnect.in:50000/b1s/v1';
     private static final String LOGIN_URL = SAP_BASE_URL + '/Login';

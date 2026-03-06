@@ -43,6 +43,11 @@ openPreview=false;
     get isCategoryDisabled() {
         return !this.selectedPB || this.selectedPB === 'select';  // disabled when no Pricebook selected
     }
+
+    get selectedPBLabel() {
+        const entry = this.priceNames.find(pb => pb.value === this.selectedPB);
+        return entry ? entry.label : this.selectedPB;
+    }
     
    /* get priceModeLabel() {
         return this.useMRP ? 'Using MRP' : 'Using MSP';
@@ -93,15 +98,19 @@ wiredAreaPicklist({ data, error }) {
         this.selectedProducts = [];
         localStorage.removeItem('selectedProducts');
 
+        // If pricebook was already auto-selected by wire but recordId wasn't ready,
+        // trigger the load now that recordId is available
+        this.tryLoadDefaultPricebook();
+
         // Load cart from localStorage if available
-        const savedCart = localStorage.getItem('selectedProducts');
+     /*   const savedCart = localStorage.getItem('selectedProducts');
         if (savedCart) {
             try {
             //    this.selectedProducts = JSON.parse(savedCart);
             } catch (e) {
                 this.selectedProducts = [];
             }
-        }
+        }*/
 
         // Add click event listener to close dropdown when clicking outside
         this.handleClickOutside = () => {
@@ -207,10 +216,46 @@ wiredAreaPicklist({ data, error }) {
                         value: priceName
                     }))
                 ];
+
+                // Auto-select RETAIL/MRP (Standard Price Book) as default
+                const retailEntry = this.priceNames.find(
+                    pb => pb.label === 'RETAIL/MRP'
+                );
+                if (retailEntry && (!this.selectedPB || this.selectedPB === 'select')) {
+                    this.selectedPB = retailEntry.value;
+                }
+                // Try loading — will only proceed if recordId is also ready
+                this.tryLoadDefaultPricebook();
             } else if (error) {
                 this.error = error;
                 console.error('Error fetching priceNames:', error);
             }
+        }
+
+        _defaultPBLoaded = false;
+
+        tryLoadDefaultPricebook() {
+            // Only proceed when both recordId and selectedPB are available, and not already loaded
+            if (!this.recordId || !this.selectedPB || this.selectedPB === 'select' || this._defaultPBLoaded) {
+                return;
+            }
+            this._defaultPBLoaded = true;
+
+            console.log('Loading default pricebook data for:', this.selectedPB);
+            this.loadOLIFromOpportunity();
+            getPBEntries({ pbName: this.selectedPB })
+                .then(result => {
+                    console.log('Default Pricebook Entries:', result);
+                    this.pbEntryMap = new Map();
+                    this.pbEntryIdMap = new Map();
+                    result.forEach(entry => {
+                        this.pbEntryMap.set(entry.Product2Id, entry.UnitPrice);
+                        this.pbEntryIdMap.set(entry.Product2Id, entry.Id);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading default PB entries:', error);
+                });
         }
 
       @wire(getProductCategories)
@@ -266,13 +311,18 @@ wiredAreaPicklist({ data, error }) {
        //     return !this.selectedPB; // disable when selectedPB is false
        // }
         handlePBSelect(event) {
-           this.selectedCategory='';
-                this.selectedProducts = [];
+        //   this.selectedCategory='';
+         //       this.selectedProducts = [];
                 localStorage.removeItem('selectedProducts');
-            this.selectedPB = event.target.value;
             
+            if(this.selectedPB  !=event.target.value){
+                this.products =[];
+                this.selectedProducts=[];
+            }
             
-        //    this.loadOLIFromOpportunity();
+           this.selectedPB = event.target.value;
+  
+           this.loadOLIFromOpportunity();
 
             // Clear search results when category changes
             this.searchResults = [];
@@ -300,7 +350,7 @@ wiredAreaPicklist({ data, error }) {
             }
         }
 
-        handleCategoryChange(event) {
+     /*  handleCategoryChange(event) {
             if(this.selectedCategory  !=event.target.value){
                 this.products =[];
                 this.selectedProducts=[];
@@ -315,7 +365,7 @@ wiredAreaPicklist({ data, error }) {
             // Clear search results because category changed
             this.searchResults = [];
         }
-
+ 
         fetchProductsByCategory() {
                 this.loadOLIFromOpportunity();
 
@@ -328,11 +378,11 @@ wiredAreaPicklist({ data, error }) {
                         console.error('Error fetching products:', error);
                 });
         }
-
+*/
         loadOLIFromOpportunity() {
         if (!this.recordId || !this.selectedPB) return;
 
-        getOpportunityItems({ oppId: this.recordId, pricebookName: this.selectedPB, category: this.selectedCategory })
+        getOpportunityItems({ oppId: this.recordId, pricebookName: this.selectedPB })
         .then(data => {
             if (data.length === 0) {
                    const cartItem1 = {
@@ -341,7 +391,7 @@ wiredAreaPicklist({ data, error }) {
                 compositeKey: `${Date.now()}_${Math.random()}`,
                 name: '',
                 code: '',
-                category: this.selectedCategory,
+                category: '',
                 quantity: 0,
                 unitPrice:0,
                 afterDiscPricePiece:  0,
@@ -455,8 +505,7 @@ var i=0;
             console.log(JSON.stringify( this.products));
             // Reset displayedProducts
             //  this.displayedProducts = [...this.products];
-            }*/
-
+            }
 
         handleCategorySelect(event) {
             const selectedValue = event.target.value;
@@ -514,7 +563,29 @@ var i=0;
             if (this.searchQuery) {
                 this.handleSearchInput({ target: { value: this.searchQuery } });
             }
-        }
+        }*/
+
+        handleRowCategoryChange(event) {
+            const index = Number(event.target.dataset.index);
+            const value = event.detail.value;
+
+            let rows = [...this.selectedProducts];
+
+            rows[index] = {
+                ...rows[index],
+                category: value,
+                id: '',
+                name: '',
+                code: '',
+                quantity: 0,
+                unitPrice: 0,
+                totalPrice: 0,
+                showDropdown: false
+            };
+
+            this.selectedProducts = rows;
+            this.searchResults = [];
+         }
 
 
         handleQuantityChange(event) {
@@ -627,7 +698,7 @@ var i=0;
             const product = this.selectedProducts[productIndex];
 
           /*  const areaVal = (field === 'roomType') ? value
-                : product.roomType + (field === 'areaDesc')
+                : product.roomType + (field === 'areaDesc')Korea 
                 ? value: product.areaDesc;*/
                 
             // ✅ KEY MUST USE Area/RoomType, not any random field value
@@ -744,11 +815,6 @@ var i=0;
             this.searchQuery = event.target.value;
         }
 
-        handleImageError(event) {
-            event.target.src = 'https://www.levarusglobal.com/wp-content/uploads/2021/06/no-product-image.jpg';
-        }
-
-        
         handleImageError(event) {
             event.target.src = 'https://www.levarusglobal.com/wp-content/uploads/2021/06/no-product-image.jpg';
         }
@@ -889,7 +955,6 @@ var i=0;
             afterDiscDisplay = item.afterDiscPricePiece || 0;
             lineTotalDisplay = afterDiscDisplay * (item.quantity || 0);
         }
-this.recalculateOrderTotal();
         return {
             ...item,
             discountSymbol: item.discType === 'Percentage' ? '%' : '\u20b9',
@@ -898,6 +963,7 @@ this.recalculateOrderTotal();
             lineTotalDisplay: Number(lineTotalDisplay).toFixed(2)
         };
     });
+this.recalculateOrderTotal();
 
     // OPEN PREVIEW
     this.openPreview = true;
@@ -985,7 +1051,7 @@ this.recalculateOrderTotal();
                 this.dispatchEvent(
                     new ShowToastEvent({
                         title: 'Error',
-                        message: 'No Deal ID found. Please start from a Deal record.',
+                        message: 'No Opp ID found. Please start from a Opp record.',
                         variant: 'error'
                     })
                 );
@@ -1084,7 +1150,7 @@ this.recalculateOrderTotal();
                 type: 'standard__recordPage',
                 attributes: {
                     recordId: cartId,
-                    objectApiName: 'Cart__c',
+                    objectApiName: 'Quote',
                     actionName: 'view'
                 }
             });
@@ -1199,10 +1265,69 @@ alert('hi');
 
 
 
+        // ── Touch handling for search results (prevents scroll = select on mobile) ──
+        _touchStartY = 0;
+        _touchMoved = false;
+
+        handleTouchStart(event) {
+            this._touchStartY = event.touches[0].clientY;
+            this._touchMoved = false;
+        }
+
+        handleTouchMove() {
+            this._touchMoved = true;
+        }
+
+        handleTouchEnd(event) {
+            // Only select if the user tapped (did not scroll)
+            if (!this._touchMoved) {
+                this.handleSearchResultClick(event);
+            }
+        }
+
         handleSearchFocus(event) {
             // optional: set activeRowIndex when the input gets focus
             const idx = event.currentTarget.dataset.index;
             this.activeRowIndex = typeof idx !== 'undefined' ? Number(idx) : null;
+        }
+
+        handleClearSearch(event) {
+            event.stopPropagation();
+            const index = Number(event.currentTarget.dataset.index);
+            const updated = [...this.selectedProducts];
+            updated[index] = {
+                ...updated[index],
+                id: '',
+                name: '',
+                code: '',
+                quantity: 0,
+                unitPrice: 0,
+                msp: 0,
+                unitPriceAfterTax: 0,
+                afterDiscPricePiece: 0,
+                afterDiscPriceSqft: 0,
+                afterDiscPriceUnit: 0,
+                pricePerSqft: 0,
+                totalPrice: 0,
+                description: '',
+                discType: 'Amount',
+                discValue: 0,
+                requiredSqft: 0,
+                sqft: 0,
+                sqm: 0,
+                sqftPerPiece: 0,
+                Tax: 0,
+                pricebookEntryId: '',
+                isNaturalStone: false,
+                isTile: false,
+                stockChecked: false,
+                stockList: [],
+                showDropdown: false
+            };
+            this.selectedProducts = updated;
+            this.searchResults = [];
+            this.showSearchDropdown = false;
+            this.recalculateOrderTotal();
         }
 
         handleSearchBlur() {
@@ -1218,51 +1343,68 @@ alert('hi');
 
 
         handleSearchInput(event) {
-            const index = event.target.dataset.index;
+            const index = Number(event.target.dataset.index);
             const value = event.target.value;
 
-            this.activeRowIndex = Number(index);
+            this.activeRowIndex = index;
 
-            // Update the text being typed
-            let updated = [...this.selectedProducts];
-            updated[index].name = value;   // << KEY FIX
+            // Update the row's name so the input reflects the user's typing
+            const updated = [...this.selectedProducts];
+            updated[index] = { ...updated[index], name: value };
+            // If user clears or changes text, reset the selected product for this row
+            if (updated[index].id && value !== updated[index].code) {
+                updated[index].id = '';
+                updated[index].code = '';
+                updated[index].stockChecked = false;
+            }
             this.selectedProducts = updated;
 
-            // Now process search
-            if (!value || value.length < 1) {
+            if (!value || value.length < 2) {
                 this.searchResults = [];
-                this.showSearchDropdown = false;
+                this.selectedProducts = this.selectedProducts.map((row, i) => ({
+                    ...row,
+                    showDropdown: i === index ? false : row.showDropdown
+                }));
                 return;
             }
-const rowCategory = this.selectedProducts[index].category;
-         /*   this.searchResults = this.products.filter(p =>
-                (p.Name || '').toLowerCase().includes(value.toLowerCase()) ||
-                (p.Product_Code__c || '').toLowerCase().includes(value.toLowerCase())
-            );
 
-            this.showSearchDropdown = this.searchResults.length > 0;
-            this.selectedProducts = this.selectedProducts.map((row, i) => ({
-                ...row,
-                showDropdown: i == index
-            }));*/
+            const rowCategory = this.selectedProducts[index].category;
 
-            this.searchResults = this.products.filter(p => {
-                const matchesSearch =
-                    (p.Name || '').toLowerCase().includes(value.toLowerCase()) ||
-                    (p.productCode || '').toLowerCase().includes(value.toLowerCase());
-                if (rowCategory && rowCategory !== '' && rowCategory !== 'select') {
-                    return matchesSearch && p.category === rowCategory;
-                }
+            if (!rowCategory) {
+                this.showError('Please select category first');
+                return;
+            }
 
-                return matchesSearch; // no category filter applied
-            });
-            this.showSearchDropdown = this.searchResults.length > 0;
+            if (!this.selectedPB) {
+                this.showError('Please select Pricebook first');
+                return;
+            }
 
-            this.selectedProducts = this.selectedProducts.map((row, i) => ({
-                ...row,
-                showDropdown: i == index
-            }));
-}
+            if (this.searchTimeout) {
+                clearTimeout(this.searchTimeout);
+            }
+
+            this.searchTimeout = setTimeout(() => {
+
+                getProducts({
+                    category: rowCategory,
+                    searchKey: value,
+                    pricebookName: this.selectedPB
+                })
+                .then(result => {
+                    this.searchResults = result || [];
+
+                    this.selectedProducts = this.selectedProducts.map((row, i) => ({
+                        ...row,
+                        showDropdown: i === index
+                    }));
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+
+            }, 400);
+        }
 
 
 
@@ -1385,11 +1527,11 @@ console.log(el);
         if (product && product.sqftPerPiece > 0 && requiredSqft > 0) {
             // Calculate quantity by dividing required sqft by sqft per piece and rounding up
             const quantity = Math.ceil(requiredSqft / product.sqftPerPiece);
-            this.updateProduct(productId, 'quantity', quantity);
+            this.updateProduct(productId, 'quantity', quantity,idx);
             
             // Calculate actual sqft based on the rounded up quantity
             const actualSqft = quantity * product.sqftPerPiece;
-            this.updateProduct(productId, 'sqft', actualSqft);
+            this.updateProduct(productId, 'sqft', actualSqft,idx);
             
             // Calculate sqm (1 sqft = 0.092903 sqm)
             const sqm = actualSqft * 0.092903;
@@ -1567,7 +1709,7 @@ handleAreaDesChange(event) {
                     
                     name: '',
                     code: '',
-                    category: '',
+                    category: this.selectedProducts[index]?.category || '',
                     quantity: 0,
                     unitPrice:0,
                     msp:0,
@@ -1697,6 +1839,7 @@ handleAreaDesChange(event) {
             items.splice(droppedIndex, 0, draggedItem);
 
             this.selectedProducts = items;
+            this.updateLineNumbers();
             this.draggedIndex = null;
         }
         

@@ -33,7 +33,7 @@ private class TestSAPUpdateBusinessPartner {
     static void testUpdateBusinessPartner() {
         Test.setMock(HttpCalloutMock.class, new MockUpdateBPCallout());
 
-        Customer__c customer = new Customer__c(Name='Test Customer', Customer_ID__c='CUST123');
+        Customer__c customer = new Customer__c(Name='Test Customer', Customer_ID__c='CUST123', Lead_Name__c='Test Lead', Primary_Phone__c='9999999999');
         insert customer;
 
         Deals__c deal = new Deals__c(
@@ -63,7 +63,7 @@ private class TestSAPUpdateBusinessPartner {
     static void testOppSAPTriggerInsert() {
         Test.setMock(HttpCalloutMock.class, new MockUpdateBPCallout());
 
-        Customer__c customer = new Customer__c(Name='Test Customer', Customer_ID__c='CUST123');
+        Customer__c customer = new Customer__c(Name='Test Customer', Customer_ID__c='CUST123', Lead_Name__c='Test Lead', Primary_Phone__c='9999999999');
         insert customer;
 
         Test.startTest();
@@ -90,7 +90,7 @@ private class TestSAPUpdateBusinessPartner {
     static void testOppSAPTriggerUpdateName() {
         Test.setMock(HttpCalloutMock.class, new MockUpdateBPCallout());
 
-        Customer__c customer = new Customer__c(Name='Test Customer', Customer_ID__c='CUST123');
+        Customer__c customer = new Customer__c(Name='Test Customer', Customer_ID__c='CUST123', Lead_Name__c='Test Lead', Primary_Phone__c='9999999999');
         insert customer;
 
         Deals__c deal = new Deals__c(
@@ -120,7 +120,7 @@ private class TestSAPUpdateBusinessPartner {
     static void testOppSAPTriggerUpdateEmail() {
         Test.setMock(HttpCalloutMock.class, new MockUpdateBPCallout());
 
-        Customer__c customer = new Customer__c(Name='Test Customer', Customer_ID__c='CUST123');
+        Customer__c customer = new Customer__c(Name='Test Customer', Customer_ID__c='CUST123', Lead_Name__c='Test Lead', Primary_Phone__c='9999999999');
         insert customer;
 
         Deals__c deal = new Deals__c(
@@ -150,7 +150,7 @@ private class TestSAPUpdateBusinessPartner {
     static void testOppSAPTriggerUpdatePhone() {
         Test.setMock(HttpCalloutMock.class, new MockUpdateBPCallout());
 
-        Customer__c customer = new Customer__c(Name='Test Customer', Customer_ID__c='CUST123');
+        Customer__c customer = new Customer__c(Name='Test Customer', Customer_ID__c='CUST123', Lead_Name__c='Test Lead', Primary_Phone__c='9999999999');
         insert customer;
 
         Deals__c deal = new Deals__c(
@@ -180,7 +180,7 @@ private class TestSAPUpdateBusinessPartner {
     static void testOppSAPTriggerUpdateAddress() {
         Test.setMock(HttpCalloutMock.class, new MockUpdateBPCallout());
 
-        Customer__c customer = new Customer__c(Name='Test Customer', Customer_ID__c='CUST123');
+        Customer__c customer = new Customer__c(Name='Test Customer', Customer_ID__c='CUST123', Lead_Name__c='Test Lead', Primary_Phone__c='9999999999');
         insert customer;
 
         Deals__c deal = new Deals__c(
@@ -211,7 +211,7 @@ private class TestSAPUpdateBusinessPartner {
     static void testOppSAPTriggerUpdateBillingAddress() {
         Test.setMock(HttpCalloutMock.class, new MockUpdateBPCallout());
 
-        Customer__c customer = new Customer__c(Name='Test Customer', Customer_ID__c='CUST123');
+        Customer__c customer = new Customer__c(Name='Test Customer', Customer_ID__c='CUST123', Lead_Name__c='Test Lead', Primary_Phone__c='9999999999');
         insert customer;
 
         Deals__c deal = new Deals__c(
@@ -247,7 +247,7 @@ private class TestSAPUpdateBusinessPartner {
     static void testOppSAPTriggerUpdateAddressNames() {
         Test.setMock(HttpCalloutMock.class, new MockUpdateBPCallout());
 
-        Customer__c customer = new Customer__c(Name='Test Customer', Customer_ID__c='CUST123');
+        Customer__c customer = new Customer__c(Name='Test Customer', Customer_ID__c='CUST123', Lead_Name__c='Test Lead', Primary_Phone__c='9999999999');
         insert customer;
 
         Deals__c deal = new Deals__c(
@@ -280,7 +280,7 @@ private class TestSAPUpdateBusinessPartner {
     static void testOppSAPTriggerNoChanges() {
         Test.setMock(HttpCalloutMock.class, new MockUpdateBPCallout());
 
-        Customer__c customer = new Customer__c(Name='Test Customer', Customer_ID__c='CUST123');
+        Customer__c customer = new Customer__c(Name='Test Customer', Customer_ID__c='CUST123', Lead_Name__c='Test Lead', Primary_Phone__c='9999999999');
         insert customer;
 
         Deals__c deal = new Deals__c(

@@ -346,7 +346,7 @@ this.mrpTotal += item.Without_Discount_Total_Price__c;
             }
             
             mapArea.get(areaLabel).items.add(p);
-            mapArea.get(areaLabel).areaTotal += p.total;
+            mapArea.get(areaLabel).areaTotal += (p.total != null ? p.total : 0);
         }
         
         areaGroups = mapArea.values();

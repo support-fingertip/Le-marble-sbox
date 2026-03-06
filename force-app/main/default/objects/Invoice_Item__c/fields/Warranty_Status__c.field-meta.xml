@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Warranty_Status__c</fullName>
+    <externalId>false</externalId>
+    <formula>IF(
+    ISBLANK(Product__r.Warranty__c),
+    &quot;&quot;,
+    IF(
+        ((YEAR(TODAY()) - YEAR(Invoice__r.Invoice_Date__c)) * 12 +
+        (MONTH(TODAY()) - MONTH(Invoice__r.Invoice_Date__c)))  &gt;  Product__r.Warranty__c,
+        &quot;Out of Warranty&quot;,
+        &quot;In Warranty&quot;
+    )
+)</formula>
+    <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+    <label>Warranty_Status</label>
+    <required>false</required>
+    <trackHistory>false</trackHistory>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>false</unique>
+</CustomField>

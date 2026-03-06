@@ -1,6 +1,6 @@
 @isTest
 public class SAPSyncUnifiedTest {
-    // Mock for SAP callouts
+    // Mock for SAP callouts used across all test methods
     private class MockHttpCallout implements HttpCalloutMock {
         public HTTPResponse respond(HTTPRequest req) {
             HttpResponse res = new HttpResponse();

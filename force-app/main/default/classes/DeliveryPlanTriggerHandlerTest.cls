@@ -40,7 +40,6 @@ public class DeliveryPlanTriggerHandlerTest {
 
         // Delivery Plan (linked to Order)
         Delivery_Group__c dp = new Delivery_Group__c(
-            Name = 'Test Delivery Plan',
             Warehouse__c = wh.Id,
             Sales_Order__c = ord.Id,   // 🔴 MUST be lookup to Order
             Quantity__c = 10,

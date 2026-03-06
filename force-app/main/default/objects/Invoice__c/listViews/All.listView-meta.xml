@@ -8,6 +8,7 @@
     <columns>Delivery_Group__c</columns>
     <columns>Opportunity__c</columns>
     <columns>Payment_Status__c</columns>
+    <columns>SaleOrder_Number__c</columns>
     <filterScope>Everything</filterScope>
     <label>All</label>
 </ListView>

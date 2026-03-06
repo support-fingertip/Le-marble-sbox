@@ -89,6 +89,8 @@ public class SalesOrderTest {
         // Create Customer
         Customer__c customer = new Customer__c(
             Name = 'Test Customer',
+            Lead_Name__c = 'Test Lead',
+            Primary_Phone__c = '9876543210',
             Email__c = 'test@example.com',
             Phone__c = '1234567890',
             Company__c = 'Test Co',
@@ -851,6 +853,8 @@ public class SalesOrderTest {
         String uniqueSuffix = String.valueOf(System.currentTimeMillis());
         Customer__c customer = new Customer__c(
             Name = 'Test Customer No ID ' + uniqueSuffix,
+            Lead_Name__c = 'Test Lead No ID',
+            Primary_Phone__c = '9876543210',
             Email__c = 'testnoID' + uniqueSuffix + '@example.com',
             Phone__c = '1234567890' + uniqueSuffix,
             Company__c = 'Test Co ' + uniqueSuffix

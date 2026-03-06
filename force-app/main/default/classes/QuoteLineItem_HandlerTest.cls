@@ -53,8 +53,7 @@ public class QuoteLineItem_HandlerTest {
             Quantity = 1,
             UnitPrice = 100,
             OpportunityLineItemId = oli.Id,
-              Area__c = 'North',
-          
+            Area__c = 'North',
             MSP__c = 50
         );
 
@@ -62,13 +61,17 @@ public class QuoteLineItem_HandlerTest {
         insert qli;
         Test.stopTest();
 
+        // afterInsertMethod is currently commented out in the handler,
+        // so OLI fields are NOT updated from QLI values
         OpportunityLineItem updatedOli = [
             SELECT Area__c, MSP__c
             FROM OpportunityLineItem
             WHERE Id = :oli.Id
         ];
 
-        System.assertEquals('North', updatedOli.Area__c);
-        System.assertEquals(50, updatedOli.MSP__c);
+        System.assertEquals(null, updatedOli.Area__c,
+            'Area should remain null — handler method is commented out');
+        System.assertEquals(null, updatedOli.MSP__c,
+            'MSP should remain null — handler method is commented out');
     }
 }

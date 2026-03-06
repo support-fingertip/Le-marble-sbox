@@ -1,96 +1,7 @@
-@isTest
+@IsTest
 public class CaseTriggerTest {
-    @testSetup
-    static void setupData() {
-        // Create test Account and Contact for Case relationships
-        Account acc = new Account(Name = 'Test Account');
-        insert acc;
-        Contact con = new Contact(LastName = 'Test Contact', AccountId = acc.Id, Email = 'test@example.com');
-        insert con;
-    }
 
-    @isTest
-    static void testBeforeInsert() {
-        List<Case> cases = new List<Case>{
-            new Case(Subject = 'Test Before Insert', Status = 'New', Origin = 'Phone')
-        };
-        Test.startTest();
-        insert cases;
-        Test.stopTest();
-        // Assert trigger logic, e.g., default field values set by handler
-        System.assertNotEquals(null, cases[0].Id, 'Case should be inserted');
-    }
-
-    @isTest
-    static void testAfterInsert() {
-        Case c = new Case(Subject = 'Test After Insert', Status = 'New', Origin = 'Email');
-        insert c;
-        // Query for any side effects, e.g., related records created
-        Case inserted = [SELECT Id, Subject FROM Case WHERE Id = :c.Id];
-        System.assertEquals('Test After Insert', inserted.Subject);
-    }
-
-    @isTest
-    static void testBeforeUpdate() {
-        Case c = new Case(Subject = 'Test Before Update', Status = 'New', Origin = 'Web');
-        insert c;
-        c.Status = 'Working';
-        Test.startTest();
-        update c;
-        Test.stopTest();
-        // Assert any before update logic, e.g., field changes
-        Case updated = [SELECT Status FROM Case WHERE Id = :c.Id];
-        System.assertEquals('Working', updated.Status);
-    }
-
-    @isTest
-    static void testAfterUpdate() {
-        Case c = new Case(Subject = 'Test After Update', Status = 'New', Origin = 'Web');
-        insert c;
-        c.Status = 'Closed';
-        update c;
-        // Assert after update logic, e.g., related records or field changes
-        Case updated = [SELECT Status FROM Case WHERE Id = :c.Id];
-        System.assertEquals('Closed', updated.Status);
-    }
-
-    @isTest
-    static void testBulkInsertUpdate() {
-        List<Case> cases = new List<Case>();
-        for (Integer i = 0; i < 10; i++) {
-            cases.add(new Case(Subject = 'Bulk ' + i, Status = 'New', Origin = 'Phone'));
-        }
-        insert cases;
-        for (Case c : cases) {
-            c.Status = 'Escalated';
-        }
-        update cases;
-        List<Case> updatedCases = [SELECT Status FROM Case WHERE Id IN :cases];
-        for (Case c : updatedCases) {
-            System.assertEquals('Escalated', c.Status);
-        }
-    }
-
-    @isTest
-    static void testErrorHandling() {
-        // Example: test validation logic in handler
-        Case c = new Case(Status = 'New', Origin = 'Phone'); // Missing required Subject
-        try {
-            insert c;
-        } catch (DmlException e) {
-            System.assert(e.getMessage().contains('required'), 'Should fail on missing required fields');
-        }
-    }
-
-    // Helper to create a Customer__c (Lead) with various phone formats
-    private static Customer__c createLead(String phone) {
-        Customer__c lead = new Customer__c(Name = 'Test Lead');
-        if (phone != null) lead.Phone__c = phone;
-        insert lead;
-        return lead;
-    }
-
-    // Mock class for HTTP callouts
+    // ─── HTTP Mock for WhatsApp callout ──────────────────────────────────────
     private class MockHttpCallout implements HttpCalloutMock {
         public HTTPResponse respond(HTTPRequest req) {
             HttpResponse res = new HttpResponse();
@@ -100,62 +11,264 @@ public class CaseTriggerTest {
         }
     }
 
-    @isTest
-    static void testCaseWithLeadAndValidPhone() {
-        Test.setMock(HttpCalloutMock.class, new MockHttpCallout());
-        Customer__c lead = createLead('9876543210');
-        Case c = new Case(Subject = 'Test', Status = 'New', Origin = 'Web', Lead__c = lead.Id);
-        insert c;
+    // ─── Helper: create Customer__c (Lead) ───────────────────────────────────
+    private static Customer__c createLead(String phone) {
+        Customer__c lead = new Customer__c(
+            Name             = 'Test Lead',
+            Lead_Name__c     = 'Test Lead',
+            Primary_Phone__c = '1111111111'
+        );
+        if (phone != null) {
+            lead.Phone__c = phone;
+        }
+        insert lead;
+        return lead;
     }
 
-    @isTest
-    static void testCaseWithLeadAndPhoneWithCountryCode() {
+    // ═══════════════════════════════════════════════════════════════════════
+    //  After Insert — Status=New, 10-digit phone → 91 prefix added
+    // ═══════════════════════════════════════════════════════════════════════
+
+    @IsTest
+    static void testAfterInsert_NewStatus_10DigitPhone() {
+        Test.setMock(HttpCalloutMock.class, new MockHttpCallout());
+        Customer__c lead = createLead('9876543210');
+
+        Test.startTest();
+        Case c = new Case(
+            Subject = 'Test 10 digit',
+            Status  = 'New',
+            Origin  = 'Web',
+            Lead__c = lead.Id
+        );
+        insert c;
+        Test.stopTest();
+
+        Case inserted = [SELECT Id, Subject, Status FROM Case WHERE Id = :c.Id];
+        System.assertEquals('New', inserted.Status);
+        System.assertNotEquals(null, inserted.Id, 'Case should be inserted');
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    //  After Insert — Phone already starts with 91
+    // ═══════════════════════════════════════════════════════════════════════
+
+    @IsTest
+    static void testAfterInsert_PhoneWith91Prefix() {
         Test.setMock(HttpCalloutMock.class, new MockHttpCallout());
         Customer__c lead = createLead('919876543210');
-        Case c = new Case(Subject = 'Test', Status = 'New', Origin = 'Web', Lead__c = lead.Id);
+
+        Test.startTest();
+        Case c = new Case(
+            Subject = 'Test 91 prefix',
+            Status  = 'New',
+            Origin  = 'Web',
+            Lead__c = lead.Id
+        );
         insert c;
+        Test.stopTest();
+
+        System.assertNotEquals(null, c.Id);
     }
 
-    @isTest
-    static void testCaseWithLeadAndNullPhone() {
-        Customer__c lead = createLead(null);
-        Case c = new Case(Subject = 'Test', Status = 'New', Origin = 'Web', Lead__c = lead.Id);
-        insert c;
-    }
+    // ═══════════════════════════════════════════════════════════════════════
+    //  After Insert — Phone with non-numeric chars stripped
+    // ═══════════════════════════════════════════════════════════════════════
 
-    @isTest
-    static void testCaseWithLeadAndNonNumericPhone() {
+    @IsTest
+    static void testAfterInsert_FormattedPhone() {
         Test.setMock(HttpCalloutMock.class, new MockHttpCallout());
         Customer__c lead = createLead('(987) 654-3210');
-        Case c = new Case(Subject = 'Test', Status = 'New', Origin = 'Web', Lead__c = lead.Id);
+
+        Test.startTest();
+        Case c = new Case(
+            Subject = 'Test formatted phone',
+            Status  = 'New',
+            Origin  = 'Web',
+            Lead__c = lead.Id
+        );
         insert c;
+        Test.stopTest();
+
+        System.assertNotEquals(null, c.Id);
     }
 
-    @isTest
-    static void testCaseWithLeadAndStatusNotNew() {
+    // ═══════════════════════════════════════════════════════════════════════
+    //  After Insert — Lead with null Phone__c → skips WhatsApp
+    // ═══════════════════════════════════════════════════════════════════════
+
+    @IsTest
+    static void testAfterInsert_NullPhone() {
+        Customer__c lead = createLead(null);
+
+        Test.startTest();
+        Case c = new Case(
+            Subject = 'Test null phone',
+            Status  = 'New',
+            Origin  = 'Web',
+            Lead__c = lead.Id
+        );
+        insert c;
+        Test.stopTest();
+
+        System.assertNotEquals(null, c.Id);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    //  After Insert — Status != New → skips WhatsApp
+    // ═══════════════════════════════════════════════════════════════════════
+
+    @IsTest
+    static void testAfterInsert_StatusNotNew() {
         Test.setMock(HttpCalloutMock.class, new MockHttpCallout());
         Customer__c lead = createLead('9876543210');
-        Case c = new Case(Subject = 'Test', Status = 'Closed', Origin = 'Web', Lead__c = lead.Id);
+
+        Test.startTest();
+        Case c = new Case(
+            Subject = 'Test closed status',
+            Status  = 'Closed',
+            Origin  = 'Web',
+            Lead__c = lead.Id
+        );
         insert c;
+        Test.stopTest();
+
+        Case inserted = [SELECT Status FROM Case WHERE Id = :c.Id];
+        System.assertEquals('Closed', inserted.Status);
     }
 
-    @isTest
-    static void testCaseWithNoLead() {
-        Case c = new Case(Subject = 'Test', Status = 'New', Origin = 'Web');
+    // ═══════════════════════════════════════════════════════════════════════
+    //  After Insert — No Lead → phone is null, skips WhatsApp
+    // ═══════════════════════════════════════════════════════════════════════
+
+    @IsTest
+    static void testAfterInsert_NoLead() {
+        Test.startTest();
+        Case c = new Case(
+            Subject = 'Test no lead',
+            Status  = 'New',
+            Origin  = 'Web'
+        );
         insert c;
+        Test.stopTest();
+
+        System.assertNotEquals(null, c.Id);
     }
 
-    @isTest
-    static void testWhatsAppExceptionHandling() {
+    // ═══════════════════════════════════════════════════════════════════════
+    //  After Insert — Phone with + and spaces
+    // ═══════════════════════════════════════════════════════════════════════
+
+    @IsTest
+    static void testAfterInsert_PhoneWithPlusSpaces() {
         Test.setMock(HttpCalloutMock.class, new MockHttpCallout());
-        // This test simulates an error in WhatsAppMessageSender (if possible in your org)
-        // If not possible, this test will just insert as normal
-        Customer__c lead = createLead('0000000000'); // Use a number that your org's WhatsAppMessageSender might reject
-        Case c = new Case(Subject = 'Test', Status = 'New', Origin = 'Web', Lead__c = lead.Id);
+        Customer__c lead = createLead('+91 987 654 3210');
+
+        Test.startTest();
+        Case c = new Case(
+            Subject = 'Test +91 spaces',
+            Status  = 'New',
+            Origin  = 'Web',
+            Lead__c = lead.Id
+        );
+        insert c;
+        Test.stopTest();
+
+        System.assertNotEquals(null, c.Id);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    //  After Insert — Short phone (< 10 digits, no prefix added)
+    // ═══════════════════════════════════════════════════════════════════════
+
+    @IsTest
+    static void testAfterInsert_ShortPhone() {
+        Test.setMock(HttpCalloutMock.class, new MockHttpCallout());
+        Customer__c lead = createLead('12345');
+
+        Test.startTest();
+        Case c = new Case(
+            Subject = 'Test short phone',
+            Status  = 'New',
+            Origin  = 'Web',
+            Lead__c = lead.Id
+        );
+        insert c;
+        Test.stopTest();
+
+        System.assertNotEquals(null, c.Id);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    //  After Insert — Bulk: multiple cases, mixed leads & statuses
+    // ═══════════════════════════════════════════════════════════════════════
+
+    @IsTest
+    static void testAfterInsert_Bulk() {
+        Test.setMock(HttpCalloutMock.class, new MockHttpCallout());
+
+        Customer__c lead1     = createLead('9876543210');
+        Customer__c lead2     = createLead('8765432109');
+        Customer__c leadNull  = createLead(null);
+
+        List<Case> cases = new List<Case>{
+            new Case(Subject = 'Bulk 1', Status = 'New',    Origin = 'Web', Lead__c = lead1.Id),
+            new Case(Subject = 'Bulk 2', Status = 'New',    Origin = 'Web', Lead__c = lead2.Id),
+            new Case(Subject = 'Bulk 3', Status = 'New',    Origin = 'Web', Lead__c = leadNull.Id),
+            new Case(Subject = 'Bulk 4', Status = 'Closed', Origin = 'Web', Lead__c = lead1.Id),
+            new Case(Subject = 'Bulk 5', Status = 'New',    Origin = 'Web')
+        };
+
+        Test.startTest();
+        insert cases;
+        Test.stopTest();
+
+        System.assertEquals(5, [SELECT COUNT() FROM Case WHERE Id IN :cases],
+            'All 5 cases should be inserted');
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    //  After Insert — Multiple cases same Lead
+    // ═══════════════════════════════════════════════════════════════════════
+
+    @IsTest
+    static void testAfterInsert_MultipleCasesSameLead() {
+        Test.setMock(HttpCalloutMock.class, new MockHttpCallout());
+        Customer__c lead = createLead('9876543210');
+
+        List<Case> cases = new List<Case>{
+            new Case(Subject = 'Same 1', Status = 'New', Origin = 'Web', Lead__c = lead.Id),
+            new Case(Subject = 'Same 2', Status = 'New', Origin = 'Web', Lead__c = lead.Id)
+        };
+
+        Test.startTest();
+        insert cases;
+        Test.stopTest();
+
+        System.assertEquals(2, [SELECT COUNT() FROM Case WHERE Lead__c = :lead.Id]);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    //  After Insert — WhatsApp exception handling
+    // ═══════════════════════════════════════════════════════════════════════
+
+    @IsTest
+    static void testAfterInsert_WhatsAppException() {
+        Test.setMock(HttpCalloutMock.class, new MockHttpCallout());
+        Customer__c lead = createLead('0000000000');
+
+        Test.startTest();
         try {
+            Case c = new Case(
+                Subject = 'Test exception',
+                Status  = 'New',
+                Origin  = 'Web',
+                Lead__c = lead.Id
+            );
             insert c;
         } catch (Exception e) {
             System.assert(e.getMessage() != null, 'Exception should be caught');
         }
+        Test.stopTest();
     }
 }

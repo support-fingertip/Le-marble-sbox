@@ -83,9 +83,9 @@ public class SAPInvoiceSync {
             for (Object invObj : invoices) {
                 Map<String, Object> inv = (Map<String, Object>) invObj;
                 Invoice__c invoice = new Invoice__c();
-
+                // Map SAP fields to Salesforce Invoice fields
                 invoice.Doc_Entry__c = String.valueOf(inv.get('DocEntry'));
-                invoice.Name = String.valueOf(inv.get('DocNum'));
+                invoice.Doc_Num__c = String.valueOf(inv.get('DocNum'));
                 invoice.Invoice_Date__c = inv.get('DocDate') != null ? Date.valueOf(String.valueOf(inv.get('DocDate'))) : null;
                 invoice.Invoice_Amount__c = inv.get('DocTotal') != null ? Decimal.valueOf(String.valueOf(inv.get('DocTotal'))) : 0;
                 invoice.GST_Amount__c = inv.get('VatSum') != null ? Decimal.valueOf(String.valueOf(inv.get('VatSum'))) : 0;
