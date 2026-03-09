@@ -371,28 +371,7 @@ public class sapIntegration {
             } else {
                 System.debug(LoggingLevel.ERROR, 'Failed to retrieve BP for update: ' + getResponse.getBody());
                 
-                Map<String, Object> errorWrapper = (Map<String, Object>) JSON.deserializeUntyped(getResponse.getBody());
-                
-                if (errorWrapper.containsKey('error')) {
-                    Map<String, Object> errorObj =(Map<String, Object>) errorWrapper.get('error');
-                    
-                 //   Integer errorCode = (Integer) errorObj.get('code');
-                    
-                    Map<String, Object> messageObj =
-                        (Map<String, Object>) errorObj.get('message');
-                    
-                    String errorMessage = (String) messageObj.get('value');
-                    
-                    //  EXACT MATCH CHECK
-                    if (//errorCode == -2028 &&
-                        errorMessage != null &&
-                        errorMessage.contains('No matching records found')) {
-                            System.enqueueJob(new CreateBusinessPartnerQueueable(deal.Id));
-                            return;
-                            
-                        }
-                }
-                
+
             }
             
             Boolean shipToAddressFoundAndUpdated = false;
@@ -550,6 +529,29 @@ public class sapIntegration {
                 log.response__c= 'BP update failed: ' + patchResponse.getBody();
                 insert log;
                 
+                Map<String, Object> errorWrapper = (Map<String, Object>) JSON.deserializeUntyped(getResponse.getBody());
+                
+                if (errorWrapper.containsKey('error')) {
+                    Map<String, Object> errorObj =(Map<String, Object>) errorWrapper.get('error');
+                    
+                    //   Integer errorCode = (Integer) errorObj.get('code');
+                    
+                    Map<String, Object> messageObj =
+                        (Map<String, Object>) errorObj.get('message');
+                    
+                    String errorMessage = (String) messageObj.get('value');
+                    
+                    //  EXACT MATCH CHECK
+                    if (//errorCode == -2028 &&
+                        errorMessage != null &&
+                        errorMessage.contains('No matching records found')) {
+                            System.enqueueJob(new CreateBusinessPartnerQueueable(deal.Id));
+                            return;
+                            
+                        }
+                }
+                
+                
                 System.debug(LoggingLevel.ERROR, 'BP update failed: ' + patchResponse.getBody());
             }
             else{
@@ -634,13 +636,17 @@ public class sapIntegration {
                 ownerid,
                 SAP_Doc_Num__c,
                 Order_status__c,
-                AddressLine1__c,
-                AddressLine2__c,
-                AddressLine3__c,
-                District__c,
-                State__c,
-                Country__c,
-                opportunity.Sale_Type__c
+                opportunity.AddressLine1__c,
+                opportunity.AddressLine2__c,
+                opportunity.AddressLine3__c,
+                opportunity.District__c,
+                opportunity.State__c,
+                opportunity.Country__c,
+                opportunity.pin_code__c,
+                opportunity.Sale_Type__c,
+            Freight_Charge__c,
+            Loading_Charges__c,
+            Unloading_Charges__c
             FROM Order
             WHERE Id = :order
             LIMIT 1
@@ -661,7 +667,7 @@ public class sapIntegration {
         addressee.add(UserInfo.getUserId());
         System.debug('Order '+ord);
         notification.setTitle('Order :'+ord.OrderNumber);
-        String NotificationBody =  'Order Id : ' + ord.Name +'\nOrder created by : ' + ord.account.name;
+        String NotificationBody =  'Order Id : ' + ord.OrderNumber +'\nOrder created by : ' + ord.account.name;
         if( ord.account.name != null ) {
             NotificationBody += '\nCustomer Name : ' + ord.account.name ;
         }
@@ -703,7 +709,7 @@ public class sapIntegration {
                 notification.setBody( 'Failed to create SAP Order:  Statuscode: '+res.getStatusCode() + (errorMsgValue != '' ? ('\n' + errorMsgValue) : '') );
             } else {
                 log.status__c='SUCCESS';
-                System.debug(' Order created in SAP for: ' + ord.Id);
+                System.debug(' Order created in SAP for: ' + ord.OrderNumber);
                 System.debug('SAP Response Body: ' + res.getBody());
                 try {
                     Map<String, Object> responseMap = (Map<String, Object>) JSON.deserializeUntyped(res.getBody());
@@ -781,6 +787,7 @@ public class sapIntegration {
             public String ShipToDescription;
             
             public List<DocumentLine> DocumentLines;
+         public List<DocumentAdditionalExpenses> DocumentAdditionalExpenses;
             public List<BPAddress> BPAddresses;
         }
         public class BPAddress {
@@ -804,6 +811,13 @@ public class sapIntegration {
             public List<BatchNumber> BatchNumbers;
         }
         
+      public class DocumentAdditionalExpenses {
+            public Decimal ExpenseCode;
+            public Decimal LineTotal;
+            public String TaxCode;
+        }
+        
+    
         public class BatchNumber {
             public String BatchNumber;
             public Decimal Quantity;
@@ -856,18 +870,46 @@ public class sapIntegration {
    //     payload.ShipToCode = order.AddressLine1__c;
         // Build BPAddresses for Ship To
         BPAddress shipAddr = new BPAddress();
-        shipAddr.AddressName = order.AddressLine1__c;
+        shipAddr.AddressName = order.opportunity.AddressLine1__c;
         shipAddr.AddressType = 'bo_ShipTo';
-        shipAddr.Street = order.AddressLine2__c;
-        shipAddr.Block = order.AddressLine3__c;
-        shipAddr.City = order.District__c;
-        shipAddr.State = order.State__c;
-        shipAddr.Country = order.Country__c;
+        shipAddr.Street = order.opportunity.AddressLine2__c;
+        shipAddr.Block = order.opportunity.AddressLine3__c;
+        shipAddr.City = order.opportunity.District__c;
+        shipAddr.State = order.opportunity.State__c;
+        shipAddr.Country = order.opportunity.Country__c;
         payload.BPAddresses = new List<BPAddress>{ shipAddr };
+             payload.DocumentAdditionalExpenses = new List<DocumentAdditionalExpenses>();
+        
+        
+			string TaxCode;
+        	if(order.opportunity.State__c=='KL'){
+                TaxCode = 'CG SG 18';
+            }
+            else{
+                TaxCode = 'IGST 18';
+            }
+      DocumentAdditionalExpenses dc= new DocumentAdditionalExpenses();      
+        	dc.ExpenseCode = 1;
+            dc.LineTotal = order.Freight_Charge__c;
+            dc.TaxCode = TaxCode;
+          payload.DocumentAdditionalExpenses.add(dc);   
+        
+   DocumentAdditionalExpenses dc1= new DocumentAdditionalExpenses();             
+            dc.ExpenseCode = 2;
+            dc.LineTotal = order.Loading_Charges__c;
+            dc.TaxCode = TaxCode;
+        payload.DocumentAdditionalExpenses.add(dc1);
+        
+  DocumentAdditionalExpenses dc2= new DocumentAdditionalExpenses();              
+            dc.ExpenseCode = 3;
+            dc.LineTotal = order.Unloading_Charges__c;
+            dc.TaxCode = TaxCode;
+			payload.DocumentAdditionalExpenses.add(dc2);
+        
         payload.DocumentLines = new List<DocumentLine>();
-        List<OrderItem> orderItems = [ SELECT Id,Quantity,PricebookEntry.Product2.Product_Code__c,Warehouse__r.Warehouse_Code__c,After_Disc_Price_Sqft__c,ListPrice,UnitPrice FROM OrderItem WHERE OrderId = :order.Id ]; //,Tax_Code__c
+        List<OrderItem> orderItems = [ SELECT Id,Quantity,Block_Quantity__c,PricebookEntry.Product2.Product_Code__c,Warehouse__r.Warehouse_Code__c,After_Disc_Price_Sqft__c,ListPrice,UnitPrice FROM OrderItem WHERE OrderId = :order.Id ]; //,Tax_Code__c
         Map<Id, List<Order_Batch_Item__c>> batchByItem = new Map<Id, List<Order_Batch_Item__c>>();
-        for (Order_Batch_Item__c b : [SELECT Order_Product__c, Batch__c,Quantity__c, Warehouse_Code__c FROM Order_Batch_Item__c  WHERE Order_Product__c IN :orderItems ]) {
+        for (Order_Batch_Item__c b : [SELECT Order_Product__c, Batch__c,Quantity__c,Block_Quantity__c, Warehouse_Code__c FROM Order_Batch_Item__c  WHERE Order_Product__c IN :orderItems ]) {
             if (!batchByItem.containsKey(b.Order_Product__c)) {
                 batchByItem.put(b.Order_Product__c, new List<Order_Batch_Item__c>());
             }
@@ -891,7 +933,10 @@ public class sapIntegration {
                 dl.Price = priceFieldValue;
                 //     dl.TaxCode = oi.Tax_Code__c;
                 dl.BatchNumbers = new List<BatchNumber>();
+                dl.U_ReservedQTY = oi.Block_Quantity__c;
+                dl.Quantity = oi.Quantity;
                 
+
                 
                 
                 payload.documentLines.add(dl);
@@ -928,10 +973,9 @@ public class sapIntegration {
                 
                 
           //      docLines.add(docLine);
-            
-                
-                
+                             
                 Decimal totalQty = 0;
+                Decimal bloQty = 0;
 
                 for (Order_Batch_Item__c b : warehouseMap.get(wh)) {
                     BatchNumber bn = new BatchNumber();
@@ -940,16 +984,18 @@ public class sapIntegration {
 
                     dl.BatchNumbers.add(bn);
                     totalQty += b.Quantity__c;
+                    bloQty += b.Block_Quantity__c;
                 }
 
-                dl.U_ReservedQTY = totalQty;
+                dl.U_ReservedQTY = bloQty;
                 dl.Quantity = totalQty;
                 payload.DocumentLines.add(dl);
             }
+ 
             
             
-            
-        } system.debug('payload>>'+JSON.serialize(payload));
+        } 
+        system.debug('payload>>'+JSON.serialize(payload));
  //       }
             return payload;
     }

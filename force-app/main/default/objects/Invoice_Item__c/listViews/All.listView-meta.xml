@@ -8,6 +8,8 @@
     <columns>Item_Code__c</columns>
     <columns>Invoice__c</columns>
     <columns>Quantity__c</columns>
+    <columns>Invoice_No__c</columns>
+    <columns>Warehouse_Code__c</columns>
     <filterScope>Everything</filterScope>
     <label>All</label>
 </ListView>

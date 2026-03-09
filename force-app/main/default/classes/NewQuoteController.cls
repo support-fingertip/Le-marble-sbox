@@ -38,7 +38,7 @@ public class NewQuoteController {
             WHERE Name = :pricebookName
             LIMIT 1
         ];
-
+ system.debug(' --- '+pb);
         String searchFilter = (String.isNotBlank(searchKey)) ? '%' + searchKey + '%' : '%';
         
         List<PricebookEntry> pbeList = [
@@ -63,7 +63,7 @@ public class NewQuoteController {
             ORDER BY Product2.Name ASC
             LIMIT 50
         ];
-        
+  system.debug(' pbeList--- '+pbeList);       
         List<ProductWrapper> result = new List<ProductWrapper>();
         
         for (PricebookEntry pbe : pbeList) {
@@ -113,6 +113,227 @@ throw new AuraHandledException(e.getMessage());
             AND PricebookEntry.Pricebook2Id = :pb.Id  // ensure same PB
         ];
     }
+
+  @AuraEnabled(cacheable=true)
+public static Map<String,Object> getQuoteLineItems(Id quoteId){
+
+    Quote q = [
+        SELECT Id,
+               Freight_Charge__c,
+               Loading_Charge__c,
+               Unloading_Charge__c,
+               Round_Off__c,
+               PriceBook__c
+        FROM Quote
+        WHERE Id = :quoteId
+        LIMIT 1
+    ];
+
+    List<QuoteLineItem> items = [
+        SELECT Id,
+               Quantity,
+               UnitPrice,
+               TotalPrice,
+        ListPrice,
+        Sqm__c,
+        After_Disc_Price_Piece__c,
+               Disc_Type__c,
+               Dis_Value__c,
+               Sqft__c,
+               Area__c,
+               Room_Type__c,
+               PricebookEntryId,
+               Product2Id,
+               Product2.Name,
+               Product2.Product_Code__c,
+               Product2.Product_Category__c,
+        Product2.MSP__c,
+               Product2.Tax__c,
+               Product2.Sqft_Piece__c
+        FROM QuoteLineItem
+        WHERE QuoteId = :quoteId
+    ];
+
+    return new Map<String,Object>{
+        'quoteRecord' => q,
+        'lineItems' => items
+    };
+}
+
+@AuraEnabled
+public static Id updateQuoteCart(
+    Id quoteId,
+     List<Map<String, Object>> cartItems,
+    List<Id> deletedQLIIds,
+    Decimal freightCharge,
+    Decimal loadingCharge,
+    Decimal unloadingCharge,
+    Decimal roundOff,
+    String pbName,
+    Decimal orderTotal,
+    String category
+){
+
+    Quote q = new Quote(
+        Id = quoteId,
+        Freight_Charge__c = freightCharge,
+        Loading_Charge__c = loadingCharge,
+        Unloading_Charge__c = unloadingCharge,
+        Round_Off__c = roundOff,
+        ExpirationDate=system.today().addDays(14)
+    );
+
+    update q;
+
+    // Delete existing lines
+    delete [SELECT Id FROM QuoteLineItem WHERE id IN:deletedQLIIds];
+    
+    List<QuoteLineItem> lineItems = new List<QuoteLineItem>();
+    for(Map<String, Object> item : cartItems) {
+        try {
+            if (item == null || !item.containsKey('id')) {
+                System.debug('Skipping null item or item without product ID');
+                continue;
+            }
+            
+            QuoteLineItem lineItem = new QuoteLineItem(
+                QuoteId = quoteId,
+                Product2Id = (String)item.get('id'),
+                PricebookEntryId =(String)item.get('pricebookEntryId')
+            );
+            
+            
+            if(item.containsKey('totalPrice')) {
+                lineItem.Calculated_Total_Price__c = safeDecimalConversion(item.get('totalPrice'));
+            }
+            
+            // Handle fields with safe conversion
+            if(item.containsKey('category')) {
+                lineItem.Product_Category__c = String.valueOf(item.get('category'));
+            }
+            
+            if(item.containsKey('quantity')) {
+                lineItem.Quantity = safeDecimalConversion(item.get('quantity'));
+            } else {
+                lineItem.Quantity = 1; // Default to 1 if missing
+            }
+            
+            if(item.containsKey('uom')) {
+                lineItem.UOM__c = String.valueOf(item.get('uom'));
+            }
+            if(lineItem.Calculated_Total_Price__c!=null && lineItem.Quantity!=null ){
+                lineItem.UnitPrice=(lineItem.Calculated_Total_Price__c/lineItem.Quantity);
+            }
+            // For tiles, use unitPriceAfterTax and pricePerSqft
+            if(item.containsKey('unitPriceAfterTax')) {
+                lineItem.Sale_price__c = safeDecimalConversion(item.get('unitPriceAfterTax'));
+            } else if(item.containsKey('unitPrice')) {
+                lineItem.Sale_price__c = safeDecimalConversion(item.get('unitPrice'));
+            }
+            if(item.containsKey('pricePerSqft')) {
+                lineItem.Price_Sqft__c = safeDecimalConversion(item.get('pricePerSqft'));
+            } else if(item.containsKey('priceSqft')) {
+                lineItem.Price_Sqft__c = safeDecimalConversion(item.get('priceSqft'));
+            }
+            System.debug('DEBUG: LineItem.Unit_Price__c: ' + lineItem.UnitPrice);
+            System.debug('DEBUG: LineItem.Price_Sqft__c: ' + lineItem.Price_Sqft__c);
+            
+            /*       if(item.containsKey('sqft')) {
+lineItem.Sqft__c = safeDecimalConversion(item.get('sqft'));
+}*/
+            
+            if(item.containsKey('sqm')) {
+                lineItem.Sqm__c = safeDecimalConversion(item.get('sqm'));
+            }
+            
+            if(item.containsKey('discType')) {
+                lineItem.Disc_Type__c = String.valueOf(item.get('discType'));
+            }
+            
+            if(item.containsKey('discValue')) {
+                lineItem.Dis_Value__c = safeDecimalConversion(item.get('discValue'));
+            }
+            
+            // Original discount field - may be needed for backward compatibility
+            if(item.containsKey('discount')) {
+                //       lineItem.Discount = safeDecimalConversion(item.get('discount'));
+            }
+            
+            // Original price field - may be needed for backward compatibility
+            if(item.containsKey('price')) {
+                lineItem.Price__c = safeDecimalConversion(item.get('price'));
+            }
+            if(item.containsKey('requiredSqft')) {
+                lineItem.Sqft__c = safeDecimalConversion(item.get('requiredSqft'));
+            }
+            
+            
+            
+            if(item.containsKey('afterDiscPricePiece')) {
+                lineItem.After_Disc_Price_Piece__c = safeDecimalConversion(item.get('afterDiscPricePiece'));
+            }
+            
+            if(item.containsKey('afterDiscPriceSqft')) {
+                lineItem.After_Disc_Price_Sqft__c = safeDecimalConversion(item.get('afterDiscPriceSqft'));
+            }
+            
+            if(item.containsKey('blocked')) {
+                lineItem.Blocked__c = safeDecimalConversion(item.get('blocked'));
+            }
+            
+            if(item.containsKey('roomType')) {
+                lineItem.Room_Type__c = String.valueOf(item.get('areaDesc'));
+                lineItem.Area__c = String.valueOf(item.get('roomType'));
+            }                                 
+            
+            if(item.containsKey('description')) lineItem.Description = String.valueOf(item.get('description'));
+            
+            System.debug('Added line item : ' + lineItem);
+            lineItems.add(lineItem);
+            System.debug('Added line item for product: ' + lineItem.Product2Id);
+        }
+        
+        catch(Exception e) {
+            System.debug('Error processing cart item: ' + e.getMessage());
+            System.debug('Stack trace: ' + e.getStackTraceString());
+            if(item != null) {
+                System.debug('Cart item data: ' + JSON.serialize(item));
+            }
+            // Continue with next item
+        }
+    }
+    string customerId=[select id,opportunityId from quote where id=:quoteId ].opportunityId;
+    if(!lineItems.isEmpty()) {
+        try {
+            insert lineItems;
+       
+            List<Quote> quotesToUpdate = [
+                SELECT Id, Approval_Status__c 
+                FROM Quote 
+                WHERE OpportunityId =:customerId and id!=:quoteId
+                AND Approval_Status__c = 'Approved'
+            ];
+            
+            // Change status → Revised
+            for(Quote q1 : quotesToUpdate){
+                q1.Approval_Status__c = 'Revised';
+            }
+            
+            if(!quotesToUpdate.isEmpty()) {
+                update quotesToUpdate;
+            }
+            System.debug('Inserted ' + lineItems.size() + ' line items');
+        } catch(Exception e) {
+            System.debug('Error inserting line items: ' + e.getMessage());
+            System.debug('Stack trace: ' + e.getStackTraceString());
+            // Even if line items fail, return the cart ID
+        }
+    } else {
+        System.debug('No valid line items to insert');
+    }
+    
+    return quoteId;
+}
     
     @AuraEnabled(cacheable=true)
     public static List<Quote> getPendingQuotes(Id oppId){
@@ -165,26 +386,26 @@ throw new AuraHandledException(e.getMessage());
             throw new AuraHandledException(e.getMessage());
         }
     }
-
+    
     @AuraEnabled(cacheable=true)
-public static List<Map<String, String>> getAreaPicklistValues() {
-    try {
-        List<Map<String, String>> values = new List<Map<String, String>>();
-
-        Schema.DescribeFieldResult fieldResult = QuoteLineItem.Area__c.getDescribe();
-        List<Schema.PicklistEntry> ple = fieldResult.getPicklistValues();
-
-        for (Schema.PicklistEntry p : ple) {
-            values.add(new Map<String, String>{
-                'label' => p.getLabel(),
-                'value' => p.getValue()
-            });
+    public static List<Map<String, String>> getAreaPicklistValues() {
+        try {
+            List<Map<String, String>> values = new List<Map<String, String>>();
+            
+            Schema.DescribeFieldResult fieldResult = QuoteLineItem.Area__c.getDescribe();
+            List<Schema.PicklistEntry> ple = fieldResult.getPicklistValues();
+            
+            for (Schema.PicklistEntry p : ple) {
+                values.add(new Map<String, String>{
+                    'label' => p.getLabel(),
+                        'value' => p.getValue()
+                        });
+            }
+            return values;
+        } catch (Exception e) {
+            throw new AuraHandledException(e.getMessage());
         }
-        return values;
-    } catch (Exception e) {
-        throw new AuraHandledException(e.getMessage());
     }
-}
     
     @AuraEnabled(cacheable=true)
     public static List<String> getPriceNames() {
@@ -225,42 +446,42 @@ public static List<Map<String, String>> getAreaPicklistValues() {
                                         
                                         // Create new Cart record
                                         Quote cart = new Quote();
-                                                                                cart.OpportunityId=customerId;
-                                                                                cart.Name=oppName+'- V'+vQuote;
-                                                                                cart.Pricebook2Id = pb.id;  
-                                                                                cart.Quote_Category__c=category;
-                                                                                cart.Round_Off__c=roundOff;
-                                                                                cart.Contact_Person_Name__c =oppParent.Contact_Person_Name__c;
-                                                                                cart.Contact_Person_Number__c=oppParent.Contact_Number__c;
-
-                                                                                cart.BillingStreet   = oppParent.Account.BillingStreet;
-                                                                                cart.BillingCity     = oppParent.Account.BillingCity;
-                                                                                cart.BillingState    = oppParent.Account.BillingState;
-                                                                                cart.BillingPostalCode = oppParent.Account.BillingPostalCode;
-                                                                                cart.BillingCountry  = oppParent.Account.BillingCountry;
-
-                                                                                //     cart.BillingAddress=oppParent.Account.BillingAddress;
-                                                                                cart.Email=oppParent.Account.Email__c;
-                                                                                cart.Phone=oppParent.Account.Phone;
-
-                                                                                cart.AddressLine1__c= oppParent.AddressLine1__c;
-                                                                                cart.AddressLine2__c= oppParent.AddressLine2__c;
-                                                                                cart.AddressLine3__c= oppParent.AddressLine3__c;
-                                                                                cart.District__c= oppParent.District__c;
-                                                                                cart.State__c= oppParent.State__c;
-                                                                                cart.Country__c= oppParent.country__c;
-                                                                                cart.pin_code__c= oppParent.pin_code__c;
-                                                                                cart.Quote_Category__c = oppParent.Product_Category__c;
-                                                                                cart.ExpirationDate=system.today().addDays(14);
+                                        cart.OpportunityId=customerId;
+                                        cart.Name=oppName+'- V'+vQuote;
+                                        cart.Pricebook2Id = pb.id;  
+                                        cart.Quote_Category__c=category;
+                                        cart.Round_Off__c=roundOff;
+                                        cart.Contact_Person_Name__c =oppParent.Contact_Person_Name__c;
+                                        cart.Contact_Person_Number__c=oppParent.Contact_Number__c;
+                                        
+                                        cart.BillingStreet   = oppParent.Account.BillingStreet;
+                                        cart.BillingCity     = oppParent.Account.BillingCity;
+                                        cart.BillingState    = oppParent.Account.BillingState;
+                                        cart.BillingPostalCode = oppParent.Account.BillingPostalCode;
+                                        cart.BillingCountry  = oppParent.Account.BillingCountry;
+                                        
+                                        //     cart.BillingAddress=oppParent.Account.BillingAddress;
+                                        cart.Email=oppParent.Account.Email__c;
+                                        cart.Phone=oppParent.Account.Phone;
+                                        
+                                        cart.AddressLine1__c= oppParent.AddressLine1__c;
+                                        cart.AddressLine2__c= oppParent.AddressLine2__c;
+                                        cart.AddressLine3__c= oppParent.AddressLine3__c;
+                                        cart.District__c= oppParent.District__c;
+                                        cart.State__c= oppParent.State__c;
+                                        cart.Country__c= oppParent.country__c;
+                                        cart.pin_code__c= oppParent.pin_code__c;
+                                        cart.Quote_Category__c = oppParent.Product_Category__c;
+                                        cart.ExpirationDate=system.today().addDays(14);
                                         
                                         // Set other fields
                                         cart.Freight_Charge__c = freightCharge != null ? freightCharge : 0;
                                         cart.Loading_Charge__c = loadingCharge != null ? loadingCharge : 0;
                                         cart.Unloading_Charge__c = unloadingCharge != null ? unloadingCharge : 0;
-                                        if(priceLimit>orderTotal){                                           
+                                   /*     if(priceLimit>orderTotal){                                           
                                             cart.Approval_Status__c = 'Approved'; 
                                             cart.Status='Approved';
-                                        }
+                                        }*/
                                         insert cart;
                                         System.debug('Quote created with ID: ' + cart.Id);
                                         
@@ -272,7 +493,7 @@ public static List<Map<String, String>> getAreaPicklistValues() {
                                         
                                         List<QuoteLineItem> lineItems = new List<QuoteLineItem>();
                                         for(Map<String, Object> item : cartItems) {
-                                        //    system.debug('item>> '+(String)item.get('totalPrice'));
+                                            //    system.debug('item>> '+(String)item.get('totalPrice'));
                                             try {
                                                 if (item == null || !item.containsKey('id')) {
                                                     System.debug('Skipping null item or item without product ID');
@@ -365,8 +586,8 @@ lineItem.Sqft__c = safeDecimalConversion(item.get('sqft'));
                                                 }
                                                 
                                                 if(item.containsKey('roomType')) {
-                                                  lineItem.Room_Type__c = String.valueOf(item.get('areaDesc'));
-                                                  lineItem.Area__c = String.valueOf(item.get('roomType'));
+                                                    lineItem.Room_Type__c = String.valueOf(item.get('areaDesc'));
+                                                    lineItem.Area__c = String.valueOf(item.get('roomType'));
                                                 }
                                                 
                                                 /*                     if(item.containsKey('msp')) {
@@ -393,10 +614,10 @@ lineItem.MSP__c = safeDecimalConversion(item.get('msp'));
                                         if(!lineItems.isEmpty()) {
                                             try {
                                                 insert lineItems;
-                                                if(priceLimit < orderTotal){      
-     //17/02/2026      no need the auto approval                               //
-               checkAndSubmitForApproval(cart,orderTotal);
-                                                }  
+                                        /*        if(priceLimit < orderTotal){      
+                                                    //17/02/2026      no need the auto approval                               //
+                                                    checkAndSubmitForApproval(cart,orderTotal);
+                                                } */ 
                                                 List<Quote> quotesToUpdate = [
                                                     SELECT Id, Approval_Status__c 
                                                     FROM Quote 
@@ -470,7 +691,7 @@ throw new AuraHandledException('Error creating cart: ' + e.getMessage());
         }
     }
     
-    public static void checkAndSubmitForApproval(quote newQuotes, decimal grandTotal){
+  /*  public static void checkAndSubmitForApproval(quote newQuotes, decimal grandTotal){
         Decimal priceLimit = Decimal.valueOf(Label.Quote_Approval_limit); 
         
         List<Approval.ProcessSubmitRequest> requests = new List<Approval.ProcessSubmitRequest>();
@@ -487,7 +708,7 @@ throw new AuraHandledException('Error creating cart: ' + e.getMessage());
             Approval.ProcessResult result = Approval.process(req);
         }
     }
-    
+    */
     private static final String SAP_BASE_URL = 'https://lemrg.hstconnect.in:50000/b1s/v1';
     private static final String LOGIN_URL = SAP_BASE_URL + '/Login';
     private static final String SERIES_SERVICE_URL = SAP_BASE_URL + '/SeriesService_GetSeries';
@@ -496,116 +717,12 @@ throw new AuraHandledException('Error creating cart: ' + e.getMessage());
     private static final String COMPANY_DB = 'MG_LIVE_WIP_1';
     private static final String USERNAME = 'manager';
     private static final String PASSWORD = 'Mgsap12@';
-    
- /*   public class WarehouseStockWrapper {
-        @AuraEnabled public String warehouseCode;
-        @AuraEnabled public Decimal inStock;
-        @AuraEnabled public Decimal committed;
-        @AuraEnabled public Decimal billable;
-        @AuraEnabled public Decimal reserved;
-    }
-    
-    @AuraEnabled(cacheable=false)
-    public static List<WarehouseStockWrapper> checkLiveStock(string itemcode) {
-        String InStock;
-        List<WarehouseStockWrapper> resultList = new List<WarehouseStockWrapper>();
-        try {
-            
-            List<Apex_Log__c> logList = new List<Apex_Log__c>();
-            Apex_Log__c log = new Apex_Log__c();
-            log.Request_Type__c ='Product';
-            
-            Http http = new Http();
-            
-            // 1. Login to SAP
-            HttpRequest loginReq = new HttpRequest();
-            loginReq.setEndpoint(LOGIN_URL);
-            loginReq.setMethod('POST');
-            loginReq.setHeader('Content-Type', 'application/json');
-            loginReq.setHeader('Accept', 'application/json');
-            loginReq.setTimeout(120000);
-            
-            loginReq.setBody(JSON.serialize(new Map<String, String>{
-                'CompanyDB' => COMPANY_DB,
-                    'UserName' => USERNAME,
-                    'Password' => PASSWORD
-                    }));
-            
-            HttpResponse loginRes = http.send(loginReq);
-            if (loginRes.getStatusCode() == 200) {
-                system.debug(loginRes.getBody());
-                Map<String, Object> loginResult = (Map<String, Object>) JSON.deserializeUntyped(loginRes.getBody());
-                String sessionId = String.valueOf(loginResult.get('SessionId'));
-                if (!String.isBlank(sessionId)){
-                    String ITEMS_URL = SAP_BASE_URL + '/Items(\'' + itemcode + '\')';
-                    
-                    String decodedUrl = EncodingUtil.urlDecode(ITEMS_URL, 'UTF-8');
-                    log.Request__c =decodedUrl; 
-                    
-                    System.debug('Decoded ITEMS_URL: ' + decodedUrl);
-                    system.debug('ITEMS_URL>>>'+ITEMS_URL);
-                    HttpRequest itemReq = new HttpRequest();
-                    itemReq.setEndpoint(ITEMS_URL); 
-                    itemReq.setMethod('GET');
-                    itemReq.setHeader('Content-Type', 'application/json');
-                    itemReq.setHeader('Accept', 'application/json');
-                    itemReq.setHeader('Cookie', 'B1SESSION=' + sessionId);
-                    itemReq.setTimeout(120000);
-                    
-                    HttpResponse itemRes = http.send(itemReq);
-                    log.response__c= string.valueof(itemRes.getStatusCode());
-                    if (itemRes.getStatusCode() != 200) {
-                        System.debug('❌ Failed to fetch items: ' + itemRes.getBody());
-                        log.status__c='FAILED';
-                        log.response__c= 'Status code : '+itemRes.getStatusCode() +' Response body: '+ itemRes.getBody();
-                        log.Error_Message__c = 'Status code : '+itemRes.getStatusCode()+ ' Error: Callout failed. Please review the response for additional details.';
-                        
-                        
-                    }
-                    Map<String, Object> data = (Map<String, Object>) JSON.deserializeUntyped(itemRes.getBody());
-                    List<Object> warehouseInfoList = (List<Object>) data.get('ItemWarehouseInfoCollection');
-                    
-                    
-                    if (warehouseInfoList != null && !warehouseInfoList.isEmpty()) {    
-                        if (warehouseInfoList != null) {
-                            
-                            for (Object warehouseObj : warehouseInfoList) {
-                                Map<String, Object> warehouseInfo = (Map<String, Object>) warehouseObj;
-
-                                WarehouseStockWrapper wrap = new WarehouseStockWrapper();
-                                wrap.warehouseCode = String.valueOf(warehouseInfo.get('WarehouseCode'));
-                                wrap.inStock = (Decimal) warehouseInfo.get('InStock');
-                                wrap.committed = (Decimal) warehouseInfo.get('Committed');
-                                 wrap.reserved = (Decimal) warehouseInfo.get('U_Reserved');
-                                 wrap.billable = (Decimal) warehouseInfo.get('U_Billable');
-                                
-                                    
-                                if( wrap.inStock>0){
-                                    resultList.add(wrap);
-                                } 
-                                System.debug(' warehouseInfo: ' + warehouseInfo);
-                            }
-                        }
-                    }  
-                    
-                    
-                    
-                }
-            }
-            
-        } catch (Exception e) {
-            System.debug(' Sync failed: ' + e.getMessage() + '\\n' + e.getStackTraceString());
-        }
-        System.debug(' InStock: ' + InStock);
-        return resultList;
-        
-    }*/
-    
+ 
       @AuraEnabled(cacheable=false)
     public static List<CreateSOFromQuoteController.WarehouseStockWrapper> checkLiveStock(string itemcode) {
  	return CreateSOFromQuoteController.getBatchStock(itemcode, '');
     }
-    @AuraEnabled
+   /* @AuraEnabled
     public static String createCartLineItem(String cartId, Map<String, Object> item) {
         try {
             quote q=[select id from quote where id=:cartId];
@@ -638,7 +755,7 @@ throw new AuraHandledException('Error creating cart: ' + e.getMessage());
             throw new AuraHandledException('Error creating cart line item: ' + e.getMessage());
         }
     }
-    
+    */
     // Dummy method 1: Utility to log information
     public static void logInfo(String message) {
         System.debug('INFO: ' + message);

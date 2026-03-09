@@ -116,15 +116,13 @@ public class LeadTriggerHandler {
             }
             
             // Auto-fill Country Code when India, clear when country is not India
-            if (ls.Country != null && ls.Country.equalsIgnoreCase('India')) {
+            if (ls.Country != null && (ls.Country.equalsIgnoreCase('India') || ls.Country=='In')) {
                 if (String.isBlank(ls.Country_Code__c)) {
                     ls.Country_Code__c = '+91';
                 }
-            } else {
-                // Country is not India — clear Country Code
-                if (String.isNotBlank(ls.Country_Code__c)) {
-                    ls.Country_Code__c = null;
-                }
+            } 
+            else if(ls.Country_Code__c == '+91'){
+                ls.Country_Code__c =null;
             }
         }
         

@@ -1,6 +1,8 @@
 public class SendOrderToSAPQueueable implements Queueable, Database.AllowsCallouts {
      private Id orderId;
-
+/* calling from SalesOrderContactTrigger
+ * 
+ * */
     // Constructor
     public SendOrderToSAPQueueable(Id orderId) {
         this.orderId = orderId;

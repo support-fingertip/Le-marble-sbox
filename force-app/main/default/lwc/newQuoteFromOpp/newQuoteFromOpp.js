@@ -5,7 +5,7 @@ import getPendingQuotes from '@salesforce/apex/NewQuoteController.getPendingQuot
 import getPriceBookName from '@salesforce/apex/NewQuoteController.getPriceNames';
 import getOpportunityItems from '@salesforce/apex/NewQuoteController.getOpportunityItems';
 import getProductCategories from '@salesforce/apex/NewQuoteController.getProductCategories';
-import getPBEntries from '@salesforce/apex/NewQuoteController.getPBEntries';
+//import getPBEntries from '@salesforce/apex/NewQuoteController.getPBEntries';
 import createCart from '@salesforce/apex/NewQuoteController.createCart';
 import checkLiveStock from '@salesforce/apex/NewQuoteController.checkLiveStock';
 import getAreaPicklistValues from '@salesforce/apex/NewQuoteController.getAreaPicklistValues';
@@ -243,7 +243,7 @@ wiredAreaPicklist({ data, error }) {
 
             console.log('Loading default pricebook data for:', this.selectedPB);
             this.loadOLIFromOpportunity();
-            getPBEntries({ pbName: this.selectedPB })
+          /*  getPBEntries({ pbName: this.selectedPB })
                 .then(result => {
                     console.log('Default Pricebook Entries:', result);
                     this.pbEntryMap = new Map();
@@ -255,7 +255,7 @@ wiredAreaPicklist({ data, error }) {
                 })
                 .catch(error => {
                     console.error('Error loading default PB entries:', error);
-                });
+                });*/
         }
 
       @wire(getProductCategories)
@@ -327,7 +327,7 @@ wiredAreaPicklist({ data, error }) {
             // Clear search results when category changes
             this.searchResults = [];
             this.showSearchDropdown = false;
-            getPBEntries({ pbName: this.selectedPB })
+          /*  getPBEntries({ pbName: this.selectedPB })
             .then(result => {
                 console.log('Pricebook Entries:', result);
                     this.pbEntryMap = new Map();
@@ -342,7 +342,7 @@ wiredAreaPicklist({ data, error }) {
             })
             .catch(error => {
                 console.error(error);
-            });
+            });*/
             
             // If there's an active search, refilter the results
             if (this.searchQuery) {
@@ -1431,8 +1431,11 @@ console.log(el);
       return;
     }
 
-    const unitPrice = this.pbEntryMap?.get(selectedProduct.Id) || 0;
-    const pricebookEntryId = this.pbEntryIdMap?.get(selectedProduct.Id) || '';
+   // const unitPrice = this.pbEntryMap?.get(selectedProduct.Id) || 0;
+    //const pricebookEntryId = this.pbEntryIdMap?.get(selectedProduct.Id) || '';
+
+        const unitPrice =selectedProduct.unitPrice;
+    const pricebookEntryId = selectedProduct.pricebookEntryId;
 
  //alert(JSON.stringify(pricebookEntryId));
     // Ensure we have a valid activeRowIndex

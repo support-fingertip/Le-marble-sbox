@@ -47,8 +47,21 @@ trigger DeliveryLineItemTrigger on Delivery_Line_Item__c (
             if (!notifTypes.isEmpty()) {
                 notifTypeId = notifTypes[0].Id;
             }
-            // Send notification to each order owner
+            // Send notification to each order owner and warehouse manager
             if (notifTypeId != null) {
+                // Fetch Warehouse Manager for each Delivery_Line_Item__c
+                Map<Id, Id> orderIdToWarehouseManagerId = new Map<Id, Id>();
+                Set<Id> deliveryGroupIds = new Set<Id>();
+                for (Delivery_Line_Item__c dli : Trigger.old) {
+                    if (dli.Delivery_Group__c != null) {
+                        deliveryGroupIds.add(dli.Delivery_Group__c);
+                    }
+                }
+                if (!deliveryGroupIds.isEmpty()) {
+                    for (Delivery_Group__c dg : [SELECT Id, Warehouse_Manager__c FROM Delivery_Group__c WHERE Id IN :deliveryGroupIds]) {
+                        orderIdToWarehouseManagerId.put(dg.Id, dg.Warehouse_Manager__c);
+                    }
+                }
                 for (Delivery_Line_Item__c dli : Trigger.old) {
                     Id orderItemId = dli.Sales_Order_Line_Item__c;
                     Id orderId = orderItemToOrderId.get(orderItemId);
@@ -56,13 +69,21 @@ trigger DeliveryLineItemTrigger on Delivery_Line_Item__c (
                     OrderItem oi = orderItemDetails.get(orderItemId);
                     String prodName = oi != null && oi.Product2 != null ? oi.Product2.Name : '';
                     String qty = oi != null && oi.Quantity != null ? String.valueOf(oi.Quantity) : '';
-                    if (ownerId != null) {
+                    // Find warehouse manager
+                    Id warehouseManagerId = null;
+                    if (dli.Delivery_Group__c != null && orderIdToWarehouseManagerId.containsKey(dli.Delivery_Group__c)) {
+                        warehouseManagerId = orderIdToWarehouseManagerId.get(dli.Delivery_Group__c);
+                    }
+                    Set<String> recipients = new Set<String>();
+                    if (ownerId != null) recipients.add(ownerId);
+                    if (warehouseManagerId != null) recipients.add(warehouseManagerId);
+                    if (!recipients.isEmpty()) {
                         Messaging.CustomNotification notif = new Messaging.CustomNotification();
-                        notif.setTitle('Delivery Line Item Deleted');
-                        notif.setBody('A Delivery Line Item was deleted for Order: ' + orderId + '. Product: ' + prodName + ', Quantity: ' + qty);
+                        notif.setTitle('Delivery Line Item Removed');
+                        notif.setBody('A Delivery Line Item was removed for Order: ' + orderId + '. Product: ' + prodName + ', Quantity: ' + qty);
                         notif.setNotificationTypeId(notifTypeId);
                         notif.setTargetId(orderId);
-                        notif.send(new Set<String>{ownerId});
+                        notif.send(recipients);
                     }
                 }
             }

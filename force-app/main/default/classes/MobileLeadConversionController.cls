@@ -838,14 +838,36 @@ public with sharing class MobileLeadConversionController {
             if (leadValue == null || (leadValue instanceof String && String.isBlank((String)leadValue))) {
                 continue;
             }
-
-            opportunityToUpdate.put(opportunityFieldName, leadValue);
-            shouldUpdateOpportunity = true;
+                // Fix: For Country__c, map label to API value
+                if (opportunityFieldName == 'Country__c') {
+                    String apiValue = getCountryApiValue(String.valueOf(leadValue));
+                    if (String.isNotBlank(apiValue)) {
+                        opportunityToUpdate.put(opportunityFieldName, apiValue);
+                        shouldUpdateOpportunity = true;
+                    }
+                } else {
+                    opportunityToUpdate.put(opportunityFieldName, leadValue);
+                    shouldUpdateOpportunity = true;
+                }
         }
 
         if (shouldUpdateOpportunity) {
             update opportunityToUpdate;
         }
+    }
+
+    // Helper: Map country label to API value
+    private static String getCountryApiValue(String labelOrApiValue) {
+        if (String.isBlank(labelOrApiValue)) {
+            return null;
+        }
+        String normalized = labelOrApiValue.trim().toLowerCase();
+        // India special case
+        if (normalized == 'india' || normalized == 'in') {
+            return 'IN';
+        }
+        // Add more mappings if needed, or query global value set if dynamic mapping is required
+        return labelOrApiValue;
     }
 
     private static Map<String, String> getLeadToOpportunityFieldMappings() {
