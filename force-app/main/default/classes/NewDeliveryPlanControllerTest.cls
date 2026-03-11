@@ -29,13 +29,13 @@ public class NewDeliveryPlanControllerTest {
         );
         insert pbe;
 
-        String district =
+   /*     String district =
             Order.District__c.getDescribe()
             .getPicklistValues()[0].getValue();
 
         String state =
             Order.State__c.getDescribe()
-            .getPicklistValues()[0].getValue();
+            .getPicklistValues()[0].getValue();*/
 
         // 1️⃣ Insert Draft
         Order ord = new Order(
@@ -45,9 +45,9 @@ public class NewDeliveryPlanControllerTest {
             Pricebook2Id = stdPricebookId,
             Warehouse__c = wh.Id,
             Contact_Person_Name__c = 'Test Contact',
-            AddressLine1__c = 'Address',
-            District__c = district,
-            State__c = state,
+        //    AddressLine1__c = 'Address',
+          //  District__c = district,
+           // State__c = state,
             Freight_Charge__c = 50,
             Loading_Charges__c = 20,
             Unloading_Charges__c = 10,

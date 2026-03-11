@@ -9,6 +9,7 @@
     <columns>Opportunity__c</columns>
     <columns>Payment_Status__c</columns>
     <columns>SaleOrder_Number__c</columns>
+    <columns>LAST_UPDATE</columns>
     <filterScope>Everything</filterScope>
     <label>All</label>
 </ListView>

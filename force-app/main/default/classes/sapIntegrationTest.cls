@@ -229,9 +229,9 @@ public class sapIntegrationTest {
             Status = 'Draft',
             Pricebook2Id = stdPricebookId,
             Warehouse__c = wh.Id,
-            AddressLine1__c = 'Order Address 1',
-            AddressLine2__c = 'Order Address 2',
-            AddressLine3__c = 'Order Address 3',
+      //      AddressLine1__c = 'Order Address 1',
+        //    AddressLine2__c = 'Order Address 2',
+          //  AddressLine3__c = 'Order Address 3',
             OwnerId = testUser.Id
         );
         insert ord;
@@ -410,7 +410,7 @@ public class sapIntegrationTest {
         Test.setMock(HttpCalloutMock.class, new MockSAPCalloutSuccess());
         
         Test.startTest();
-        sapIntegration.getInvoiceMaster();
+        sapIntegration.getInvoiceMaster('');
         Test.stopTest();
         
         // Verify invoices were created
@@ -465,9 +465,10 @@ public class sapIntegrationTest {
         Order ord = [SELECT Id, Name, OrderNumber, Order_Owner__c, AccountId, 
             Account.Name, Account.Customer_Number__c, Account.Customer_Type__c,
             Warehouse__r.Warehouse_Code__c, OpportunityId, OwnerId, SAP_Doc_Num__c,
-            Order_status__c, AddressLine1__c, AddressLine2__c, AddressLine3__c,
-            District__c, State__c, Country__c
+            Order_status__c
             FROM Order LIMIT 1];
+        //, AddressLine1__c, AddressLine2__c, AddressLine3__c,
+            //District__c, State__c, Country__c
         
         Test.startTest();
         sapIntegration.SAPOrderPayload payload = sapIntegration.buildPayload(ord);

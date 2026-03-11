@@ -189,16 +189,22 @@
         
     },
     
-    
+
     
     
     sendRequest : function(component, event, helper) {
+        var toastEvent = $A.get("e.force:showToast");
+        toastEvent.setParams({
+            "type": "warning",
+            "message": "Getting the Invoices..."
+        });
+        toastEvent.fire();
         component.set('v.spinner',true);
         var fromDate= component.get('v.fromDate');
         var selectedStatus= component.get('v.selectedStatus');
         var Warehouse= component.get('v.warehouse');
         
-        var action=component.get("c.callInvoices");
+        var action=component.get("c.getInvoiceMaster");
         action.setParams({
             "formattedDate":fromDate
         });

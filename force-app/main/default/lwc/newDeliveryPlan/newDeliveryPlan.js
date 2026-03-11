@@ -177,8 +177,9 @@ today;
             this.availableProducts = availableProductsResult.map(product => ({
                 ...product,
                 selected: false,
-                deliveryQuantity: product.Quantity,
-                displayName: `${product.Product2.Name} - Available: ${product.Quantity}`
+                pendingQty: product.Pending_Quantity1__c,
+                deliveryQuantity: product.Pending_Quantity1__c,
+                displayName: `${product.Product2.Name} - Available: ${product.Pending_Quantity1__c}`
             }));
             // Load driver picklist
             const driverPicklist = await getDriverPicklistOptions();
@@ -233,7 +234,7 @@ async loadRemarksFromSalesOrder() {
         if (product) {
             product.selected = event.target.checked;
             if (product.selected) {
-                product.deliveryQuantity = product.Quantity;
+                product.deliveryQuantity = product.pendingQty;
             }
             this.validateForm();
         }
@@ -255,8 +256,8 @@ async loadRemarksFromSalesOrder() {
             const newQuantity = parseFloat(product.deliveryQuantity);
             if (!newQuantity || newQuantity < 1) {
                 product.deliveryQuantity = 1;
-            } else if (newQuantity > product.Quantity) {
-                product.deliveryQuantity = product.Quantity;
+            } else if (newQuantity > product.pendingQty) {
+                product.deliveryQuantity = product.pendingQty;
                 this.showToast('Warning', 'Quantity cannot exceed available amount', 'warning');
             } else {
                 product.deliveryQuantity = newQuantity;
@@ -330,9 +331,10 @@ handleUnloadingChargeAmountChange(event) {
     validateForm() {    
         const hasSelectedProducts = this.availableProducts.some(product => product.selected);
         const hasValidQuantities = this.availableProducts.every(product => 
-            !product.selected || (product.deliveryQuantity > 0 && product.deliveryQuantity <= product.Quantity)
+            !product.selected || (product.deliveryQuantity > 0 && product.deliveryQuantity <= product.pendingQty)
         );
-      const hasRequiredFields = this.deliveryDate && this.selectedDriver && this.selectedVehicle && this.deliveryPriority;
+      const hasRequiredFields = this.deliveryDate && this.deliveryPriority;
+      //this.selectedDriver && this.selectedVehicle && 
         
         this.isCreateButtonDisabled = !(hasSelectedProducts && hasValidQuantities && hasRequiredFields);
     }

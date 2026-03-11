@@ -90,7 +90,7 @@
                 <field>POC_Email__c</field>
             </layoutItems>
             <layoutItems>
-                <behavior>Edit</behavior>
+                <behavior>Required</behavior>
                 <field>Pin_Code__c</field>
             </layoutItems>
             <layoutItems>

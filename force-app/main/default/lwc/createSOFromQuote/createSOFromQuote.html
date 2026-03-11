@@ -466,12 +466,14 @@
 
                         </tr>
                     </template>
-                    <template if:false={batchList.length}>
-                        <tr>
-                            <td colspan="7" class="slds-text-align_center slds-text-color_error slds-p-vertical_medium">
-                                ❌ No batch stock available.
-                            </td>
-                        </tr>
+                    <template if:true={isBatchLoaded}>
+                        <template if:false={batchList.length}>
+                            <tr>
+                                <td colspan="7" class="slds-text-align_center slds-text-color_error slds-p-vertical_medium">
+                                    ❌ No batch stock available.
+                                </td>
+                            </tr>
+                        </template>
                     </template>
                 </tbody>
 

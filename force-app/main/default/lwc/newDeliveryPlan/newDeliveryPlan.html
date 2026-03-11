@@ -116,13 +116,13 @@
                         <span class="compact-product-name slds-truncate" title={product.displayName} style="max-width: 300px;">
                             {product.displayName}
                         </span>
-                        <span class="available-qty">Available: {product.Quantity}</span>
+                        <span class="available-qty">Available: {product.pendingQty}</span>
                         <template if:true={product.selected}>
                             <lightning-input 
                                 type="number"
                                 value={product.deliveryQuantity}
                                 min="1"
-                                max={product.Quantity}
+                                max={product.pendingQty}
                                 onchange={handleDeliveryQuantityChange}
                                 onblur={handleDeliveryQuantityBlur}
                                 data-id={product.Id}
@@ -157,7 +157,7 @@
                   <div class="slds-form-element">
                     <lightning-input type="time" label="Delivery Time" value={deliveryTime} onchange={handleDeliveryTimeChange} class="custom-input"></lightning-input>
                   </div>
-                  <div class="slds-form-element">
+              <!--    <div class="slds-form-element">
                     <lightning-combobox name="vehicle" label="Vehicle Type" value={selectedVehicle}
                       placeholder="Select Vehicle Type" options={vehicleOptions} onchange={handleVehicleChange} class="custom-input">
                     </lightning-combobox>
@@ -181,14 +181,14 @@
                   <div class="slds-form-element">
                     <lightning-input type="number" label="Unloading Charge" value={unloadingAmount} onchange={handleUnloadingChargeAmountChange} class="custom-input"></lightning-input>
                   </div>
-
+-->
 
                   <div class="slds-form-element"> 
                     <lightning-combobox name="deliveryPriority" label="Delivery Priority" value={deliveryPriority} placeholder="Select Priority" options={deliveryPriorityOptions}  onchange={handleDeliveryPriorityChange}>
                   </lightning-combobox>
                 </div>
 
-                <div class="slds-form-element">
+           <!--    <div class="slds-form-element">
                 <lightning-textarea
                     label="Delivery Summary Note"
                     value={deliverySummaryNote}
@@ -196,7 +196,7 @@
                     placeholder="Enter delivery summary note"
                     class="custom-input">
                 </lightning-textarea>
-            </div>
+            </div>--> 
                   <div class="slds-form-element">
                    <lightning-textarea
                   label="Remarks"

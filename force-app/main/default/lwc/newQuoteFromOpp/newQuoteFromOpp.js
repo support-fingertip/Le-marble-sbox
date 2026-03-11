@@ -206,7 +206,7 @@ wiredAreaPicklist({ data, error }) {
             if (data) {
                 console.log('Pricebook Names fetched:', data);
                 this.priceNames = [
-                    { label: 'Select Pricebook', value: 'select' },
+                   // { label: 'Select Pricebook', value: 'select' },
                     ...data.map(priceName => ({
                         
                          label:

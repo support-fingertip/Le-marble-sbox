@@ -13,11 +13,8 @@ public class InvoiceMasterQueueable  implements Queueable, Database.AllowsCallou
             return;
         }
 
-        sapIntegration.getInvoiceMaster();
+        sapIntegration.getInvoiceMaster('');
 
-        // Do not re-enqueue in test context — avoids callout/delay governor issues.
-        if (!Test.isRunningTest()) {
-            System.enqueueJob(new InvoiceMasterQueueable(), 55 * 60);
-        }
+        System.enqueueJob(new InvoiceMasterQueueable(), 55 * 60);
     }
 }

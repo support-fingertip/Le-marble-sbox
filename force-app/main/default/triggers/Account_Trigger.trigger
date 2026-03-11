@@ -14,9 +14,17 @@ trigger Account_Trigger on Account (before insert, before update,after insert, a
         }
     }
       if(Trigger.isAfter && Trigger.isUpdate){
+        // Collect Accounts where GST_Number__c changed
+        List<Id> accountsWithGstChange = new List<Id>();
+        
         for (Account deal : Trigger.new) {
               Account oldDeal = Trigger.oldMap.get(deal.id);
             Account newDeal = deal;
+            
+            // Track GST changes to update related Opportunities
+            if (oldDeal.GST_Number__c != newDeal.GST_Number__c) {
+                accountsWithGstChange.add(newDeal.Id);
+            }
 
             if (
                 oldDeal.Email__c != newDeal.Email__c ||
@@ -50,6 +58,26 @@ trigger Account_Trigger on Account (before insert, before update,after insert, a
              System.enqueueJob(new SAPAccountSyncQueue(newDeal.Id));
             }
             
+        }
+        
+        // Update GST_Number__c on all related Opportunities when Account GST changes
+        if (!accountsWithGstChange.isEmpty()) {
+            Map<Id, Account> accountGstMap = new Map<Id, Account>([
+                SELECT Id, GST_Number__c FROM Account WHERE Id IN :accountsWithGstChange
+            ]);
+            List<Opportunity> oppsToUpdate = [
+                SELECT Id, AccountId, GST_Number__c 
+                FROM Opportunity 
+                WHERE AccountId IN :accountsWithGstChange
+            ];
+            for (Opportunity opp : oppsToUpdate) {
+                if (accountGstMap.containsKey(opp.AccountId)) {
+                    opp.GST_Number__c = accountGstMap.get(opp.AccountId).GST_Number__c;
+                }
+            }
+            if (!oppsToUpdate.isEmpty()) {
+                update oppsToUpdate;
+            }
         }
     }
 }

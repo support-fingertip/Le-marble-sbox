@@ -1,5 +1,8 @@
 public class QuoteTriggerHandler {
     
+    // Recursion control for Coordinator name update
+    private static Boolean isUpdatingCoordinator = false;
+    
     /*    public static void beforeInsert(List<Quote> newQuotes) {
 populateEmailFromPrimaryContact(newQuotes);
 }
@@ -111,6 +114,14 @@ q.Email = oppToEmail.get(q.OpportunityId);
     public static void sendNotification(Set<String> userIds,String title, String body, Id quoteId) {
             if (userIds.isEmpty()) return;
             
+            // Filter to only active users
+            Set<String> activeUserIds = new Set<String>();
+            for (User u : [SELECT Id FROM User WHERE Id IN :userIds AND IsActive = true]) {
+                activeUserIds.add(String.valueOf(u.Id));
+            }
+            
+            if (activeUserIds.isEmpty()) return;
+            
             CustomNotificationType notificationType = [
                 SELECT Id
                 FROM CustomNotificationType
@@ -126,12 +137,20 @@ q.Email = oppToEmail.get(q.OpportunityId);
             notification.setBody(body);
             notification.setTargetId(quoteId);
             
-            notification.send(userIds);
+            notification.send(activeUserIds);
         }
     
     public static void sendManagerNotification( Set<String> userIds, String title,String body, Id quoteId) {
             
             if (userIds.isEmpty()) return;
+            
+            // Filter to only active users
+            Set<String> activeUserIds = new Set<String>();
+            for (User u : [SELECT Id FROM User WHERE Id IN :userIds AND IsActive = true]) {
+                activeUserIds.add(String.valueOf(u.Id));
+            }
+            
+            if (activeUserIds.isEmpty()) return;
             
             CustomNotificationType notificationType = [ SELECT Id FROM CustomNotificationType WHERE DeveloperName = 'Quote_Created_Manager_Notification' LIMIT 1];
             
@@ -143,7 +162,7 @@ q.Email = oppToEmail.get(q.OpportunityId);
             notification.setBody(body);
             notification.setTargetId(quoteId);
             
-            notification.send(userIds);
+            notification.send(activeUserIds);
         }
     
     
@@ -246,6 +265,9 @@ q.Email = oppToEmail.get(q.OpportunityId);
     }
     
     public static void handleCustomerAcceptedNotification(List<Quote> newList,Map<Id, Quote> oldMap) {
+        // Prevent recursion when updating Coordinator_name__c
+        if (isUpdatingCoordinator) return;
+        
         Set<Id> oppIds = new Set<Id>();
         Map<Id, Quote> acceptedQuotes = new Map<Id, Quote>();
         Set<Id> ownIds = new Set<Id>();
@@ -273,7 +295,7 @@ q.Email = oppToEmail.get(q.OpportunityId);
         
         Map<Id, List<User>> managerToCoordinators = new Map<Id, List<User>>();
         
-        for (User u : [ SELECT Id, ManagerId FROM User WHERE ManagerId IN :managerIds AND Profile.Name = 'Coordinator' AND IsActive = true ]) {
+        for (User u : [ SELECT Id, Name, ManagerId FROM User WHERE ManagerId IN :managerIds AND Profile.Name = 'Coordinator' AND IsActive = true ]) {
             if (!managerToCoordinators.containsKey(u.ManagerId)) {
                 managerToCoordinators.put(u.ManagerId, new List<User>());
             }
@@ -283,7 +305,9 @@ q.Email = oppToEmail.get(q.OpportunityId);
         // 2. Fetch Opportunity → Account
         Map<Id, Opportunity> oppMap = new Map<Id, Opportunity>([SELECT Id, Account.Name FROM Opportunity WHERE Id IN :oppIds ]);
         
-        // 3. Notify internal user (Quote Owner)
+        // 3. Notify internal user (Quote Owner) and save Coordinator name
+        List<Quote> quotesToUpdate = new List<Quote>();
+        
         for (Quote q : acceptedQuotes.values()) {
             
             User owner = users.get(q.OwnerId);
@@ -292,16 +316,32 @@ q.Email = oppToEmail.get(q.OpportunityId);
             List<User> coordinators = managerToCoordinators.get(owner.ManagerId);
             if (coordinators == null || coordinators.isEmpty()) continue;
             
+            // Get the first Coordinator's name and save to Quote
+            String coordinatorName = coordinators[0].Name;
+            Quote quoteToUpdate = new Quote(Id = q.Id, Coordinator_name__c = coordinatorName);
+            quotesToUpdate.add(quoteToUpdate);
             
             Opportunity opp = oppMap.get(q.OpportunityId);
             String customerName =(opp != null && opp.Account != null)? opp.Account.Name: 'Customer';
             
-            Set<String> coordinatorIds = new Set<String>();
+            // Add Quote Owner and all Coordinators as notification recipients
+            Set<String> recipientIds = new Set<String>();
+            recipientIds.add(String.valueOf(q.OwnerId)); // Quote Owner
             for (User u : coordinators) {
-                coordinatorIds.add(u.Id);
+                recipientIds.add(u.Id); // Coordinators
             }
             
-            sendNotification( coordinatorIds,'Quote Accepted',customerName + ' has accepted the quote', q.Id );
+            sendNotification( recipientIds,'Quote Accepted',customerName + ' has accepted the quote', q.Id );
+        }
+        
+        // Update Quotes with Coordinator name
+        if (!quotesToUpdate.isEmpty()) {
+            isUpdatingCoordinator = true;
+            try {
+                update quotesToUpdate;
+            } finally {
+                isUpdatingCoordinator = false;
+            }
         }
     }
     

@@ -55,7 +55,7 @@
             <!-- Right -->
             <div class="header-right slds-col slds-size_1-of-1 slds-large-size_1-of-3">
             <div class="slds-grid slds-gutters">
-                <!-- Price Book -->
+                <!-- Price Book 
                 <div class="slds-col slds-size_1-of-2">
                     <label class="slds-form-element__label">Price Book</label>
                     <div class="slds-form-element__control">
@@ -74,8 +74,19 @@
                             </select>
                         </div>
                     </div>
-                </div>
+                </div>-->
 
+                <div class="slds-col slds-size_1-of-2">
+                  <div class="slds-col slds-small-size_1-of-1 slds-medium-size_6-of-12">
+                            <lightning-combobox
+                                label="Price Book"
+                                value={selectedPB}
+                                options={priceNames}
+                                onchange={handlePBSelect}
+                                required>
+                            </lightning-combobox>
+                        </div>
+                    </div>
                 <!-- Category -->
               
 
@@ -234,7 +245,9 @@
                                                         <td>{stk.warehouseCode}</td>
                                                         <td>{stk.Batch}</td>
                                                         <td>{stk.inStock}</td>
-                                                        <td>
+                                                        <td>{stk.reserved}</td>
+                                                        <td>{stk.billable}</td>
+                                                    <!--    <td>
                                                             <lightning-formatted-number
                                                                 value={stk.reserved}
                                                                 minimum-fraction-digits="2"
@@ -247,7 +260,7 @@
                                                                 minimum-fraction-digits="2"
                                                                 maximum-fraction-digits="2">
                                                             </lightning-formatted-number>
-                                                            </td>
+                                                            </td>-->
 
                                                     </tr>
                                                 </template>

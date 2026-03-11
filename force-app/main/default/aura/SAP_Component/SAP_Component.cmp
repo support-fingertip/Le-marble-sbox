@@ -176,7 +176,7 @@
             <!-- Table -->
              <aura:if isTrue="{!NOT(empty(v.stockList))}">
 
-            <div class="stock-table-wrapper slds-m-top_small">
+            <div class="stock-table-scroll-wrapper slds-m-top_small" style="overflow-x: auto; max-width: 100%;">
                 <table class="slds-table slds-table_bordered slds-table_cell-buffer">
                     <thead>
                         <tr>

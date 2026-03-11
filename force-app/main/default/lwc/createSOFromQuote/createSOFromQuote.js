@@ -120,7 +120,6 @@ wiredQuoteInfo({ error, data }) {
 
     @wire(getQuoteLineItems, { quoteId: '$recordId' })
     wiredQuoteLineItems({ error, data }) {
-    this.isQuoteItemsLoaded = true;
 
     if (data) {
         this.quoteLineItems = data.map(item => {
@@ -139,8 +138,10 @@ wiredQuoteInfo({ error, data }) {
                 category: item.PricebookEntry?.Product2?.Product_Category__c || 'N/A'
             };
         });
+        this.isQuoteItemsLoaded = true;
     } else if (error) {
         this.quoteLineItems = [];
+        this.isQuoteItemsLoaded = true;
         this.showToast(
             'Error',
             error.body?.message || 'Failed to fetch quote line items',

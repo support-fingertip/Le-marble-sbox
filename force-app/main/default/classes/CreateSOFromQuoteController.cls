@@ -75,7 +75,7 @@ public static Map<String, Object> getQuoteInfo(Id quoteId) {
     // 3. Create Order from Quote
     
     @AuraEnabled
-    public static Id createOrderFromQuote(Id quoteId , Id warehouseId,List<Id> selectedQuoteLineItemIds, Map<Id, Decimal> blockQtyMap,Map<Id, String> warehouseCodeMap, Date deliveryCommittedDate, String remarks,boolean credit, String batchJson) {
+    public static Id createOrderFromQuote(Id quoteId , Id warehouseId,List<Id> selectedQuoteLineItemIds, Map<Id, Decimal> blockQtyMap,Map<Id, String> warehouseCodeMap, Date deliveryCommittedDate, String remarks,boolean credit, String paymentMethod, String batchJson) {
      
         system.debug('quoteId>>'+quoteId);
          system.debug('warehouseId>>'+warehouseId);
@@ -90,13 +90,13 @@ public static Map<String, Object> getQuoteInfo(Id quoteId) {
             throw new AuraHandledException('Please select a Warehouse');
         }
             // Fetch Quote
-         Quote q = [SELECT Id, AccountId, OpportunityId,
+         Quote q = [SELECT Id, AccountId, OpportunityId,Contact_Person_Number__c,Contact_Person_Name__c, 
            Pricebook2Id,  Sales_Order_Created__c, Freight_Charge__c, Loading_Charge__c,Unloading_Charge__c,ContactId,Contact.Name,Contact.Phone,BillingStreet,BillingCity, BillingState, BillingPostalCode,
-           BillingCountry,ShippingStreet, ShippingCity, ShippingState, ShippingPostalCode, ShippingCountry, AddressLine1__c, AddressLine2__c, AddressLine3__c, District__c, State__c, Country__c,pin_code__c FROM Quote WHERE Id = :quoteId LIMIT 1];
-
+           BillingCountry,ShippingStreet, ShippingCity, ShippingState, ShippingPostalCode, ShippingCountry FROM Quote WHERE Id = :quoteId LIMIT 1];
+// AddressLine1__c, AddressLine2__c, AddressLine3__c, District__c, State__c, Country__c,pin_code__c
         Account acc = [ SELECT BillingStreet, BillingCity, BillingState, BillingPostalCode, BillingCountry FROM Account  WHERE Id = :q.AccountId LIMIT 1];
 
-        Contact con;
+   /*     Contact con;
         List<Contact> conList = [
             SELECT Id, Name, Phone
             FROM Contact
@@ -107,7 +107,7 @@ public static Map<String, Object> getQuoteInfo(Id quoteId) {
         if (!conList.isEmpty()) {
             con = conList[0];
         }
-
+*/
 
 
         // Fetch Warehouse Manager  PUT IT HERE
@@ -187,29 +187,31 @@ if (deliveryCommittedDate < Date.today()) {
             ord.Status = 'Draft';
         ord.Order_status__c = 'Draft';
 			ord.credit__c=credit;
-
-        
+            
+            // Set Payment Method if credit order
+            if (credit && String.isNotBlank(paymentMethod)) {
+                ord.Payment_methods__c = paymentMethod;
+            }
             ord.Product_Category__c = category;
 
            // ================= CONTACT PERSON (From Account) =================
-            if (con != null) {
+        /*    if (con != null) {
                 ord.Contact_Person_Name__c = con.Name;
 
                 if (con.Phone != null) {
-                  /*  String phoneDigits = con.Phone.replaceAll('[^0-9]', '');
-                    if (!String.isBlank(phoneDigits)) {
-                        ord.Contact_Person_Number__c = Decimal.valueOf(phoneDigits);
-                    }*/
                     ord.Contact_Person_Number__c = con.Phone ;
                 }
-}
+                }*/
+
+                ord.Contact_Person_Name__c =q.Contact_Person_Name__c;
+                ord.Contact_Person_Number__c =q.Contact_Person_Number__c;
 
            ord.BillingStreet     = q.BillingStreet;
             ord.BillingCity       = q.BillingCity;
             ord.BillingState      = q.BillingState;
            ord.BillingPostalCode = q.BillingPostalCode;
             ord.BillingCountry    = q.BillingCountry;
-            ord.ShippingStreet     = q.ShippingStreet;
+         /*   ord.ShippingStreet     = q.ShippingStreet;
             ord.ShippingCity       = q.ShippingCity;
             ord.ShippingState      = q.ShippingState;
             ord.ShippingPostalCode = q.ShippingPostalCode;
@@ -220,7 +222,7 @@ if (deliveryCommittedDate < Date.today()) {
             ord.District__c = q.District__c;
 ord.State__c    = q.State__c;
             ord.Country__c    = q.Country__c;
-		 ord.pin_code__c    = q.pin_code__c;
+		 ord.pin_code__c    = q.pin_code__c;*/
         
         
         if (String.isBlank(q.ShippingStreet)) {
@@ -369,6 +371,24 @@ ord.State__c    = q.State__c;
     public static List<String> getPaymentTypeOptions() {
         return new List<String>{ 'Cash', 'Credit' };
     }
+
+    // 5. Get Payment Methods Picklist Options (for Credit Orders)
+    @AuraEnabled(cacheable=true)
+    public static List<Map<String, String>> getPaymentMethodOptions() {
+        List<Map<String, String>> options = new List<Map<String, String>>();
+        Schema.DescribeFieldResult fieldResult = Order.Payment_methods__c.getDescribe();
+        List<Schema.PicklistEntry> picklistEntries = fieldResult.getPicklistValues();
+        for (Schema.PicklistEntry entry : picklistEntries) {
+            if (entry.isActive()) {
+                options.add(new Map<String, String>{
+                    'label' => entry.getLabel(),
+                    'value' => entry.getValue()
+                });
+            }
+        }
+        return options;
+    }
+
    @AuraEnabled(cacheable=true)
     public static List<Warehouse__c> getActiveWarehouses() {
     return [
@@ -496,7 +516,7 @@ public static List<Map<String, Object>> getBatchStock1(Id orderItemId) {
                         log.Error_Message__c = 'Status code : '+itemRes.getStatusCode()+ ' Error: Callout failed. Please review the response for additional details.';
                         
                         
-                    }
+                    }   
                     Map<String, Object> data = (Map<String, Object>) JSON.deserializeUntyped(itemRes.getBody());
                     List<Object> warehouseInfoList = (List<Object>) data.get('oMBatchStockLsts');
                     

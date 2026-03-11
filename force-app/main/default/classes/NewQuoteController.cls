@@ -97,7 +97,7 @@ throw new AuraHandledException(e.getMessage());
 }*/
     }
     
-    @AuraEnabled(cacheable=true)
+    @AuraEnabled
     public static List<OpportunityLineItem> getOpportunityItems(Id oppId, String pricebookName) {
         Pricebook2 pb = [
             SELECT Id FROM Pricebook2 WHERE Name = :pricebookName LIMIT 1
@@ -114,7 +114,7 @@ throw new AuraHandledException(e.getMessage());
         ];
     }
 
-  @AuraEnabled(cacheable=true)
+  @AuraEnabled
 public static Map<String,Object> getQuoteLineItems(Id quoteId){
 
     Quote q = [
@@ -184,12 +184,13 @@ public static Id updateQuoteCart(
     );
 
     update q;
-
+system.debug('deletedQLIIds>> '+deletedQLIIds);
     // Delete existing lines
     delete [SELECT Id FROM QuoteLineItem WHERE id IN:deletedQLIIds];
     
     List<QuoteLineItem> lineItems = new List<QuoteLineItem>();
     for(Map<String, Object> item : cartItems) {
+        system.debug('cartItems>> '+cartItems);
         try {
             if (item == null || !item.containsKey('id')) {
                 System.debug('Skipping null item or item without product ID');
@@ -201,7 +202,9 @@ public static Id updateQuoteCart(
                 Product2Id = (String)item.get('id'),
                 PricebookEntryId =(String)item.get('pricebookEntryId')
             );
-            
+            if((String)item.get('qliId')!=null){
+                lineItem.id=(String)item.get('qliId');
+            }
             
             if(item.containsKey('totalPrice')) {
                 lineItem.Calculated_Total_Price__c = safeDecimalConversion(item.get('totalPrice'));
@@ -305,7 +308,7 @@ lineItem.Sqft__c = safeDecimalConversion(item.get('sqft'));
     string customerId=[select id,opportunityId from quote where id=:quoteId ].opportunityId;
     if(!lineItems.isEmpty()) {
         try {
-            insert lineItems;
+            upsert lineItems;
        
             List<Quote> quotesToUpdate = [
                 SELECT Id, Approval_Status__c 
@@ -464,13 +467,13 @@ lineItem.Sqft__c = safeDecimalConversion(item.get('sqft'));
                                         cart.Email=oppParent.Account.Email__c;
                                         cart.Phone=oppParent.Account.Phone;
                                         
-                                        cart.AddressLine1__c= oppParent.AddressLine1__c;
+                                     /*   cart.AddressLine1__c= oppParent.AddressLine1__c;
                                         cart.AddressLine2__c= oppParent.AddressLine2__c;
                                         cart.AddressLine3__c= oppParent.AddressLine3__c;
                                         cart.District__c= oppParent.District__c;
                                         cart.State__c= oppParent.State__c;
                                         cart.Country__c= oppParent.country__c;
-                                        cart.pin_code__c= oppParent.pin_code__c;
+                                        cart.pin_code__c= oppParent.pin_code__c;*/
                                         cart.Quote_Category__c = oppParent.Product_Category__c;
                                         cart.ExpirationDate=system.today().addDays(14);
                                         

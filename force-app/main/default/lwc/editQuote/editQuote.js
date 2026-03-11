@@ -21,7 +21,7 @@ export default class Edit_Quote extends NavigationMixin(LightningElement) {
     @track selectedPB = '';
     @track isEditMode = false;
 quoteId = null;
-
+deletedQLIIds=[];
     pbEntries = [];
     pbEntryMap = new Map();
     pbEntryIdMap = new Map();

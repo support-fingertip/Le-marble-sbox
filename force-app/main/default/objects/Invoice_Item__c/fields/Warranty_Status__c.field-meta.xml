@@ -3,7 +3,9 @@
     <fullName>Warranty_Status__c</fullName>
     <externalId>false</externalId>
     <formula>IF(
-    ISBLANK(Product__r.Warranty__c),
+    OR(
+    ISBLANK(Product__c),
+    ISBLANK(Product__r.Warranty__c)),
     &quot;&quot;,
     IF(
         ((YEAR(TODAY()) - YEAR(Invoice__r.Invoice_Date__c)) * 12 +
@@ -13,7 +15,7 @@
     )
 )</formula>
     <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
-    <label>Warranty_Status</label>
+    <label>Warranty Status</label>
     <required>false</required>
     <trackHistory>false</trackHistory>
     <trackTrending>false</trackTrending>
