@@ -184,13 +184,12 @@ public static Id updateQuoteCart(
     );
 
     update q;
-system.debug('deletedQLIIds>> '+deletedQLIIds);
+
     // Delete existing lines
     delete [SELECT Id FROM QuoteLineItem WHERE id IN:deletedQLIIds];
     
     List<QuoteLineItem> lineItems = new List<QuoteLineItem>();
     for(Map<String, Object> item : cartItems) {
-        system.debug('cartItems>> '+cartItems);
         try {
             if (item == null || !item.containsKey('id')) {
                 System.debug('Skipping null item or item without product ID');
@@ -202,10 +201,12 @@ system.debug('deletedQLIIds>> '+deletedQLIIds);
                 Product2Id = (String)item.get('id'),
                 PricebookEntryId =(String)item.get('pricebookEntryId')
             );
-            if((String)item.get('qliId')!=null){
-                lineItem.id=(String)item.get('qliId');
-            }
             
+              if((String)item.get('qliId')!=null){
+
+                lineItem.id=(String)item.get('qliId');
+
+            }
             if(item.containsKey('totalPrice')) {
                 lineItem.Calculated_Total_Price__c = safeDecimalConversion(item.get('totalPrice'));
             }
@@ -338,7 +339,7 @@ lineItem.Sqft__c = safeDecimalConversion(item.get('sqft'));
     return quoteId;
 }
     
-    @AuraEnabled(cacheable=true)
+    @AuraEnabled
     public static List<Quote> getPendingQuotes(Id oppId){
         return [
             SELECT Id, Name 

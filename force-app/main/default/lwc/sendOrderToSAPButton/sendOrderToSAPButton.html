@@ -1,0 +1,13 @@
+<template>
+    <lightning-button
+        variant="brand"
+        label="Send to SAP"
+        title="Send Order to SAP"
+        icon-name="utility:upload"
+        onclick={handleSendToSAP}
+        disabled={isLoading}
+    ></lightning-button>
+    <template if:true={isLoading}>
+        <lightning-spinner alternative-text="Sending..." size="small" class="slds-m-left_small"></lightning-spinner>
+    </template>
+</template>

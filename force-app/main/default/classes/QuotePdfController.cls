@@ -38,7 +38,7 @@ public with sharing class QuotePdfController {
 
         // Fetch the complete Quote record with all related fields you might need
         List<Quote> qList = [
-        SELECT Id, Name, AccountId, OpportunityId,
+        SELECT Id, Name,Quote_Number__c, AccountId, OpportunityId,account.Customer_Number__c,
          Freight_Charge__c, Loading_Charge__c, Unloading_Charge__c,Round_Off__c,
         Total_Amount1__c, Subtotal, TotalPrice, GrandTotal, Discount,
         Email, Phone, Fax,

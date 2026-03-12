@@ -138,6 +138,10 @@
                 <behavior>Readonly</behavior>
                 <field>Order_Number__c</field>
             </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>Against_Order__c</field>
+            </layoutItems>
         </layoutColumns>
         <layoutColumns>
             <layoutItems>

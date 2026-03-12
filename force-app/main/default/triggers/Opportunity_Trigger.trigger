@@ -19,15 +19,35 @@ trigger Opportunity_Trigger on Opportunity (before insert, before update) {
    
    
     if(trigger.isinsert){   
-         Set<Id> accountId = new Set<Id>();
+        Set<Id> accountId = new Set<Id>();
         for (Opportunity opp : Trigger.new) {
             if (opp.AccountId != null) {
                 accountId.add(opp.AccountId);
             }
         }
-        Map<Id, Account> accMap = new Map<Id, Account>([SELECT Id, Name, GST_Number__c FROM Account WHERE Id IN :accountId]);
-        
+        Map<Id, Account> accMap = new Map<Id, Account>([
+            SELECT Id, Name, GST_Number__c,
+                Address_Line1__c, Address_Line2__c, Address_Line3__c, Corporation__c, Country__c, District__c, Municipality__c, Panchayath__c, State__c, Village__c, pin_code__c
+            FROM Account WHERE Id IN :accountId
+        ]);
+
         for (Opportunity opp : Trigger.new) {
+            // Copy address fields if checkbox is checked
+            if (opp.Same_as_Account_Ship_Address__c && opp.AccountId != null && accMap.containsKey(opp.AccountId)) {
+                Account acc = accMap.get(opp.AccountId);
+                opp.AddressLine1__c = acc.Address_Line1__c;
+                opp.AddressLine2__c = acc.Address_Line2__c;
+                opp.AddressLine3__c = acc.Address_Line3__c;
+                opp.Corporation__c = acc.Corporation__c;
+                opp.Country__c = acc.Country__c;
+                opp.District__c = acc.District__c;
+                opp.Municipality__c = acc.Municipality__c;
+                opp.Panchayath__c = acc.Panchayath__c;
+                opp.State__c = acc.State__c;
+                opp.Village__c = acc.Village__c;
+                opp.pin_code__c = acc.pin_code__c;
+            }
+            // ...existing code for naming and GST...
             string dt;
             if(opp.createddate!=null){
                 dt=string.valueof(opp.createddate.date());     
@@ -48,7 +68,6 @@ trigger Opportunity_Trigger on Opportunity (before insert, before update) {
             }
             newName += ' - ' + dt;
             opp.Name = newName;
-            
             // Map GST Number from Account to Opportunity on insert
             if (opp.AccountId != null && accMap.containsKey(opp.AccountId)) {
                 opp.GST_Number__c = accMap.get(opp.AccountId).GST_Number__c;

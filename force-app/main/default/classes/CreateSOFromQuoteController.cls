@@ -350,11 +350,11 @@ ord.State__c    = q.State__c;
                 insert batchRecords;
             }
         }
-        if(ord.credit__c==false){
+       /* if(ord.credit__c==false){
             ord.Status = 'Approved';
              ord.order_Status__c = 'Approved';
             update ord;
-        }
+        }*/
             return ord.Id;
 
         

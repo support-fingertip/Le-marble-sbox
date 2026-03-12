@@ -628,6 +628,17 @@ public class sapIntegration {
 
         
     }*/
+
+    @AuraEnabled
+    public static String sendOrderToSAPFromButton(Id orderId) {
+        try {
+            System.enqueueJob(new SendOrderToSAPQueueable(orderId));
+            return 'Order has been queued for SAP submission.';
+        } catch (Exception e) {
+            throw new AuraHandledException(e.getMessage());
+        }
+    }
+
     @future(callout=true)
     public static void sendOrderToSAP(Id order) {
         Order ord = [
@@ -635,6 +646,7 @@ public class sapIntegration {
                 id,
                 name,
                 OrderNumber,
+                Sales_Order_Number__c,
                 Order_Owner__c,
                 accountId,
                 account.name,
@@ -652,7 +664,7 @@ public class sapIntegration {
                 opportunity.State__c,
                 opportunity.Country__c,
                 opportunity.pin_code__c,
-                opportunity.Sale_Type__c,
+                opportunity.Sale_Type__c,Against_Order__c ,
             Freight_Charge__c,
             Loading_Charges__c,
             Unloading_Charges__c
@@ -673,14 +685,14 @@ public class sapIntegration {
        
         addressee.add(UserInfo.getUserId());
         System.debug('Order '+ord);
-        notification.setTitle('Order :'+ord.OrderNumber);
-        String NotificationBody =  'Order Id : ' + ord.OrderNumber +'\nOrder created by : ' + ord.account.name;
+        notification.setTitle('Order :'+ord.Sales_Order_Number__c);
+        String NotificationBody =  'Order Id : ' + ord.Sales_Order_Number__c +'\nOrder created by : ' + ord.account.name;
         if( ord.account.name != null ) {
             NotificationBody += '\nCustomer Name : ' + ord.account.name ;
         }
         String sessionId=loginToSAP();
         if(sessionId!=null){              
-            log.Request_Type__c ='Order -'+ord.OrderNumber;
+            log.Request_Type__c ='Order -'+ord.Sales_Order_Number__c;
             SAPOrderPayload body= buildPayload(ord);
             System.debug('Full SAP payload: ' + JSON.serialize(body));
             HttpRequest req = new HttpRequest();
@@ -802,7 +814,7 @@ public class sapIntegration {
             //public String StartDeliveryTime;
             //public String EndDeliveryDate;
             
-            // public String EndDeliveryTime;
+                public Boolean U_AgainstOrdr;
             public String U_TYPE;
             public String U_Approval;
             public String U_DELIVERY_TIME;
@@ -894,7 +906,7 @@ public class sapIntegration {
         payload.SalesPersonCode = oppOwnId;
         payload.DocumentsOwner = ordOwnId;
         // Set ShipToCode from AddressLine1__c
-   //     payload.ShipToCode = order.AddressLine1__c;
+        payload.ShipToCode = order.opportunity.AddressLine1__c;
         // Build BPAddresses for Ship To
         BPAddress shipAddr = new BPAddress();
         shipAddr.AddressName = order.opportunity.AddressLine1__c;
@@ -906,7 +918,7 @@ public class sapIntegration {
         shipAddr.Country = order.opportunity.Country__c;
         payload.BPAddresses = new List<BPAddress>{ shipAddr };
              payload.DocumentAdditionalExpenses = new List<DocumentAdditionalExpenses>();
-        
+        payload.U_AgainstOrdr = order.Against_Order__c ? true : false;
         
 			string TaxCode;
         	if(order.opportunity.State__c=='KL'){
@@ -917,20 +929,20 @@ public class sapIntegration {
             }
       DocumentAdditionalExpenses dc= new DocumentAdditionalExpenses();      
         	dc.ExpenseCode = 1;
-            dc.LineTotal = order.Freight_Charge__c;
+            dc.LineTotal = order.Freight_Charge__c!=null?order.Freight_Charge__c:0;
             dc.TaxCode = TaxCode;
           payload.DocumentAdditionalExpenses.add(dc);   
         
    DocumentAdditionalExpenses dc1= new DocumentAdditionalExpenses();             
-            dc.ExpenseCode = 2;
-            dc.LineTotal = order.Loading_Charges__c;
-            dc.TaxCode = TaxCode;
+            dc1.ExpenseCode = 2;
+            dc1.LineTotal = order.Loading_Charges__c!=null?order.Loading_Charges__c:0;
+            dc1.TaxCode = TaxCode;
         payload.DocumentAdditionalExpenses.add(dc1);
         
   DocumentAdditionalExpenses dc2= new DocumentAdditionalExpenses();              
-            dc.ExpenseCode = 3;
-            dc.LineTotal = order.Unloading_Charges__c;
-            dc.TaxCode = TaxCode;
+            dc2.ExpenseCode = 3;
+            dc2.LineTotal = order.Unloading_Charges__c!=null?order.Unloading_Charges__c:0;
+            dc2.TaxCode = TaxCode;
 			payload.DocumentAdditionalExpenses.add(dc2);
         
         payload.DocumentLines = new List<DocumentLine>();
