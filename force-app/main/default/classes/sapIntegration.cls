@@ -151,10 +151,10 @@ public class sapIntegration {
            } 
            else if(deal.BillingState != null && deal.BillingState.length() == 2){ 
                 if(deal.BillingState=='KA'){
-                        deal.BillingState='KT';
+                        bStateCode='KT';
                 }
                 else if(deal.BillingState=='DH'){
-                        deal.BillingState='DN';
+                        bStateCode='DN';
                 }
            }
             // Build BPAddresses[]
@@ -393,7 +393,14 @@ public class sapIntegration {
            if(deal.BillingState != null && deal.BillingState.length() > 2){ 
              stateCode = getStateCode(deal.BillingState);
            } 
-            
+             else if(deal.BillingState != null && deal.BillingState.length() == 2){ 
+                if(deal.BillingState=='KA'){
+                        stateCode='KT';
+                }
+                else if(deal.BillingState=='DH'){
+                        stateCode='DN';
+                }
+           }
            
         string gstT='';
             
@@ -814,7 +821,7 @@ public class sapIntegration {
             //public String StartDeliveryTime;
             //public String EndDeliveryDate;
             
-                public Boolean U_AgainstOrdr;
+                public String U_AgainstOrdr;
             public String U_TYPE;
             public String U_Approval;
             public String U_DELIVERY_TIME;
@@ -918,7 +925,7 @@ public class sapIntegration {
         shipAddr.Country = order.opportunity.Country__c;
         payload.BPAddresses = new List<BPAddress>{ shipAddr };
              payload.DocumentAdditionalExpenses = new List<DocumentAdditionalExpenses>();
-        payload.U_AgainstOrdr = order.Against_Order__c ? true : false;
+        payload.U_AgainstOrdr = order.Against_Order__c ? 'Y' : 'N';
         
 			string TaxCode;
         	if(order.opportunity.State__c=='KL'){
@@ -966,7 +973,7 @@ public class sapIntegration {
                 
                 DocumentLine dl = new DocumentLine();
                 dl.ItemCode = oi.PricebookEntry.Product2.Product_Code__c;
-                dl.WarehouseCode = oi.Warehouse__r.Warehouse_Code__c;
+                dl.WarehouseCode = oi.Warehouse__r.Warehouse_Code__c != null ? oi.Warehouse__r.Warehouse_Code__c : order.Warehouse__r.Warehouse_Code__c;
                 dl.UnitPrice = unitPriceBeforeTax.setScale(2);
                 //   dl.Quantity = oi.Quantity;
                 dl.Price = priceFieldValue;

@@ -1,6 +1,8 @@
 import { LightningElement, wire, api, track } from 'lwc';
+import { CurrentPageReference } from 'lightning/navigation';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import searchSalesConfirmations from '@salesforce/apex/NewDeliveryPlanController.searchSalesOrders';
+import getOrderById from '@salesforce/apex/NewDeliveryPlanController.getOrderById';
 import getAvailableProducts from '@salesforce/apex/NewDeliveryPlanController.getAvailableProducts';
 import createDeliveryGroup from '@salesforce/apex/NewDeliveryPlanController.createDeliveryGroup';
 import getVehicleTypeOptions from '@salesforce/apex/NewDeliveryPlanController.getVehicleTypeOptions';
@@ -45,6 +47,62 @@ export default class NewDeliveryPlan extends LightningElement {
     @track vehicleNumberOptions = [];
     @api recordId;
 today;
+
+  @wire(CurrentPageReference)
+    handlePageReference(pageRef) {
+        if (pageRef && pageRef.state && pageRef.state.c__orderId) {
+            const orderId = pageRef.state.c__orderId;
+            if (orderId !== this.selectedSalesConfirmationId) {
+                this.loadOrderById(orderId);
+            }
+        }
+    }
+
+    async loadOrderById(orderId) {
+        try {
+            const sc = await getOrderById({ orderId: orderId });
+            if (sc) {
+                this.selectedSalesConfirmationId = sc.Id;
+                this.selectedQuoteId = sc.QuoteId;
+                this.searchTerm = sc.OrderNumber + (sc.Product_Category__c ? ` (${sc.Product_Category__c})` : '');
+                this.selectedSalesConfirmation = {
+                    name: sc.OrderNumber,
+                    quoteName: sc.Quote_Name__c,
+                    company: sc.Account ? sc.Account.Name : '',
+                    orderOwner: sc.Order_Owner__c,
+                    phone: sc.Phone__c,
+                    address: {
+                        street: sc.BillingStreet,
+                        city: sc.BillingCity,
+                        state: sc.BillingState,
+                        postalCode: sc.BillingPostalCode,
+                        country: sc.BillingCountry
+                    },
+                    totalAmount: sc.TotalAmount,
+                    warehouse: sc.Warehouse__c,
+                    productCategory: sc.Product_Category__c,
+                    QuoteId: sc.QuoteId,
+                    cartLineItems: sc.OrderItems || []
+                };
+                this.salesConfirmations = [];
+                this.freightTouched = false;
+                this.loadingTouched = false;
+                this.unloadingTouched = false;
+                this.freightAmount = null;
+                this.unloadingAmount = null;
+                this.loadingAmount = null;
+                this.loadInitialData();
+                this.deliverySummaryNote = '';
+                this.loadFreightFromSalesOrder();
+                this.loadRemarksFromSalesOrder();
+                this.loadLoadingFromSalesOrder();
+                this.loadUnloadingFromSalesOrder();
+            }
+        } catch (error) {
+            this.showToast('Error', error.body?.message || 'Failed to load order', 'error');
+        }
+    }
+
   connectedCallback() {
         // YYYY-MM-DD (required by lightning-input type="date")
         this.today = new Date().toISOString().split('T')[0];

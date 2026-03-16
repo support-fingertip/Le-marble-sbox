@@ -477,5 +477,20 @@ q.Email = oppToEmail.get(q.OpportunityId);
         
         notification.send(userIds);
     }
-    
+    public static void syncQuoteToOpportunity(List<Quote> newList, Map<Id, Quote> oldMap) {
+        Map<Id, Id> oppToQuoteMap = new Map<Id, Id>();
+
+        for (Quote q : newList) {
+            Quote oldQ = oldMap.get(q.Id);
+            if (q.Status == 'Accepted' && oldQ.Status != 'Accepted'
+                && q.OpportunityId != null && !q.IsSyncing) {
+                oppToQuoteMap.put(q.OpportunityId, q.Id);
+            }
+        }
+
+        if (!oppToQuoteMap.isEmpty()) {
+            System.enqueueJob(new SyncQuoteToOppQueueable(oppToQuoteMap));
+        }
+    }
+
 }

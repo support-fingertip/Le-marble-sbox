@@ -1,13 +1,15 @@
-import { LightningElement, api } from 'lwc';
+import { LightningElement, api, track } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import sendOrderToSAPFromButton from '@salesforce/apex/sapIntegration.sendOrderToSAPFromButton';
 
 export default class SendOrderToSAPButton extends LightningElement {
     @api recordId;
-    isLoading = false;
+    @track isLoading = false;
+    @track isButtonVisible = true;
 
     handleSendToSAP() {
         this.isLoading = true;
+        this.isButtonVisible = false;
         sendOrderToSAPFromButton({ orderId: this.recordId })
             .then((result) => {
                 this.dispatchEvent(

@@ -357,4 +357,23 @@ public static Decimal getSalesOrderUnloading(Id salesOrderId) {
     ];
     return so.Unloading_Charges__c;
 }
+
+@AuraEnabled
+public static Order getOrderById(Id orderId) {
+    try {
+        return [
+            SELECT Id, Name, Account.Name, OrderNumber,
+                   Phone__c, QuoteId, Quote_Name__c, Order_Owner__c,
+                   BillingStreet, BillingCity, Product_Category__c, Sales_Order_Number__c,
+                   BillingPostalCode, TotalAmount, BillingState, BillingCountry, Warehouse__c,
+                   (SELECT Id, Product2.Name, Quantity, UnitPrice
+                    FROM OrderItems)
+            FROM Order
+            WHERE Id = :orderId
+            LIMIT 1
+        ];
+    } catch (Exception e) {
+        throw new AuraHandledException(e.getMessage());
+    }
+}
 }

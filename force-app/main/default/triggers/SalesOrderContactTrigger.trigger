@@ -1,4 +1,10 @@
-trigger SalesOrderContactTrigger on Order (after update, after insert) {
+trigger SalesOrderContactTrigger on Order (after update, after insert, before delete) {
+
+    // Handle before delete: reset QuoteLineItem.Order_Created__c
+    if (Trigger.isDelete && Trigger.isBefore) {
+        SalesOrderTriggerHandler.resetQuoteLineItemsOnOrderDelete(Trigger.old);
+        return;
+    }
 
     if (SalesOrderTriggerHandler.isRunning) {
         return;

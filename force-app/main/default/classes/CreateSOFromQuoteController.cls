@@ -75,7 +75,7 @@ public static Map<String, Object> getQuoteInfo(Id quoteId) {
     // 3. Create Order from Quote
     
     @AuraEnabled
-    public static Id createOrderFromQuote(Id quoteId , Id warehouseId,List<Id> selectedQuoteLineItemIds, Map<Id, Decimal> blockQtyMap,Map<Id, String> warehouseCodeMap, Date deliveryCommittedDate, String remarks,boolean credit, String paymentMethod, String batchJson) {
+    public static Id createOrderFromQuote(Id quoteId , Id warehouseId,List<Id> selectedQuoteLineItemIds, Map<Id, Decimal> blockQtyMap,Map<Id, String> warehouseCodeMap, Date deliveryCommittedDate, String remarks,boolean credit, String paymentMethod, String batchJson,boolean againstOrder) {
      
         system.debug('quoteId>>'+quoteId);
          system.debug('warehouseId>>'+warehouseId);
@@ -193,6 +193,7 @@ if (deliveryCommittedDate < Date.today()) {
                 ord.Payment_methods__c = paymentMethod;
             }
             ord.Product_Category__c = category;
+            ord.Against_Order__c = againstOrder;
 
            // ================= CONTACT PERSON (From Account) =================
         /*    if (con != null) {
@@ -244,7 +245,7 @@ ord.State__c    = q.State__c;
         ord.Freight_Charge__c     = q.Freight_Charge__c;
         ord.Loading_Charges__c   = q.Loading_Charge__c;
         ord.Unloading_Charges__c = q.Unloading_Charge__c;
-        
+
         
         ord.Warehouse_Manager__c = wh.Warehouse_Manager__c;
         insert ord;
@@ -281,6 +282,7 @@ ord.State__c    = q.State__c;
             for (QuoteLineItem qli : qlis) {
                 OrderItem oi = new OrderItem();
                 oi.OrderId          = ord.Id;
+                oi.QuoteLineItemId  = qli.Id;
                 oi.PricebookEntryId = qli.PricebookEntryId;
                 oi.Quantity         = qli.Quantity;
                 oi.UnitPrice        = qli.UnitPrice;
@@ -350,11 +352,11 @@ ord.State__c    = q.State__c;
                 insert batchRecords;
             }
         }
-       /* if(ord.credit__c==false){
+        if(ord.credit__c==false){
             ord.Status = 'Approved';
              ord.order_Status__c = 'Approved';
             update ord;
-        }*/
+        }
             return ord.Id;
 
         

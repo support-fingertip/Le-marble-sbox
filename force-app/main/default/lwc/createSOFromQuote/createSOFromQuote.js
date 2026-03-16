@@ -51,8 +51,13 @@ export default class CreateSOFromQuote extends NavigationMixin(LightningElement)
         address: '',
         executive: ''
     };
-    
+    @track againstOrder = false;
     isBatchModalOpen = false;
+
+        handleAgainstOrderChange(event) {
+            this.againstOrder = event.target.checked;
+            console.log('Against Order:', this.againstOrder);
+        }
     batchList = [];
     batchQtyMap = {};
     selectedOrderItemId;
@@ -573,17 +578,18 @@ wiredQuoteInfo({ error, data }) {
 
 
     const orderId = await createOrderFromQuote({
-    quoteId: this.recordId,
-    warehouseId: this.selectedWarehouse,
-    selectedQuoteLineItemIds: selectedItems.map(i => i.Id),
-    blockQtyMap: blockQtyMap,
-    warehouseCodeMap: warehouseCodeMap,
-    deliveryCommittedDate: this.deliveryCommittedDate,
-    remarks: this.remarks,
-    credit : this.credit,
-    paymentMethod: this.selectedPaymentMethod,
-    batchJson: JSON.stringify(batchPayload)
-});
+        quoteId: this.recordId,
+        warehouseId: this.selectedWarehouse,
+        selectedQuoteLineItemIds: selectedItems.map(i => i.Id),
+        blockQtyMap: blockQtyMap,
+        warehouseCodeMap: warehouseCodeMap,
+        deliveryCommittedDate: this.deliveryCommittedDate,
+        remarks: this.remarks,
+        credit: this.credit,
+        paymentMethod: this.selectedPaymentMethod,
+        batchJson: JSON.stringify(batchPayload),
+        againstOrder: this.againstOrder
+    });
         this.showToast(
             'Success',
             'Sales Order created successfully',
