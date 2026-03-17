@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CompactLayout xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>New_SO_Compact</fullName>
+    <fields>OrderNumber</fields>
+    <fields>AccountId</fields>
+    <fields>Pricebook2Id</fields>
+    <fields>EffectiveDate</fields>
+    <fields>Status</fields>
+    <fields>TotalAmount</fields>
+    <label>New SO Compact</label>
+</CompactLayout>

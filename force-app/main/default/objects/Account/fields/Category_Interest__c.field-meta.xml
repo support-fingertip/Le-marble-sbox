@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Category_Interest__c</fullName>
+    <externalId>false</externalId>
+    <label>Category Interest</label>
+    <required>false</required>
+    <trackFeedHistory>false</trackFeedHistory>
+    <trackHistory>true</trackHistory>
+    <type>MultiselectPicklist</type>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Roofing Solution and Clay products</fullName>
+                <default>false</default>
+                <label>Roofing Solution and Clay products</label>
+            </value>
+            <value>
+                <fullName>Tiles</fullName>
+                <default>false</default>
+                <label>Tiles</label>
+            </value>
+            <value>
+                <fullName>Sanitary ware</fullName>
+                <default>false</default>
+                <label>Sanitary ware</label>
+            </value>
+            <value>
+                <fullName>Adhesives</fullName>
+                <default>false</default>
+                <label>Adhesives</label>
+            </value>
+            <value>
+                <fullName>Imported Marble, Granite and Natural Stones</fullName>
+                <default>false</default>
+                <label>Imported Marble, Granite and Natural Stones</label>
+            </value>
+            <value>
+                <fullName>Surface care</fullName>
+                <default>false</default>
+                <label>Surface care</label>
+            </value>
+            <value>
+                <fullName>Timber / Wooden flooring</fullName>
+                <default>false</default>
+                <label>Timber / Wooden flooring</label>
+            </value>
+            <value>
+                <fullName>Glass Bricks</fullName>
+                <default>false</default>
+                <label>Glass Bricks</label>
+            </value>
+            <value>
+                <fullName>Lighting Solutions</fullName>
+                <default>false</default>
+                <label>Lighting Solutions</label>
+            </value>
+            <value>
+                <fullName>Others</fullName>
+                <default>false</default>
+                <label>Others</label>
+            </value>
+            <value>
+                <fullName>Fitting Solutions</fullName>
+                <default>false</default>
+                <label>Fitting Solutions</label>
+            </value>
+            <value>
+                <fullName>Paints</fullName>
+                <default>false</default>
+                <label>Paints</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+    <visibleLines>4</visibleLines>
+</CustomField>

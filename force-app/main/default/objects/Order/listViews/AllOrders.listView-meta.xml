@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ListView xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>AllOrders</fullName>
+    <columns>Order_Number__c</columns>
+    <columns>SALES.ACCOUNT.NAME</columns>
+    <columns>ORDERS.TOTAL_AMOUNT</columns>
+    <columns>ORDERS.EFFECTIVE_DATE</columns>
+    <columns>SAP_Doc_Num__c</columns>
+    <columns>QUOTE.NAME</columns>
+    <columns>CONTRACT.CONTRACT_NUMBER</columns>
+    <columns>ORDERS.CREATED_DATE</columns>
+    <columns>Order_Owner__c</columns>
+    <columns>Delivered_Quantity__c</columns>
+    <columns>Grand_Total__c</columns>
+    <columns>Total_Quantity__c</columns>
+    <filterScope>Everything</filterScope>
+    <label>All Orders</label>
+</ListView>

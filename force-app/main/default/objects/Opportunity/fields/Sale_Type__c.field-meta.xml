@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Sale_Type__c</fullName>
+    <description>Type of Sale: Retail, Project, Not for Sales, FGS</description>
+    <externalId>false</externalId>
+    <label>Sale Type</label>
+    <required>false</required>
+    <trackFeedHistory>false</trackFeedHistory>
+    <trackHistory>false</trackHistory>
+    <type>Picklist</type>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>RETAIL</fullName>
+                <default>true</default>
+                <label>RETAIL</label>
+            </value>
+            <value>
+                <fullName>PROJECT</fullName>
+                <default>false</default>
+                <label>PROJECT</label>
+            </value>
+            <value>
+                <fullName>NOT FOR SALE</fullName>
+                <default>false</default>
+                <label>NOT FOR SALE</label>
+            </value>
+            <value>
+                <fullName>FGS</fullName>
+                <default>false</default>
+                <label>FGS</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>
