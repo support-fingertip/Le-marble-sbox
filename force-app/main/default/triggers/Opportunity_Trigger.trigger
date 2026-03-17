@@ -5,22 +5,18 @@ trigger Opportunity_Trigger on Opportunity (before insert, before update) {
     }
     
     // VALIDATE PIN CODE AND STATE ARE MANDATORY ON INSERT
-    if (Trigger.isInsert) {
-        for (Opportunity opp : Trigger.new) {
-            if (opp.Pin_Code__c == null) {
-                opp.addError('Pin Code is required.');
-            }
-            if (String.isBlank(opp.State__c)) {
-                opp.addError('State is required.');
-            }
-        }
-    }
-
-   
-   
+     
     if(trigger.isinsert){   
         Set<Id> accountId = new Set<Id>();
         for (Opportunity opp : Trigger.new) {
+
+            if (opp.Pin_Code__c == null && !opp.Same_as_Account_Ship_Address__c) {
+                opp.addError('Pin Code is required.');
+            }
+            if (String.isBlank(opp.State__c) && !opp.Same_as_Account_Ship_Address__c) {
+                opp.addError('State is required.');
+            }
+            
             if (opp.AccountId != null) {
                 accountId.add(opp.AccountId);
             }

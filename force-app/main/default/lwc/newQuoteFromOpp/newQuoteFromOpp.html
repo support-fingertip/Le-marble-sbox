@@ -409,7 +409,7 @@
                                                             onchange={handleAreaDesChange}>
                                         </lightning-input>
                                 </div>
-                            <!--   <template if:true={showDiscountSection}> -->     
+                            <!--   <template if:true={showDiscountSection}>   
                                 <div class="slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
                                     <div class="slds-form-element">
                                         <label class="slds-form-element__label">Disc Type</label>
@@ -430,15 +430,31 @@
                                             </div>
                                         </div>
                                     </div>
+                                </div>-->   
+                               
+                                 <div class="slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
+                                    <lightning-combobox
+                                        label="Disc Type"
+                                        value={item.discType}
+                                        options={discountTypeOptions}
+                                        data-index={index}
+                                        onchange={handleDiscTypeChange}
+                                        >
+                                    </lightning-combobox>
                                 </div>
+
+
                                 <div class="slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
                                     <lightning-input type="number" label="Disc Value"
                                                         value={item.discValue}
                                                         data-index={index}
                                                         data-product-id={item.id}
-                                                        onchange={handleDiscValueChange}>
+                                                        onchange={handleDiscValueChange}
+                                                        >
                                     </lightning-input>
+                                    
                                 </div>
+
                                     <div class="slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
                                     <lightning-input type="number" label="After Disc (₹)"
                                                         value={item.afterDiscPrice}
@@ -498,7 +514,7 @@
                                                         data-index={index}
                                                         data-product-id={item.id}
                                                         onchange={handleSqftChange}
-                                                        step="0.01">
+                                                        step="any">
                                                         
                                     </lightning-input>
 
@@ -584,7 +600,8 @@
                                                             value={item.discValue}
                                                             data-index={index}
                                                             data-product-id={item.id}
-                                                            onchange={handleDiscValueChange}>
+                                                            onchange={handleDiscValueChange}
+                                                            step="any">
                                         </lightning-input>
                                     </div>
                             <!-- </template>-->

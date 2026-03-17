@@ -852,7 +852,7 @@ public class sapIntegration {
             public String WarehouseCode;
             public Decimal UnitPrice;
             public String TaxCode;
-            public Decimal Price;
+          //  public Decimal Price;
             public Decimal U_ReservedQTY;
             public List<BatchNumber> BatchNumbers;
         }
@@ -934,26 +934,35 @@ public class sapIntegration {
             else{
                 TaxCode = 'IGST 18';
             }
-      DocumentAdditionalExpenses dc= new DocumentAdditionalExpenses();      
-        	dc.ExpenseCode = 1;
-            dc.LineTotal = order.Freight_Charge__c!=null?order.Freight_Charge__c:0;
-            dc.TaxCode = TaxCode;
-          payload.DocumentAdditionalExpenses.add(dc);   
+            DocumentAdditionalExpenses dc= new DocumentAdditionalExpenses();      
+                dc.ExpenseCode = 1;
+                // Remove 18% GST from Freight_Charge__c
+                Decimal freightBase = order.Freight_Charge__c != null ? order.Freight_Charge__c : 0;
+                Decimal freightWithoutGST = (freightBase != 0) ? (freightBase / 1.18) : 0;
+                dc.LineTotal = freightWithoutGST.setScale(2);
+                dc.TaxCode = TaxCode;
+            payload.DocumentAdditionalExpenses.add(dc);   
         
    DocumentAdditionalExpenses dc1= new DocumentAdditionalExpenses();             
             dc1.ExpenseCode = 2;
-            dc1.LineTotal = order.Loading_Charges__c!=null?order.Loading_Charges__c:0;
+            Decimal lBase = order.Loading_Charges__c != null ? order.Loading_Charges__c : 0;
+                Decimal lWithoutGST = (lBase != 0) ? (lBase / 1.18) : 0;
+
+            dc1.LineTotal = lWithoutGST.setScale(2);
             dc1.TaxCode = TaxCode;
         payload.DocumentAdditionalExpenses.add(dc1);
         
   DocumentAdditionalExpenses dc2= new DocumentAdditionalExpenses();              
             dc2.ExpenseCode = 3;
-            dc2.LineTotal = order.Unloading_Charges__c!=null?order.Unloading_Charges__c:0;
+                      Decimal uBase = order.Unloading_Charges__c != null ? order.Unloading_Charges__c : 0;
+                Decimal uWithoutGST = (uBase != 0) ? (uBase / 1.18) : 0;
+
+            dc2.LineTotal = uWithoutGST.setScale(2);
             dc2.TaxCode = TaxCode;
 			payload.DocumentAdditionalExpenses.add(dc2);
         
         payload.DocumentLines = new List<DocumentLine>();
-        List<OrderItem> orderItems = [ SELECT Id,Quantity,Block_Quantity__c,PricebookEntry.Product2.Product_Code__c,Warehouse__r.Warehouse_Code__c,After_Disc_Price_Sqft__c,ListPrice,UnitPrice FROM OrderItem WHERE OrderId = :order.Id ]; //,Tax_Code__c
+        List<OrderItem> orderItems = [ SELECT Id,Quantity,Block_Quantity__c,UOM_Price_without_tax_and_after_disc__c,Product2.Product_Category__c,PricebookEntry.Product2.Product_Code__c,Warehouse__r.Warehouse_Code__c,ListPrice,UnitPrice FROM OrderItem WHERE OrderId = :order.Id ]; //,Tax_Code__c
         Map<Id, List<Order_Batch_Item__c>> batchByItem = new Map<Id, List<Order_Batch_Item__c>>();
         for (Order_Batch_Item__c b : [SELECT Order_Product__c, Batch__c,Quantity__c,Block_Quantity__c, Warehouse_Code__c FROM Order_Batch_Item__c  WHERE Order_Product__c IN :orderItems ]) {
             if (!batchByItem.containsKey(b.Order_Product__c)) {
@@ -969,22 +978,25 @@ public class sapIntegration {
                 Decimal unitPriceAfterTax = oi.UnitPrice != null ? oi.UnitPrice : 0;
                 Decimal unitPriceBeforeTax =oi.ListPrice != null ? oi.ListPrice : 0;
                 Decimal priceFieldValue = unitPriceBeforeTax;
-                priceFieldValue= oi.After_Disc_Price_Sqft__c;
-                
+               // priceFieldValue= oi.After_Disc_Price_Sqft__c;
+               priceFieldValue=oi.UOM_Price_without_tax_and_after_disc__c;
+
+
                 DocumentLine dl = new DocumentLine();
                 dl.ItemCode = oi.PricebookEntry.Product2.Product_Code__c;
                 dl.WarehouseCode = oi.Warehouse__r.Warehouse_Code__c != null ? oi.Warehouse__r.Warehouse_Code__c : order.Warehouse__r.Warehouse_Code__c;
-                dl.UnitPrice = unitPriceBeforeTax.setScale(2);
+               // dl.UnitPrice = unitPriceBeforeTax.setScale(2);
                 //   dl.Quantity = oi.Quantity;
-                dl.Price = priceFieldValue;
+               // dl.Price = priceFieldValue;
                 //     dl.TaxCode = oi.Tax_Code__c;
+                 dl.UnitPrice = priceFieldValue;
                 dl.BatchNumbers = new List<BatchNumber>();
                 dl.U_ReservedQTY = oi.Block_Quantity__c;
                 dl.Quantity = oi.Quantity;
                 
 
                 
-                
+
                 payload.documentLines.add(dl);
                 continue;
                 
@@ -1006,15 +1018,18 @@ public class sapIntegration {
                 Decimal unitPriceAfterTax = oi.UnitPrice != null ? oi.UnitPrice : 0;
                 Decimal unitPriceBeforeTax =oi.ListPrice != null ? oi.ListPrice : 0;
                 Decimal priceFieldValue = unitPriceBeforeTax;
-                priceFieldValue= oi.After_Disc_Price_Sqft__c;
+              //  priceFieldValue= oi.After_Disc_Price_Sqft__c;
+                           priceFieldValue= oi.UOM_Price_without_tax_and_after_disc__c;
+
                 
                 DocumentLine dl = new DocumentLine();
                 dl.ItemCode = oi.PricebookEntry.Product2.Product_Code__c;
                 dl.WarehouseCode = wh;
-                dl.UnitPrice = unitPriceBeforeTax.setScale(2);
+              //  dl.UnitPrice = unitPriceBeforeTax.setScale(2);
              //   dl.Quantity = oi.Quantity;
-                dl.Price = priceFieldValue;
+             //   dl.Price = priceFieldValue;
                 //     dl.TaxCode = oi.Tax_Code__c;
+                  dl.UnitPrice = priceFieldValue;
                 dl.BatchNumbers = new List<BatchNumber>();
                 
                 
@@ -1182,6 +1197,9 @@ public class sapIntegration {
                     List<Object> documentLines =
                         (List<Object>) item.get('DocumentLines');
                     
+                     List<Object> DocumentAdditionalExpenses =
+                        (List<Object>) item.get('DocumentAdditionalExpenses');
+
                     if (documentLines != null) {  
                             for (Object lineObj : documentLines) {
                                 Map<String, Object> line = (Map<String, Object>) lineObj;
@@ -1208,8 +1226,28 @@ public class sapIntegration {
                                 invItemList.add(invItem);
                             }
                         }
-                    }
+          
                     
+
+                                            
+                    if (DocumentAdditionalExpenses != null) {  
+                            for (Object lineObj : DocumentAdditionalExpenses) {
+                                Map<String, Object> line = (Map<String, Object>) lineObj;
+                                  Integer lineNum = (Integer) line.get('ExpenseCode');
+                                  if(lineNum == 1){
+                                          inv.Freight_Charge__c  = (Integer) line.get('LineTotal');
+                                  }
+                                  else if(lineNum == 2){
+                                         inv.Loading_Charge__c  = (Integer) line.get('LineTotal');
+                                  }
+                                  else if(lineNum == 3){
+                                         inv.Unloading_Charge__c  = (Integer) line.get('LineTotal');
+                                  }
+
+                            }
+                        }
+
+                    }
                     Database.upsert(invList, Invoice__c.Doc_Entry__c, false);
                     
                    // Query to get Ids for relationship

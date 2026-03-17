@@ -273,85 +273,88 @@ wiredAreaPicklist({ data, error }) {
 
     getQuoteLineItems({quoteId:this.quoteId})
 
-.then(res=>{
+            .then(res=>{
 
-console.log('Quote Loaded',res);
+            console.log('Quote Loaded',res);
 
-const quote = res.quoteRecord;
-const items = res.lineItems;
+            const quote = res.quoteRecord;
+            const items = res.lineItems;
 
-/* HEADER VALUES */
+            /* HEADER VALUES */
 
-this.freightCharge = quote.Freight_Charge__c || 0;
-this.loadingCharge = quote.Loading_Charge__c || 0;
-this.unloadingCharge = quote.Unloading_Charge__c || 0;
-this.roundOff = quote.Round_Off__c || 0;
+            this.freightCharge = quote.Freight_Charge__c || 0;
+            this.loadingCharge = quote.Loading_Charge__c || 0;
+            this.unloadingCharge = quote.Unloading_Charge__c || 0;
+            this.roundOff = quote.Round_Off__c || 0;
 
-/* PRICEBOOK */
+            /* PRICEBOOK */
 
-this.selectedPB = quote.PriceBook__c;
+            this.selectedPB = quote.PriceBook__c;
 
-console.log('Pricebook set from quote:',this.selectedPB);
+            console.log('Pricebook set from quote:',this.selectedPB);
 
-/* LINE ITEMS */
+            /* LINE ITEMS */
 
-this.selectedProducts = [];
+            this.selectedProducts = [];
 
-let i=0;
+            let i=0;
 
-items.forEach(item=>{
+            items.forEach(item=>{
 
-i++;
+            i++;
 
-const cartItem={
-qliId:item.Id,
-lineNo:i,
-id:item.Product2Id,
-name:item.Product2.Name,
-code:item.Product2.Product_Code__c,
-category:item.Product2.Product_Category__c,
-quantity:item.Quantity,
-unitPrice:item.ListPrice,
-unitPriceAfterTax:item.UnitPrice,
-discType:item.Disc_Type__c,
-afterDiscPricePiece:item.After_Disc_Price_Piece__c,
-discValue:item.Dis_Value__c || 0,
-roomType:item.Area__c,
-areaDesc:item.Room_Type__c,
-requiredSqft:item.Sqft__c,
-sqft:item.Sqft__c,
-sqm:item.Sqm__c,
-pricebookEntryId:item.PricebookEntryId,
-totalPrice:item.TotalPrice,
-Tax:item.Product2.Tax__c || 0,
-sqftPerPiece:item.Product2.Sqft_Piece__c || 0,
-compositeKey:item.Id,
-msp:item.Product2.MSP__c,
-isNaturalStone:item.Product2.Product_Category__c === 'N.STONE',
-isTile:item.Product2.Product_Category__c === 'TILE',
-showDropdown:false,
-isActive:false,
-rowClass:'item-card'
+            const cartItem={
+            qliId:item.Id,
+            lineNo:i,
+            id:item.Product2Id,
+            name:item.Product2.Name,
+            code:item.Product2.Product_Code__c,
+            category:item.Product2.Product_Category__c,
+            quantity:item.Quantity,
+            unitPrice:item.ListPrice,
+            unitPriceAfterTax:item.UnitPrice,
+            discType:item.Disc_Type__c,
+            afterDiscPricePiece:item.After_Disc_Price_Piece__c,
+            discValue:item.Dis_Value__c || 0,
+             afterDiscPricePieceWithoutTax: item.Product2.Product_Category__c === 'TILE'? 0:item.After_Discount_UOM_Price__c,
+                    afterDiscPriceSqftWithoutTax: item.Product2.Product_Category__c === 'TILE'? item.After_Discount_UOM_Price__c:0,
+            roomType:item.Area__c,
+            areaDesc:item.Room_Type__c,
+            description:item.Description,
+            requiredSqft:item.Sqft__c,
+            sqft:item.Sqft__c,
+            sqm:item.Sqm__c,
+            pricebookEntryId:item.PricebookEntryId,
+            totalPrice:item.TotalPrice,
+            Tax:item.Product2.Tax__c || 0,
+            sqftPerPiece:item.Product2.Sqft_Piece__c || 0,
+            compositeKey:item.Id,
+            msp:item.MSP__c,
+            isNaturalStone:item.Product2.Product_Category__c === 'N.STONE',
+            isTile:item.Product2.Product_Category__c === 'TILE',
+            showDropdown:false,
+            isActive:false,
+            rowClass:'item-card'
 
-};
+            };
 
-this.selectedProducts.push(cartItem);
-console.error('cartItem', JSON.stringify(cartItem));
-});
+            this.selectedProducts.push(cartItem);
+            console.error('cartItem', JSON.stringify(cartItem));
+            });
 
-this.selectedProducts=[...this.selectedProducts];
+            this.selectedProducts=[...this.selectedProducts];
 
-this.recalculateOrderTotal();
+            this.recalculateOrderTotal();
 
-})
+            })
 
-.catch(error=>{
+            .catch(error=>{
 
-console.error('Error loading Quote',error);
+            console.error('Error loading Quote',error);
 
-});
+            });
 
-}
+        }
 
       @wire(getProductCategories)
        wiredCategories({ error, data }) {
@@ -477,6 +480,7 @@ console.error('Error loading Quote',error);
                 this.updateProduct(productId, 'sqm', (sqft * 0.092903).toFixed(2),idx);
             }
             this.recalculateOrderTotal();
+            this.calculatePrices(idx);
         }
 
         handleDiscTypeChange(event) {
@@ -507,11 +511,15 @@ console.error('Error loading Quote',error);
                  const idx = event.target.dataset.index;
             const productId = event.target.dataset.productId;
             const discValue = parseFloat(event.target.value) || 0;
-                
+
                 // Update only if value has changed
                 const product = this.selectedProducts[idx];
+                console.log('product '+JSON.stringify(product));
+                 console.log('product.discValue '+product.discValue);
                 if (product && product.discValue !== discValue) {
             this.updateProduct(productId, 'discValue', discValue,idx);
+             console.log('product.isNaturalStone111 ');
+             console.log('product.isNaturalStone '+product.isNaturalStone);   
                     
                     if (product.isNaturalStone) {
                         this.calculateNaturalStonePrice(productId,idx);
@@ -556,7 +564,6 @@ console.error('Error loading Quote',error);
             this.selectedProducts[productIndex][field] = value;
 
             const product = this.selectedProducts[productIndex];
-
           /*  const areaVal = (field === 'roomType') ? value
                 : product.roomType + (field === 'areaDesc')Korea 
                 ? value: product.areaDesc;*/
@@ -565,18 +572,17 @@ console.error('Error loading Quote',error);
         const areaVal = (field === 'roomType') ? value : product.roomType;
         const newKey = `${product.id || ''}_${areaVal || 'default'}_${product.description || ''}`;
         product.compositeKey = newKey;
-
+console.log('product.compositeKey>>'+product.compositeKey);
             this.calculatePrices(productIndex);
             this.selectedProducts = [...this.selectedProducts];
         }
     }
 
         calculatePrices(productIndex) {
-            const product = this.selectedProducts [productIndex];
-            console.log(product.isNaturalStone);
-     //    alert(JSON.stringify(product));   
+            console.log('productIndex:', productIndex);
+            const product = this.selectedProducts[productIndex];
+            // Natural Stone
             if (product.isNaturalStone) {
-                // Natural Stone calculation
                 const unitPrice = parseFloat(product.unitPrice) || 0;
                 const requiredSqft = parseFloat(product.requiredSqft) || 0;
                 const discType = product.discType || 'Percentage';
@@ -587,17 +593,18 @@ console.error('Error loading Quote',error);
                     afterDiscPrice = unitPrice * (1 - discValue / 100);
                     totalPrice = afterDiscPrice * requiredSqft;
                 } else if (discType === 'Amount' && discValue > 0) {
-                    // For amount, reduce from unit price
                     afterDiscPrice = Math.max(unitPrice - discValue, 0);
                     totalPrice = afterDiscPrice * requiredSqft;
                 }
                 product.afterDiscPrice = afterDiscPrice.toFixed(6);
                 product.totalPrice = totalPrice.toFixed(2);
-                this.selectedProducts  = [...this.selectedProducts];
+                this.selectedProducts = [...this.selectedProducts];
+
                 return;
             }
-
-            // For TILES
+  console.log('product.isTile:', product.isTile);
+ 
+            // TILES
             if (product.isTile) {
                 const unitPrice = parseFloat(product.unitPrice) || 0;
                 const taxPercent = parseFloat(product.Tax) || 0;
@@ -606,60 +613,86 @@ console.error('Error loading Quote',error);
                 const quantity = parseFloat(product.quantity) || 0;
                 const discType = product.discType || 'Percentage';
                 const discValue = parseFloat(product.discValue) || 0;
-
-                // 1. Unit Price After Tax
+console.log('discValue.>>>>:', discValue);  
+                // With tax
                 const unitPriceAfterTax = unitPrice * (1 + taxPercent / 100);
-
-                // 2. Price per Sqft (rounded for both UI and calculation)
                 let pricePerSqft = 0;
                 if (sqftPerPiece > 0) {
                     pricePerSqft = parseFloat((unitPriceAfterTax / sqftPerPiece).toFixed(6));
                 }
-
+  console.log('pricePerSqft.>>>>:', pricePerSqft);               
+              const unitPriceWithoutTax = unitPrice;
                 let afterDiscPriceSqft = pricePerSqft;
-                let afterDiscPriceUnit= unitPriceAfterTax;
+                let afterDiscPriceUnit = unitPriceAfterTax;
+                console.log('discType.>>>>:', discType);  
+                 let afterDiscPricePieceWithoutTax = unitPriceWithoutTax;
                 if (discType === 'Percentage' && discValue > 0) {
                     afterDiscPriceSqft = parseFloat((pricePerSqft * (1 - discValue / 100)).toFixed(6));
-                    afterDiscPriceUnit= afterDiscPriceSqft * sqftPerPiece;
+                    afterDiscPriceUnit = afterDiscPriceSqft * sqftPerPiece;
+  console.log('afterDiscPriceUnit.>>>>:', afterDiscPriceUnit);                   
+                         afterDiscPricePieceWithoutTax = unitPriceWithoutTax * (1 - discValue / 100);
                 } else if (discType === 'Amount' && discValue > 0) {
-                    // Amount discount directly reduces price per sqft
+                     console.log('1.>>>>:', discValue);  
                     afterDiscPriceSqft = parseFloat((pricePerSqft - discValue).toFixed(6));
-                    afterDiscPriceUnit= afterDiscPriceSqft * sqftPerPiece;
+                    afterDiscPriceUnit = afterDiscPriceSqft * sqftPerPiece;
+                     console.log('afterDiscPriceUnit.>>>>:', afterDiscPriceUnit);  
+                       afterDiscPricePieceWithoutTax = Math.max(unitPriceWithoutTax - discValue, 0);
+                         console.log('afterDiscPriceUnitAmount.>>>>:', afterDiscPriceUnit);                   
+
                 }
 
-                // 3. Total Amount (use the after discount price per sqft)
                 const totalPrice = parseFloat((afterDiscPriceSqft * finalSqft).toFixed(6));
                 product.unitPriceAfterTax = unitPriceAfterTax.toFixed(6);
-                product.pricePerSqft = pricePerSqft.toFixed(6); // always show original after-tax per sqft
-                product.afterDiscPriceSqft = afterDiscPriceSqft.toFixed(6); // always from original
+                product.pricePerSqft = pricePerSqft.toFixed(6);
+         console.log(' product.pricePerSqft.>>>>:',  product.pricePerSqft);           
+                product.afterDiscPriceSqft = afterDiscPriceSqft.toFixed(6);
                 product.totalPrice = totalPrice.toFixed(2);
                 product.afterDiscPriceUnit = afterDiscPriceUnit.toFixed(6);
+  console.log('totalPrice.>>>>:', totalPrice);
+                // Without tax
+                let pricePerSqftWithoutTax = 0;
+                if (sqftPerPiece > 0) {
+                    pricePerSqftWithoutTax = parseFloat((unitPriceWithoutTax / sqftPerPiece).toFixed(6));
+                }
+                let afterDiscPriceSqftWithoutTax = pricePerSqftWithoutTax;
+                if (discType === 'Percentage' && discValue > 0) {
+                    afterDiscPriceSqftWithoutTax = parseFloat((pricePerSqftWithoutTax * (1 - discValue / 100)).toFixed(6));
+                } else if (discType === 'Amount' && discValue > 0) {
+                    afterDiscPriceSqftWithoutTax = parseFloat((pricePerSqftWithoutTax - discValue).toFixed(6));
+                }
+                product.afterDiscPriceSqftWithoutTax = afterDiscPriceSqftWithoutTax.toFixed(6);
+                // product.afterDiscPriceUnitWithoutTax = afterDiscPriceUnitWithoutTax.toFixed(6); // Uncomment if needed
 
-                this.selectedProducts  = [...this.selectedProducts];
+                this.selectedProducts = [...this.selectedProducts];
+
                 return;
             }
-
-            // For OTHER CATEGORIES
+            // OTHER CATEGORIES
             const unitPrice = parseFloat(product.unitPrice) || 0;
             const taxPercent = parseFloat(product.Tax) || 0;
             const quantity = parseFloat(product.quantity) || 0;
             const discType = product.discType || 'Percentage';
             const discValue = parseFloat(product.discValue) || 0;
-            // 1. Unit Price After Tax
             const unitPriceAfterTax = unitPrice * (1 + taxPercent / 100);
-            // 2. Discounted price per piece
+            const unitPriceWithoutTax = unitPrice;
             let afterDiscPricePiece = unitPriceAfterTax;
+            let afterDiscPricePieceWithoutTax = unitPriceWithoutTax;
             if (discType === 'Percentage' && discValue > 0) {
                 afterDiscPricePiece = unitPriceAfterTax * (1 - discValue / 100);
+                afterDiscPricePieceWithoutTax = unitPriceWithoutTax * (1 - discValue / 100);
             } else if (discType === 'Amount' && discValue > 0) {
                 afterDiscPricePiece = Math.max(unitPriceAfterTax - discValue, 0);
+                afterDiscPricePieceWithoutTax = Math.max(unitPriceWithoutTax - discValue, 0);
             }
-            // 3. Total
+
+            console.log('afterDiscPricePieceWithoutTax:', afterDiscPricePieceWithoutTax);
             const totalPrice = afterDiscPricePiece * quantity;
             product.unitPriceAfterTax = unitPriceAfterTax.toFixed(2);
             product.afterDiscPricePiece = afterDiscPricePiece.toFixed(6);
+            product.afterDiscPricePieceWithoutTax = afterDiscPricePieceWithoutTax.toFixed(6);
             product.totalPrice = totalPrice.toFixed(2);
-            this.selectedProducts  = [...this.selectedProducts];
+    
+            this.selectedProducts = [...this.selectedProducts];
         }
 
         get isDefaultSelected() {
@@ -824,7 +857,7 @@ console.error('Error loading Quote',error);
         };
     });
 this.recalculateOrderTotal();
-
+console.log('Prepared items for preview:', JSON.stringify(this.selectedProducts));
     // OPEN PREVIEW
     this.openPreview = true;
 }
@@ -961,6 +994,8 @@ this.recalculateOrderTotal();
                     sqm: item.sqm || 0,
                     afterDiscPricePiece: item.afterDiscPricePiece,
                     afterDiscPriceSqft: item.afterDiscPriceSqft,
+                     afterDiscPricePieceWithoutTax: item.afterDiscPricePieceWithoutTax,
+                    afterDiscPriceSqftWithoutTax: item.afterDiscPriceSqftWithoutTax,
                     price: item.unitPrice,
                     discount: item.discValue,
                     totalPrice: item.totalPrice,
@@ -1087,6 +1122,9 @@ this.recalculateOrderTotal();
                 afterDiscPricePiece: 0,
                 afterDiscPriceSqft: 0,
                 afterDiscPriceUnit: 0,
+                 afterDiscPricePieceWithoutTax: 0,
+                    afterDiscPriceSqftWithoutTax: 0,
+                  
                 pricePerSqft: 0,
                 totalPrice: 0,
                 description: '',
@@ -1242,14 +1280,11 @@ handleSearchResultClick(event) {
         updated[this.activeRowIndex].sqftPerPiece=selectedProduct.sqftPiece;
         updated[this.activeRowIndex].Tax=selectedProduct.tax;
 
-        // Calculate mspInSqft for tiles: (msp + tax%) / sqftPerPiece
+        // Calculate mspInSqft for tiles: msp / sqftPerPiece (no tax for MSP)
         if (updated[this.activeRowIndex].isTile) {
             const msp = parseFloat(selectedProduct.msp) || 0;
-            const tax = parseFloat(selectedProduct.tax) || 0;
             const sqftPerPiece = parseFloat(selectedProduct.sqftPiece) || 0;
-            updated[this.activeRowIndex].mspInSqft = sqftPerPiece > 0
-               //
-                 ? parseFloat(((msp ) / sqftPerPiece).toFixed(6)): 0;
+            updated[this.activeRowIndex].mspInSqft = sqftPerPiece > 0 ? parseFloat((msp / sqftPerPiece).toFixed(6)) : 0;
         } else {
             updated[this.activeRowIndex].mspInSqft = 0;
         }
@@ -1257,7 +1292,7 @@ handleSearchResultClick(event) {
             (updated[this.activeRowIndex].quantity || 0) * unitPrice;
         updated[this.activeRowIndex].isRegularProduct = (!updated[this.activeRowIndex].isTile && !updated[this.activeRowIndex].isNaturalStone);
 
-       console.log(JSON.stringify(updated));
+       console.log('handleSearchResultClick>>'+JSON.stringify(updated));
       // set any other fields like price etc.
       this.selectedProducts = updated;
     } else {
@@ -1514,6 +1549,8 @@ handleAreaDesChange(event) {
                     sqft: 0, sqm: 0,
                     pricebookEntryId:'',
                      isNaturalStone: false,
+                      afterDiscPricePieceWithoutTax: 0,
+                    afterDiscPriceSqftWithoutTax: 0,
                       isTile: false,
                     showDropdown: false,
                 isActive: true,

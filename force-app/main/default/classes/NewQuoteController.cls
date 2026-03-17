@@ -137,6 +137,7 @@ public static Map<String,Object> getQuoteLineItems(Id quoteId){
         ListPrice,
         Sqm__c,
         After_Disc_Price_Piece__c,
+        After_Discount_UOM_Price__c,
                Disc_Type__c,
                Dis_Value__c,
                Sqft__c,
@@ -147,7 +148,9 @@ public static Map<String,Object> getQuoteLineItems(Id quoteId){
                Product2.Name,
                Product2.Product_Code__c,
                Product2.Product_Category__c,
-        Product2.MSP__c,
+               After_Disc_Price_Sqft__c,
+        Product2.MSP__c,MSP__c,
+        Description,
                Product2.Tax__c,
                Product2.Sqft_Piece__c
         FROM QuoteLineItem
@@ -271,14 +274,30 @@ lineItem.Sqft__c = safeDecimalConversion(item.get('sqft'));
                 lineItem.Sqft__c = safeDecimalConversion(item.get('requiredSqft'));
             }
             
-            
+              if(item.containsKey('afterDiscPrice')) {
+                lineItem.After_Disc_Price_Piece__c = safeDecimalConversion(item.get('afterDiscPrice'));
+                // Save without tax if available
+                if(item.containsKey('afterDiscPriceWithoutTax') &&  lineItem.Product_Category__c != 'TILE') {
+                    lineItem.After_Discount_UOM_Price__c = safeDecimalConversion(item.get('afterDiscPriceWithoutTax'));
+                }
+            }
+
             
             if(item.containsKey('afterDiscPricePiece')) {
                 lineItem.After_Disc_Price_Piece__c = safeDecimalConversion(item.get('afterDiscPricePiece'));
+                // Save without tax if available
+                if(item.containsKey('afterDiscPricePieceWithoutTax') &&  lineItem.Product_Category__c  != 'TILE'){
+                    lineItem.After_Discount_UOM_Price__c = safeDecimalConversion(item.get('afterDiscPricePieceWithoutTax'));
+                }
             }
+            
             
             if(item.containsKey('afterDiscPriceSqft')) {
                 lineItem.After_Disc_Price_Sqft__c = safeDecimalConversion(item.get('afterDiscPriceSqft'));
+                // Save without tax if available
+                if(item.containsKey('afterDiscPriceSqftWithoutTax') &&  lineItem.Product_Category__c  == 'TILE') {
+                    lineItem.After_Discount_UOM_Price__c = safeDecimalConversion(item.get('afterDiscPriceSqftWithoutTax'));
+                }
             }
             
             if(item.containsKey('blocked')) {
@@ -497,7 +516,7 @@ lineItem.Sqft__c = safeDecimalConversion(item.get('sqft'));
                                         
                                         List<QuoteLineItem> lineItems = new List<QuoteLineItem>();
                                         for(Map<String, Object> item : cartItems) {
-                                            //    system.debug('item>> '+(String)item.get('totalPrice'));
+                                                system.debug('item>> '+item);
                                             try {
                                                 if (item == null || !item.containsKey('id')) {
                                                     System.debug('Skipping null item or item without product ID');
@@ -574,7 +593,10 @@ lineItem.Sqft__c = safeDecimalConversion(item.get('sqft'));
                                                 if(item.containsKey('requiredSqft')) {
                                                     lineItem.Sqft__c = safeDecimalConversion(item.get('requiredSqft'));
                                                 }
-                                                
+                                              /*  if(item.containsKey('afterDiscPrice')) {
+                                                        lineItem.After_Disc_Price_Piece__c = safeDecimalConversion(item.get('afterDiscPrice'));
+                                                    }
+
                                                 
                                                 
                                                 if(item.containsKey('afterDiscPricePiece')) {
@@ -583,7 +605,45 @@ lineItem.Sqft__c = safeDecimalConversion(item.get('sqft'));
                                                 
                                                 if(item.containsKey('afterDiscPriceSqft')) {
                                                     lineItem.After_Disc_Price_Sqft__c = safeDecimalConversion(item.get('afterDiscPriceSqft'));
+                                                }*/
+                                                
+
+
+
+                                                 if(item.containsKey('afterDiscPrice')) {
+                                                    lineItem.After_Disc_Price_Piece__c = safeDecimalConversion(item.get('afterDiscPrice'));
+                                                    // Save without tax if available
+                                                    if(item.containsKey('afterDiscPriceWithoutTax') && item.get('isTile') == false) {
+                                                        lineItem.After_Discount_UOM_Price__c = safeDecimalConversion(item.get('afterDiscPriceWithoutTax'));
+                                                    }
                                                 }
+
+                                                
+                                                if(item.containsKey('afterDiscPricePiece')) {
+                                                    lineItem.After_Disc_Price_Piece__c = safeDecimalConversion(item.get('afterDiscPricePiece'));
+                                                    // Save without tax if available
+                                                    if(item.containsKey('afterDiscPricePieceWithoutTax') && item.get('isTile') == false) {
+                                                        lineItem.After_Discount_UOM_Price__c = safeDecimalConversion(item.get('afterDiscPricePieceWithoutTax'));
+                                                    }
+                                                }
+                                                
+                                                
+                                                if(item.containsKey('afterDiscPriceSqft')) {
+                                                    lineItem.After_Disc_Price_Sqft__c = safeDecimalConversion(item.get('afterDiscPriceSqft'));
+                                                    // Save without tax if available
+                                                    if(item.containsKey('afterDiscPriceSqftWithoutTax') && item.get('isTile') == true) {
+                                                        lineItem.After_Discount_UOM_Price__c = safeDecimalConversion(item.get('afterDiscPriceSqftWithoutTax'));
+                                                    }
+                                                }
+                                                
+
+                                                
+
+
+
+
+
+
                                                 
                                                 if(item.containsKey('blocked')) {
                                                     lineItem.Blocked__c = safeDecimalConversion(item.get('blocked'));
@@ -594,10 +654,10 @@ lineItem.Sqft__c = safeDecimalConversion(item.get('sqft'));
                                                     lineItem.Area__c = String.valueOf(item.get('roomType'));
                                                 }
                                                 
-                                                /*                     if(item.containsKey('msp')) {
-lineItem.MSP__c = safeDecimalConversion(item.get('msp'));
-}*/
-                                                
+                                                if(item.containsKey('msp')) {
+                                                    lineItem.MSP__c = safeDecimalConversion(item.get('msp'));
+                                                }
+                                                                                                
                                                 
                                                 if(item.containsKey('description')) lineItem.Description = String.valueOf(item.get('description'));
                                                 

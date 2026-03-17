@@ -57,10 +57,6 @@
             </layoutItems>
             <layoutItems>
                 <behavior>Readonly</behavior>
-                <field>After_Disc_Price_Sqft__c</field>
-            </layoutItems>
-            <layoutItems>
-                <behavior>Readonly</behavior>
                 <field>Block_Quantity__c</field>
             </layoutItems>
             <layoutItems>
@@ -70,6 +66,10 @@
             <layoutItems>
                 <behavior>Edit</behavior>
                 <field>Warehouse__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>UOM_Price_without_tax_and_after_disc__c</field>
             </layoutItems>
         </layoutColumns>
         <layoutColumns>

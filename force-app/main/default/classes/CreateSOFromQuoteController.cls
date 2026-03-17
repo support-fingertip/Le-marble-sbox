@@ -153,7 +153,7 @@ if (deliveryCommittedDate < Date.today()) {
         Quantity,
         UnitPrice,
         PricebookEntryId,Product2.Product_Code__c,
-        PricebookEntry.Product2.Product_Category__c
+        PricebookEntry.Product2.Product_Category__c,after_discount_uom_price__c
     FROM QuoteLineItem
     WHERE Id IN :selectedQuoteLineItemIds
     ];
@@ -286,20 +286,15 @@ ord.State__c    = q.State__c;
                 oi.PricebookEntryId = qli.PricebookEntryId;
                 oi.Quantity         = qli.Quantity;
                 oi.UnitPrice        = qli.UnitPrice;
+                oi.UOM_Price_without_tax_and_after_disc__c = qli.After_Discount_UOM_Price__c;
                 oi.Block_Quantity__c = (blockQtyMap != null && blockQtyMap.containsKey(qli.Id))? blockQtyMap.get(qli.Id): 0;
                 if(warehouseCodeMap != null && 
                    warehouseCodeMap.containsKey(qli.Id)) {
                    system.debug('warehouseCodeMap  >>'+warehouseCodeMap);   
                         system.debug('warehouseCodeMap.get(qli.Id)  >>'+warehouseCodeMap.get(qli.Id));     
                        oi.Warehouse_Code__c = warehouseCodeMap.get(qli.Id);
-                    //    system.debug('warehouseCodeToIdMap.get(oi.Warehouse_Code__c) >>'+warehouseCodeToIdMap.get(oi.Warehouse_Code__c)); 
-                   //    if (warehouseCodeMap.containsKey(qli.Id) && warehouseCodeToIdMap.containsKey(oi.Warehouse_Code__c)) {
-                         //  oi.Warehouse__c = warehouseCodeToIdMap.get(oi.Warehouse_Code__c);
-                     //      system.debug('oi.Warehouse__c>>'+oi.Warehouse__c); 
-                      // }
-                       
                    }
-                                system.debug('oi>>'+oi); 
+                system.debug('oi>>'+oi); 
 
                 orderItems.add(oi);
             }

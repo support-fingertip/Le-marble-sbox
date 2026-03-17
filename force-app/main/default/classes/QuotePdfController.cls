@@ -305,10 +305,10 @@ this.mrpTotal += item.Without_Discount_Total_Price__c;
                 item.Product_Category__c,
                 item.Quantity,
                 item.Sqft__c,
-                item.UnitPrice,
-                null,
+                (item.Product_Category__c == 'TILE' ? item.Price_Sqft__c : item.After_Disc_Price_Piece__c + discountAmount),
+                // Set beforeDiscPrice: if tile, use After_Disc_Price_Sqft__c, else After_Disc_Price_Piece__c
+                (item.Product_Category__c == 'TILE' ? item.After_Disc_Price_Sqft__c : item.After_Disc_Price_Piece__c),
                 item.Dis_Value__c,
-                // item.After_Disc_Price_Piece__c,
                 item.Calculated_Total_Price__c,   // ✔ FIXED HERE
                 item.UOM__c,
                 imageUrl, // imageUrl for product
@@ -550,7 +550,7 @@ email.setToAddresses(new List<String>{ finalEmail });
         public Decimal quantity { get; set; }
         public Decimal sqft { get; set; }
         public Decimal unitPrice { get; set; }
-        public Decimal afterDiscPrice { get; set; }
+        public Decimal beforeDiscPrice { get; set; }
         public Decimal total { get; set; }
         public String uom { get; set; }
         public String imageUrl { get; set; }
@@ -587,8 +587,8 @@ email.setToAddresses(new List<String>{ finalEmail });
             Decimal quantity,
             Decimal sqft,
             Decimal unitPrice,
+            Decimal beforeDiscPrice,
             Decimal discount,
-            Decimal afterDiscPrice,
             Decimal total,
             String uom,
             String imageUrl,
@@ -606,7 +606,7 @@ email.setToAddresses(new List<String>{ finalEmail });
             this.quantity = quantity;
             this.sqft = sqft;
             this.unitPrice = unitPrice;
-            this.afterDiscPrice = afterDiscPrice;
+            this.beforeDiscPrice = beforeDiscPrice;
             this.total = total;
             this.uom = uom;
 
