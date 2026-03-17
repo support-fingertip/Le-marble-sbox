@@ -11,24 +11,14 @@
         <valueSetDefinition>
             <sorted>false</sorted>
             <value>
-                <fullName>Contractor</fullName>
-                <default>false</default>
-                <label>Contractor</label>
-            </value>
-            <value>
-                <fullName>Maison</fullName>
-                <default>false</default>
-                <label>Maison</label>
-            </value>
-            <value>
                 <fullName>Architect</fullName>
                 <default>false</default>
                 <label>Architect</label>
             </value>
             <value>
-                <fullName>Engineer</fullName>
+                <fullName>Contractor</fullName>
                 <default>false</default>
-                <label>Engineer</label>
+                <label>Contractor</label>
             </value>
             <value>
                 <fullName>Customer</fullName>
@@ -36,14 +26,29 @@
                 <label>Customer</label>
             </value>
             <value>
+                <fullName>Engineer</fullName>
+                <default>false</default>
+                <label>Engineer</label>
+            </value>
+            <value>
                 <fullName>Interior Designer</fullName>
                 <default>false</default>
                 <label>Interior Designer</label>
             </value>
             <value>
+                <fullName>Maison</fullName>
+                <default>false</default>
+                <label>Maison</label>
+            </value>
+            <value>
                 <fullName>Plumber</fullName>
                 <default>false</default>
                 <label>Plumber</label>
+            </value>
+            <value>
+                <fullName>Builder</fullName>
+                <default>false</default>
+                <label>Builder</label>
             </value>
         </valueSetDefinition>
     </valueSet>
