@@ -71,6 +71,10 @@
                 <behavior>Edit</behavior>
                 <field>UOM_Price_without_tax_and_after_disc__c</field>
             </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>Tax_Percentage__c</field>
+            </layoutItems>
         </layoutColumns>
         <layoutColumns>
             <layoutItems>

@@ -128,6 +128,7 @@ wiredQuoteInfo({ error, data }) {
                 : 'N/A',
             executive: quote.Owner?.Name || 'N/A'
         };
+         this.deliveryCommittedDate = quote.Opportunity?.Delivery_Committed_Date__c || '';
         this.remarks = '';
     } else if (error) {
         console.error(error);

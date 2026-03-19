@@ -87,6 +87,10 @@
                 <behavior>Edit</behavior>
                 <field>Same_as_Account_Ship_Address__c</field>
             </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>Delivery_Committed_Date__c</field>
+            </layoutItems>
         </layoutColumns>
         <layoutColumns>
             <layoutItems>

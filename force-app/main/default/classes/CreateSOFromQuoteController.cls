@@ -20,6 +20,7 @@ public static Map<String, Object> getQuoteInfo(Id quoteId) {
                 Account.BillingPostalCode,
                 Account.BillingCountry,
              Account.Blocked_Account__c,
+             Opportunity.Delivery_Committed_Date__c,
                 Owner.Name,
                 OpportunityId,
                 Pricebook2Id,
@@ -90,24 +91,10 @@ public static Map<String, Object> getQuoteInfo(Id quoteId) {
             throw new AuraHandledException('Please select a Warehouse');
         }
             // Fetch Quote
-         Quote q = [SELECT Id, AccountId, OpportunityId,Contact_Person_Number__c,Contact_Person_Name__c, 
+         Quote q = [SELECT Id, AccountId, OpportunityId,Contact_Person_Number__c,Contact_Person_Name__c, Round_Off__c,
            Pricebook2Id,  Sales_Order_Created__c, Freight_Charge__c, Loading_Charge__c,Unloading_Charge__c,ContactId,Contact.Name,Contact.Phone,BillingStreet,BillingCity, BillingState, BillingPostalCode,
            BillingCountry,ShippingStreet, ShippingCity, ShippingState, ShippingPostalCode, ShippingCountry FROM Quote WHERE Id = :quoteId LIMIT 1];
-// AddressLine1__c, AddressLine2__c, AddressLine3__c, District__c, State__c, Country__c,pin_code__c
         Account acc = [ SELECT BillingStreet, BillingCity, BillingState, BillingPostalCode, BillingCountry FROM Account  WHERE Id = :q.AccountId LIMIT 1];
-
-   /*     Contact con;
-        List<Contact> conList = [
-            SELECT Id, Name, Phone
-            FROM Contact
-            WHERE AccountId = :q.AccountId
-            ORDER BY CreatedDate ASC
-            LIMIT 1
-        ];
-        if (!conList.isEmpty()) {
-            con = conList[0];
-        }
-*/
 
 
         // Fetch Warehouse Manager  PUT IT HERE
@@ -151,7 +138,7 @@ if (deliveryCommittedDate < Date.today()) {
     SELECT
         Id,
         Quantity,
-        UnitPrice,
+        UnitPrice,Product2.tax__c,Disc_Type__c,Dis_Value__c,
         PricebookEntryId,Product2.Product_Code__c,
         PricebookEntry.Product2.Product_Category__c,after_discount_uom_price__c
     FROM QuoteLineItem
@@ -160,15 +147,6 @@ if (deliveryCommittedDate < Date.today()) {
 
 
         String category = qlis[0].PricebookEntry.Product2.Product_Category__c;
-
-        /*for (QuoteLineItem qli : qlis) {
-            if (qli.PricebookEntry.Product2.Product_Category__c != category) {
-                throw new AuraHandledException(
-                    'Selected products must belong to the same category'
-                );
-            }
-        }*/
-
 
             // Create Order
             Order ord = new Order();
@@ -182,6 +160,7 @@ if (deliveryCommittedDate < Date.today()) {
             ord.Warehouse__c  = warehouseId; 
             ord.Delivery_Committed_Date__c = deliveryCommittedDate;   
             ord.Remarks__c = remarks;   
+            ord.Round_Off__c=q.Round_Off__c;
 
             ord.EffectiveDate = Date.today();
             ord.Status = 'Draft';
@@ -195,15 +174,6 @@ if (deliveryCommittedDate < Date.today()) {
             ord.Product_Category__c = category;
             ord.Against_Order__c = againstOrder;
 
-           // ================= CONTACT PERSON (From Account) =================
-        /*    if (con != null) {
-                ord.Contact_Person_Name__c = con.Name;
-
-                if (con.Phone != null) {
-                    ord.Contact_Person_Number__c = con.Phone ;
-                }
-                }*/
-
                 ord.Contact_Person_Name__c =q.Contact_Person_Name__c;
                 ord.Contact_Person_Number__c =q.Contact_Person_Number__c;
 
@@ -211,20 +181,7 @@ if (deliveryCommittedDate < Date.today()) {
             ord.BillingCity       = q.BillingCity;
             ord.BillingState      = q.BillingState;
            ord.BillingPostalCode = q.BillingPostalCode;
-            ord.BillingCountry    = q.BillingCountry;
-         /*   ord.ShippingStreet     = q.ShippingStreet;
-            ord.ShippingCity       = q.ShippingCity;
-            ord.ShippingState      = q.ShippingState;
-            ord.ShippingPostalCode = q.ShippingPostalCode;
-            ord.ShippingCountry    = q.ShippingCountry;
-            ord.AddressLine1__c = q.AddressLine1__c;
-            ord.AddressLine2__c = q.AddressLine2__c;
-            ord.AddressLine3__c = q.AddressLine3__c;
-            ord.District__c = q.District__c;
-ord.State__c    = q.State__c;
-            ord.Country__c    = q.Country__c;
-		 ord.pin_code__c    = q.pin_code__c;*/
-        
+            ord.BillingCountry    = q.BillingCountry;        
         
         if (String.isBlank(q.ShippingStreet)) {
             Account shipAcc = [
@@ -288,6 +245,9 @@ ord.State__c    = q.State__c;
                 oi.UnitPrice        = qli.UnitPrice;
                 oi.UOM_Price_without_tax_and_after_disc__c = qli.After_Discount_UOM_Price__c;
                 oi.Block_Quantity__c = (blockQtyMap != null && blockQtyMap.containsKey(qli.Id))? blockQtyMap.get(qli.Id): 0;
+                oi.Tax_Percentage__c = qli.Product2.tax__c;
+                oi.Dis_Value__c = qli.Dis_Value__c;
+                oi.Disc_Type__c = qli.Disc_Type__c;
                 if(warehouseCodeMap != null && 
                    warehouseCodeMap.containsKey(qli.Id)) {
                    system.debug('warehouseCodeMap  >>'+warehouseCodeMap);   

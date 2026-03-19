@@ -8,5 +8,6 @@ IF(
     TODAY(),
     DATEVALUE(CreatedDate)
 )</errorConditionFormula>
+    <errorDisplayField>CloseDate</errorDisplayField>
     <errorMessage>Close Date cannot be earlier than the record creation date</errorMessage>
 </ValidationRule>
