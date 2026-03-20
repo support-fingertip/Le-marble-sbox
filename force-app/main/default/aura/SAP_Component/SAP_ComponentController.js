@@ -219,6 +219,77 @@
         });
         $A.enqueueAction(action);
     },
+
+     sendRequestProd : function(component, event, helper) {
+ var fromDate= component.get('v.fromDate');
+        if (!fromDate) {
+            var toastEvent = $A.get("e.force:showToast");
+            toastEvent.setParams({
+                "type"   : "error",
+                "message": "Please select a date before syncing Product Master."
+            });
+            toastEvent.fire();
+            return;
+        }
+
+
+        var toastEvent = $A.get("e.force:showToast");
+        toastEvent.setParams({
+            "type": "warning",
+            "message": "Syncing Product Master from SAP for date: " + fromDate + " ..."
+
+        });
+        toastEvent.fire();
+        component.set('v.spinner',true);
+       
+        var selectedStatus= component.get('v.selectedStatus');
+        var Warehouse= component.get('v.warehouse');
+        
+        var action=component.get("c.getProductMaster");
+        action.setParams({
+            "formattedDate":fromDate
+        });
+        action.setCallback(this,function(response){ 
+            //  if(response.getState() == "SUCCESS"){ 
+            component.set('v.fromDate','');
+            component.set('v.selectedStatus','');
+            component.set('v.warehouse','');
+            component.set('v.selectedType','');
+            component.set('v.spinner',false);
+            //   }
+
+
+               if (response.getState() === "SUCCESS") {
+                component.set('v.fromDate',     '');
+                component.set('v.selectedType', '');
+
+                var successToast = $A.get("e.force:showToast");
+                successToast.setParams({
+                    "type"   : "success",
+                    "message": "Product Master sync completed successfully."
+                });
+                successToast.fire();
+
+            } else {
+                // surface Apex error message
+                var errors  = response.getError();
+                var message = (errors && errors[0] && errors[0].message)
+                              ? errors[0].message
+                              : "Product Master sync failed. Please check Apex logs.";
+
+                var errorToast = $A.get("e.force:showToast");
+                errorToast.setParams({ "type": "error", "message": message });
+                errorToast.fire();
+            }
+
+
+
+            
+        });
+        $A.enqueueAction(action);
+    },
+
+
     sendRecieptRequest: function(component, event, helper) {
         
         component.set('v.spinner',true);

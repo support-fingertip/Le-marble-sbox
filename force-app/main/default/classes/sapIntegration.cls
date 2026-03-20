@@ -1521,4 +1521,39 @@ public class sapIntegration {
             throw new AuraHandledException('Failed to add address: ' + errorMsg);
         }
     }
+  // ─────────────────────────────────────────────────────────────────────────
+    // getProductMaster
+    //
+    // Called from the SAP_Component Aura component (sendRequestProd action).
+    // Accepts the date string selected by the user (YYYY-MM-DD format from the
+    // Aura date input) and delegates the SAP callout to SAPProductIntegration.
+    //
+    // The @future annotation is required because the Aura controller is invoked
+    // from a synchronous Apex context that cannot make callouts directly.
+    // ─────────────────────────────────────────────────────────────────────────
+    @AuraEnabled
+    public static void getProductMaster(String selectedDate) {
+        try {
+            Date parsedDate = null;
+
+            if (String.isNotBlank(selectedDate)) {
+                // selectedDate arrives as 'YYYY-MM-DD' from the Aura date input
+                parsedDate = Date.valueOf(selectedDate);
+            }
+
+            // Delegate to the product integration class, passing the parsed date.
+            // runSync(Date) uses the date to build the SAP filter:
+            //   UpdateDate >= selectedDate OR CreateDate >= selectedDate
+            SAPProductIntegration.runSync(parsedDate);
+
+        } catch (Exception e) {
+            System.debug('❌ getProductMaster error: ' + e.getMessage());
+            throw new AuraHandledException(
+                'Product Master sync failed: ' + e.getMessage()
+            );
+        }
+    }
+
+
+
 }

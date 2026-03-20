@@ -109,7 +109,8 @@ public class SalesOrderTriggerHandler {
             for (Id qId : quoteIds) {
                 quotesToUpdate.add(new Quote(
                     Id = qId,
-                    Sales_Order_Created__c = false
+                    Sales_Order_Created__c = false,
+                    Status='Presented'
                 ));
             }
             update quotesToUpdate;
