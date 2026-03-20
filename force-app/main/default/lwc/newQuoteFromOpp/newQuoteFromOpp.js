@@ -1873,6 +1873,99 @@ handleAreaDesChange(event) {
             this.updateLineNumbers();
             this.draggedIndex = null;
         }
-        
-        
+
+        // ── Touch-based drag-and-drop for mobile ──
+        _touchDragIndex = null;
+        _touchStartY = 0;
+        _touchDragMoved = false;
+        _lastTouchOverIndex = null;
+
+        handleRowTouchStart(event) {
+            const row = event.currentTarget;
+            this._touchDragIndex = Number(row.dataset.index);
+            this._touchStartY = event.touches[0].clientY;
+            this._touchDragMoved = false;
+            this._lastTouchOverIndex = null;
+
+            // Long-press delay — start drag after 200ms hold
+            // eslint-disable-next-line @lwc/lwc/no-async-operation
+            this._touchDragTimer = setTimeout(() => {
+                this._touchDragMoved = true;
+                row.classList.add('dragging');
+            }, 200);
+        }
+
+        handleRowTouchMove(event) {
+            if (!this._touchDragMoved) {
+                // If finger moved before long-press fired, cancel drag
+                const dy = Math.abs(event.touches[0].clientY - this._touchStartY);
+                if (dy > 10 && this._touchDragTimer) {
+                    clearTimeout(this._touchDragTimer);
+                    this._touchDragTimer = null;
+                }
+                return;
+            }
+
+            event.preventDefault(); // prevent page scroll while dragging
+
+            const touch = event.touches[0];
+            const targetEl = this.template.elementFromPoint
+                ? this.template.elementFromPoint(touch.clientX, touch.clientY)
+                : document.elementFromPoint(touch.clientX, touch.clientY);
+
+            if (!targetEl) return;
+
+            const tr = targetEl.closest('tr.cart-item');
+            if (!tr) return;
+
+            const overIndex = Number(tr.dataset.index);
+
+            // Remove previous drag-over highlight
+            if (this._lastTouchOverIndex !== null && this._lastTouchOverIndex !== overIndex) {
+                const rows = this.template.querySelectorAll('tr.cart-item');
+                rows.forEach(r => r.classList.remove('drag-over'));
+            }
+
+            if (overIndex !== this._touchDragIndex) {
+                tr.classList.add('drag-over');
+                this._lastTouchOverIndex = overIndex;
+            }
+        }
+
+        handleRowTouchEnd() {
+            // Clear long-press timer
+            if (this._touchDragTimer) {
+                clearTimeout(this._touchDragTimer);
+                this._touchDragTimer = null;
+            }
+
+            // Clean up CSS classes
+            const rows = this.template.querySelectorAll('tr.cart-item');
+            rows.forEach(r => {
+                r.classList.remove('dragging');
+                r.classList.remove('drag-over');
+            });
+
+            if (!this._touchDragMoved || this._lastTouchOverIndex === null) {
+                this._touchDragIndex = null;
+                return;
+            }
+
+            const fromIndex = this._touchDragIndex;
+            const toIndex = this._lastTouchOverIndex;
+
+            if (fromIndex !== toIndex) {
+                const items = [...this.selectedProducts];
+                const draggedItem = items.splice(fromIndex, 1)[0];
+                items.splice(toIndex, 0, draggedItem);
+                this.selectedProducts = items;
+                this.updateLineNumbers();
+            }
+
+            this._touchDragIndex = null;
+            this._lastTouchOverIndex = null;
+            this._touchDragMoved = false;
+        }
+
+
     }

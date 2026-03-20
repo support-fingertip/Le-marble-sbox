@@ -607,47 +607,49 @@
         padding: 8px;
     }
 
+    /* Preview takes full screen on mobile, no overflow on container */
     .modal-container {
         width: 100%;
         height: 100vh;
         max-height: 100vh;
         border-radius: 0;
-        overflow-y: auto;
-    }
- .preview-footer {
-        position: static;   /* 👈 prevents jump */
-    }
-    .cart-content {
-        flex-direction: column;
-        height: auto;
-        min-height: calc(100vh - 60px);
-        padding: 0.75rem;
-        gap: 0.75rem;
-        overflow-y: auto;
-         max-height: 100%;
-          -webkit-overflow-scrolling: touch;
+        overflow: hidden;
     }
 
-    /* ── Mobile preview: products on top, summary below ── */
+    .preview-footer {
+        position: static;
+    }
+
+    /* Wrapper fills screen, no scroll on wrapper itself */
+    .cart-wrapper {
+        height: 100vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Content is a flex column, no scroll here either */
     .cart-content {
         flex-direction: column;
-        height: auto;
-        min-height: unset;
-        max-height: none;
-        overflow: visible;
+        flex: 1;
+        height: 0;
+        min-height: 0;
         padding: 0;
         gap: 0;
+        overflow: hidden;
     }
 
+    /* cart-items is the ONLY vertical scroll container */
     .cart-items {
+        flex: 1;
+        min-height: 0;
         padding: 0;
-        max-height: 55vh;
         overflow-y: auto;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
     }
 
-    /* Sticky table header while scrolling vertically */
+    /* Sticky table header — works because cart-items is the sole scroll parent */
     .cart-table {
         width: max-content;
         min-width: 100%;
@@ -681,14 +683,18 @@
         margin-bottom: 0;
     }
 
+    /* Summary sits below products, doesn't scroll with them */
     .cart-summary {
         width: 100%;
+        flex-shrink: 0;
         border-radius: 8px 8px 0 0;
         padding: 1rem;
         position: relative;
         bottom: auto;
         box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.07);
         margin-bottom: 0;
+        max-height: 40vh;
+        overflow-y: auto;
     }
 
     .product-info {
@@ -723,14 +729,6 @@
     flex-direction: column;
     height: 100vh;
     overflow: hidden;
-}
-
-@media (max-width: 768px) {
-    .cart-wrapper {
-        height: 100vh;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-    }
 }
 @media (max-width: 480px) {
     .modal-header {
@@ -1108,4 +1106,14 @@
 .item-card.active {
     border: 2px solid #0176d3;
     background: #f3f9ff;
+}
+
+/* Drag-and-drop visual feedback */
+.cart-item.dragging {
+    opacity: 0.5;
+    background: #e2e8f0;
+}
+
+.cart-item.drag-over {
+    border-top: 3px solid #2563eb;
 }
