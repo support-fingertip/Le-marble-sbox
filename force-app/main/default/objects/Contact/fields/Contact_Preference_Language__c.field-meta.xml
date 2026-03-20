@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Contact_Preference_Language__c</fullName>
+    <externalId>false</externalId>
+    <label>Contact Preference Language</label>
+    <required>false</required>
+    <trackFeedHistory>false</trackFeedHistory>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>English</fullName>
+                <default>false</default>
+                <label>English</label>
+            </value>
+            <value>
+                <fullName>Hindi</fullName>
+                <default>false</default>
+                <label>Hindi</label>
+            </value>
+            <value>
+                <fullName>Malyalam</fullName>
+                <default>false</default>
+                <label>Malyalam</label>
+            </value>
+            <value>
+                <fullName>Tamil</fullName>
+                <default>false</default>
+                <label>Tamil</label>
+            </value>
+            <value>
+                <fullName>Telugu</fullName>
+                <default>false</default>
+                <label>Telugu</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

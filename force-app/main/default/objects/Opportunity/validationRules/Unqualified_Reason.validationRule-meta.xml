@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Unqualified_Reason</fullName>
+    <active>true</active>
+    <errorConditionFormula>ISCHANGED( StageName) &amp;&amp; TEXT(StageName )== &apos;Closed Lost&apos; &amp;&amp; ISBLANK( TEXT(Lost_Reason__c) )</errorConditionFormula>
+    <errorDisplayField>Lost_Reason__c</errorDisplayField>
+    <errorMessage>Add the Lost Reason</errorMessage>
+</ValidationRule>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CompactLayout xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Delivery_Plan_Header</fullName>
+    <fields>Account__c</fields>
+    <fields>Delivery_Address__c</fields>
+    <fields>Quantity__c</fields>
+    <fields>Contact__c</fields>
+    <fields>Contact_Person__c</fields>
+    <label>Delivery Plan Header</label>
+</CompactLayout>

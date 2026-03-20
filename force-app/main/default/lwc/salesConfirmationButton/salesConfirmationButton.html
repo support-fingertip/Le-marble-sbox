@@ -1,0 +1,316 @@
+<template>
+    <div class="button-container">
+      <button class="slds-button slds-button_brand" onclick={handleOpenModal}>
+        Create Sales Confirmation
+      </button>
+    </div>
+  
+    <!-- Modal -->
+    <template if:true={isModalOpen}>
+      <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open slds-modal_medium">
+        <div class="slds-modal__container">
+          <!-- Modal Header with Gradient -->
+          <header class="slds-modal__header gradient-header">
+            <h2 class="slds-text-heading_medium slds-hyphenate slds-text-color_inverse">Sales Confirmation</h2>
+            <lightning-button-icon icon-name="utility:close" alternative-text="Close" size="large" variant="inverse"
+              onclick={handleCloseModal} class="slds-modal__close">
+            </lightning-button-icon>
+          </header>
+  
+          <!-- Modal Body -->
+          <div class="slds-modal__content slds-p-around_medium modal-body">
+            <!-- Customer Information Card -->
+            <div class="customer-card slds-m-bottom_medium">
+              <div class="customer-card-header slds-p-around_small">
+                <div class="slds-grid slds-grid_vertical-align-center">
+                  <lightning-icon icon-name="standard:customer" size="small" class="slds-m-right_small"></lightning-icon>
+                  <div class="slds-col">
+                    <div class="slds-text-heading_small">Customer Information</div>
+                  </div>
+                </div>
+              </div>
+              <div class="customer-card-body slds-p-around_small">
+                <div class="slds-grid slds-wrap">
+                  <div class="slds-col slds-size_1-of-2 slds-p-horizontal_small slds-p-vertical_x-small">
+                    <div class="slds-text-title">Customer Name</div>
+                    <div class="slds-text-body_regular customer-value">{customerInfo.name}</div>
+                  </div>
+                  <div class="slds-col slds-size_1-of-2 slds-p-horizontal_small slds-p-vertical_x-small">
+                    <div class="slds-text-title">Email</div>
+                    <div class="slds-text-body_regular customer-value">{customerInfo.email}</div>
+                  </div>
+                  <div class="slds-col slds-size_1-of-2 slds-p-horizontal_small slds-p-vertical_x-small">
+                    <div class="slds-text-title">Phone</div>
+                    <div class="slds-text-body_regular customer-value">{customerInfo.phone}</div>
+                  </div>
+                  <div class="slds-col slds-size_1-of-2 slds-p-horizontal_small slds-p-vertical_x-small">
+                    <div class="slds-text-title">Company</div>
+                    <div class="slds-text-body_regular customer-value">{customerInfo.company}</div>
+                  </div>
+                  <div class="slds-col slds-size_1-of-2 slds-p-horizontal_small slds-p-vertical_x-small">
+                    <div class="slds-text-title">Executive Assigned</div>
+                    <div class="slds-text-body_regular customer-value">{customerInfo.executive}</div>
+                  </div>
+                  <div class="slds-col slds-size_1-of-2 slds-p-horizontal_small slds-p-vertical_x-small">
+                    <div class="slds-text-title">Address</div>
+                    <div class="slds-text-body_regular customer-value">{customerInfo.address}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+  
+            <!-- Payment Type Selection -->
+            <div class="payment-section slds-m-bottom_medium">
+              <div class="payment-header slds-p-around_small">
+                <div class="slds-grid slds-grid_vertical-align-center">
+                  <lightning-icon icon-name="standard:payment_gateway" size="small"
+                    class="slds-m-right_small"></lightning-icon>
+                  <div class="slds-col">
+                    <div class="slds-text-heading_small">Payment Information</div>
+                  </div>
+                </div>
+              </div>
+              <div class="payment-body slds-p-around_small">
+                <div class="slds-grid slds-wrap">
+                  <div class="slds-col slds-size_1-of-2 slds-p-right_small">
+                    <lightning-combobox
+                      label="Payment Type"
+                      value={selectedPaymentType}
+                      options={paymentTypeOptions}
+                      onchange={handlePaymentTypeChange}
+                      required>
+                    </lightning-combobox>
+                  </div>
+                  <template if:true={showCreditAmount}>
+                    <div class="slds-col slds-size_1-of-2 slds-p-left_small">
+                      <lightning-input
+                        type="number"
+                        label="Credit Amount"
+                        value={creditAmount}
+                        onchange={handleCreditAmountChange}
+                        step="0.01"
+                        min="0"
+                        formatter="currency"
+                        required>
+                      </lightning-input>
+                    </div>
+                  </template>
+                </div>
+                <template if:true={showCreditDueDate}>
+                  <div class="slds-grid slds-wrap slds-m-top_small">
+                    <div class="slds-col slds-size_1-of-2 slds-p-right_small">
+                      <lightning-input
+                        type="date"
+                        label="Credit Due Date"
+                        value={creditDueDate}
+                        onchange={handleCreditDueDateChange}
+                        required>
+                      </lightning-input>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </div>
+  
+            <!-- Cart Accordion -->
+            <div class="slds-is-relative">
+              <div class="section-title slds-p-vertical_small">
+                <div class="slds-grid slds-grid_vertical-align-center">
+                  <lightning-icon icon-name="standard:product_item" size="small"
+                    class="slds-m-right_small"></lightning-icon>
+                  <div class="slds-text-heading_small">Product Selection</div>
+                </div>
+              </div>
+  
+              <template if:true={groupedCartItems}>
+                <!-- Iterate over cart groups with unique key -->
+                <template for:each={cartGroups} for:item="cartGroup">
+                  <div key={cartGroup.cartId} class="slds-m-bottom_medium cart-accordion">
+                    <div class="cart-header slds-p-around_small" onclick={toggleCartSection}
+                      data-cart-id={cartGroup.cartId}>
+                      <div class="slds-grid slds-grid_vertical-align-center">
+                        <lightning-icon icon-name={cartGroup.iconName} size="small"
+                          class="slds-m-right_small"></lightning-icon>
+                        <div class="slds-col">
+                          <div class="slds-text-heading_small">{cartGroup.label}</div>
+                        </div>
+                        <div class="slds-col slds-text-align_right">
+                          <lightning-icon icon-name={cartGroup.expandIcon} size="x-small"
+                            alternative-text="Toggle"></lightning-icon>
+                        </div>
+                      </div>
+                    </div>
+  
+                    <div class={cartGroup.contentClass}>
+                      <div class="slds-p-around_small">
+                        <!-- Mobile View -->
+                        <div class="slds-show">
+                          <!-- Iterate over cart items with unique key -->
+                          <template for:each={cartGroup.items} for:item="item">
+                            <div key={item.Id} class="slds-box slds-m-bottom_small cart-item-card">
+                              <div class="cart-item-fields">
+                                <div class="cart-item-field">
+                                  <span class="cart-item-label">Select</span>
+                                  <lightning-input type="checkbox" checked={item.isSelected} data-id={item.Id}
+                                    onchange={handleItemSelection}></lightning-input>
+                                </div>
+                                <div class="cart-item-field">
+                                  <span class="cart-item-label">Product</span>
+                                  <span>{item.productName}</span>
+                                </div>
+                                <div class="cart-item-field">
+                                  <span class="cart-item-label">Category</span>
+                                  <span>{item.Product_Category__c}</span>
+                                </div>
+                                <div class="cart-item-field">
+                                  <span class="cart-item-label">In Stock</span>
+                                  <span>{item.productInStock}</span>
+                                </div>
+                                <div class="cart-item-field">
+                                  <span class="cart-item-label">Quantity</span>
+                                  <span>{item.Quantity__c}</span>
+                                </div>
+                                <div class="cart-item-field">
+                                  <span class="cart-item-label">Price</span>
+                                  <lightning-formatted-number value={item.Price__c} format-style="currency"></lightning-formatted-number>
+                                </div>
+                                <div class="cart-item-field">
+                                  <span class="cart-item-label">Total</span>
+                                  <lightning-formatted-number value={item.Total_Price__c} format-style="currency"></lightning-formatted-number>
+                                </div>
+                                <div class="cart-item-field">
+                                  <span class="cart-item-label">Warehouse</span>
+                                  <lightning-combobox
+                                    label=""
+                                    value={item.selectedWarehouse}
+                                    options={item.warehouseOptions}
+                                    onchange={handleItemWarehouseChange}
+                                    data-id={item.Id}
+                                    disabled={item.isDisabled}
+                                    placeholder="Select Warehouse"
+                                    variant="label-hidden">
+                                  </lightning-combobox>
+                                </div>
+                              </div>
+                            </div>
+                          </template>
+                        </div>
+  
+                        <!-- Desktop View -->
+                        <div class="slds-hide">
+                          <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+                            <thead>
+                              <tr class="slds-line-height_reset">
+                                <th class="slds-text-title_caps" scope="col">
+                                  <div class="slds-truncate">Select</div>
+                                </th>
+                                <th class="slds-text-title_caps" scope="col">
+                                  <div class="slds-truncate">Product</div>
+                                </th>
+                                <th class="slds-text-title_caps" scope="col">
+                                  <div class="slds-truncate">Category</div>
+                                </th>
+                                <th class="slds-text-title_caps" scope="col">
+                                  <div class="slds-truncate">In Stock</div>
+                                </th>
+                                <th class="slds-text-title_caps" scope="col">
+                                  <div class="slds-truncate">Quantity</div>
+                                </th>
+                                <th class="slds-text-title_caps" scope="col">
+                                  <div class="slds-truncate">Price</div>
+                                </th>
+                                <th class="slds-text-title_caps" scope="col">
+                                  <div class="slds-truncate">Total</div>
+                                </th>
+                                <th class="slds-text-title_caps" scope="col">
+                                  <div class="slds-truncate">Warehouse</div>
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <!-- Iterate over cart items with unique key -->
+                              <template for:each={cartGroup.items} for:item="item">
+                                <tr key={item.Id}>
+                                  <td>
+                                    <lightning-input type="checkbox" checked={item.isSelected} data-id={item.Id}
+                                      onchange={handleItemSelection}>
+                                    </lightning-input>
+                                  </td>
+                                  <td>
+                                    <div class="slds-truncate">{item.productName}</div>
+                                  </td>
+                                  <td>
+                                    <div class="slds-truncate">{item.Product_Category__c}</div>
+                                  </td>
+                                  <td>
+                                    <div class="slds-truncate">{item.productInStock}</div>
+                                  </td>
+                                  <td>
+                                    <div class="slds-truncate">{item.Quantity__c}</div>
+                                  </td>
+                                  <td>
+                                    <div class="slds-truncate">
+                                      <lightning-formatted-number value={item.Price__c} format-style="currency">
+                                      </lightning-formatted-number>
+                                    </div>
+                                  </td>
+                                  <td>
+                                    <div class="slds-truncate">
+                                      <lightning-formatted-number value={item.Total_Price__c} format-style="currency">
+                                      </lightning-formatted-number>
+                                    </div>
+                                  </td>
+                                  <td>
+                                    <div class="slds-truncate">
+                                      <lightning-combobox
+                                        label=""
+                                        value={item.selectedWarehouse}
+                                        options={item.warehouseOptions}
+                                        onchange={handleItemWarehouseChange}
+                                        data-id={item.Id}
+                                        disabled={item.isDisabled}
+                                        placeholder="Select Warehouse"
+                                        variant="label-hidden">
+                                      </lightning-combobox>
+                                    </div>
+                                  </td>
+                                </tr>
+                              </template>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </template>
+              </template>
+  
+              <template if:false={hasCartItems}>
+                <div class="slds-text-align_center slds-p-around_medium">
+                  <div class="slds-illustration slds-illustration_small">
+                    <lightning-icon icon-name="utility:info" size="medium"></lightning-icon>
+                    <p class="slds-text-body_regular slds-p-top_medium">No cart items found for this deal.</p>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+  
+          <!-- Modal Footer with Gradient -->
+          <footer class="slds-modal__footer gradient-footer">
+            <button class="cancel-button" onclick={handleCloseModal}>Cancel</button>
+            <button class="confirm-button" onclick={handleConfirmSale} disabled={isLoading}>
+              <lightning-icon icon-name="utility:check" size="x-small" class="slds-m-right_x-small"></lightning-icon>
+              Confirm Sale
+            </button>
+          </footer>
+        </div>
+      </section>
+      <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+  
+    <!-- Loading Spinner -->
+    <template if:true={isLoading}>
+      <lightning-spinner alternative-text="Loading" size="medium"></lightning-spinner>
+    </template>
+  </template>

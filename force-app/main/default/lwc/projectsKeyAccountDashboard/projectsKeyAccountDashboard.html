@@ -1,0 +1,128 @@
+<!-- Projects & Key Account Management Dashboard -->
+<template>
+  <div class="dashboard-container">
+    <!-- Header Section -->
+    <div class="header-section">
+      <h1>{title}</h1>
+      <div class="header-actions">
+        <lightning-button label="View All Clients" icon-name="utility:list" variant="neutral"
+          onclick={handleViewAllClients}>
+        </lightning-button>
+        <lightning-button label="New Site Visit" icon-name="utility:add" variant="brand" onclick={handleNewSiteVisit}>
+        </lightning-button>
+        <lightning-button label="New Follow-up" icon-name="utility:task" variant="neutral" onclick={handleNewFollowUp}>
+        </lightning-button>
+      </div>
+    </div>
+
+    <!-- Summary Metrics Cards -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-icon">
+          <lightning-icon icon-name="standard:account" size="medium"></lightning-icon>
+        </div>
+        <div class="metric-content">
+          <h3>Total Builders</h3>
+          <p class="metric-value">{totalBuilders}</p>
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon">
+          <lightning-icon icon-name="standard:user" size="medium"></lightning-icon>
+        </div>
+        <div class="metric-content">
+          <h3>Total Architects</h3>
+          <p class="metric-value">{totalArchitects}</p>
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon">
+          <lightning-icon icon-name="standard:opportunity" size="medium"></lightning-icon>
+        </div>
+        <div class="metric-content">
+          <h3>Ongoing Projects</h3>
+          <p class="metric-value">{ongoingProjects}</p>
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon">
+          <lightning-icon icon-name="utility:reminder" size="medium"></lightning-icon>
+        </div>
+        <div class="metric-content">
+          <h3>Follow-ups Due Today</h3>
+          <p class="metric-value">{followUpsDueToday}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="content-grid">
+      <!-- Recent Interactions Table -->
+      <div class="content-section">
+        <div class="section-header">
+          <h2>Recent Interactions</h2>
+          <lightning-button label="View All" icon-name="utility:chevronright" variant="neutral"
+            onclick={handleViewAllInteractions}>
+          </lightning-button>
+        </div>
+        <div class="table-container">
+          <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+            <thead>
+              <tr class="slds-line-height_reset">
+                <th scope="col">Client Name</th>
+                <th scope="col">Type</th>
+                <th scope="col">Last Visit</th>
+                <th scope="col">Next Follow-up</th>
+                <th scope="col">Status</th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template for:each={recentInteractions} for:item="interaction">
+                <tr key={interaction.id}>
+                  <td>{interaction.clientName}</td>
+                  <td>{interaction.type}</td>
+                  <td>{interaction.lastVisit}</td>
+                  <td>{interaction.nextFollowUp}</td>
+                  <td>
+                    <span class={interaction.statusClass}>{interaction.status}</span>
+                  </td>
+                  <td>
+                    <lightning-button-icon icon-name="utility:chevronright" variant="border-filled"
+                      alternative-text="View Details" onclick={handleViewDetails} data-id={interaction.id}>
+                    </lightning-button-icon>
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Upcoming Site Visits Calendar -->
+      <div class="content-section">
+        <div class="section-header">
+          <h2>Upcoming Site Visits</h2>
+          <lightning-button label="View Calendar" icon-name="utility:calendar" variant="neutral"
+            onclick={handleViewCalendar}>
+          </lightning-button>
+        </div>
+        <div class="calendar-container">
+          <template for:each={upcomingVisits} for:item="visit">
+            <div key={visit.id} class="calendar-item" onclick={handleVisitClick} data-id={visit.id}>
+              <div class="visit-date">
+                <span class="day">{visit.day}</span>
+                <span class="month">{visit.month}</span>
+              </div>
+              <div class="visit-details">
+                <h4>{visit.clientName}</h4>
+                <p>{visit.location}</p>
+                <span class="visit-time">{visit.time}</span>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>

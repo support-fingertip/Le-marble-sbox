@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Product_Category__c</fullName>
+    <externalId>false</externalId>
+    <label>Product Category</label>
+    <required>false</required>
+    <trackHistory>false</trackHistory>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>TILES</fullName>
+                <default>false</default>
+                <label>TILES</label>
+            </value>
+            <value>
+                <fullName>ROOF TILES</fullName>
+                <default>false</default>
+                <label>ROOF TILES</label>
+            </value>
+            <value>
+                <fullName>ADHESIVES</fullName>
+                <default>false</default>
+                <label>ADHESIVES</label>
+            </value>
+            <value>
+                <fullName>FITTINGS</fullName>
+                <default>false</default>
+                <label>FITTINGS</label>
+            </value>
+            <value>
+                <fullName>GLASS BRICK</fullName>
+                <default>false</default>
+                <label>GLASS BRICK</label>
+            </value>
+            <value>
+                <fullName>LIGHTS</fullName>
+                <default>false</default>
+                <label>LIGHTS</label>
+            </value>
+            <value>
+                <fullName>NATURAL STONE</fullName>
+                <default>false</default>
+                <label>NATURAL STONE</label>
+            </value>
+            <value>
+                <fullName>SANITARY</fullName>
+                <default>false</default>
+                <label>SANITARY</label>
+            </value>
+            <value>
+                <fullName>SURFACE CARE</fullName>
+                <default>false</default>
+                <label>SURFACE CARE</label>
+            </value>
+            <value>
+                <fullName>WOODEN TILES</fullName>
+                <default>false</default>
+                <label>WOODEN TILES</label>
+            </value>
+            <value>
+                <fullName>OTHERS</fullName>
+                <default>false</default>
+                <label>OTHERS</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

@@ -1,0 +1,28 @@
+<template>
+    <lightning-card title="Add Address to SAP">
+        <div class="slds-p-around_medium">
+            <lightning-button
+                label="Add Address to SAP"
+                variant="brand"
+                onclick={handleClick}
+                disabled={isLoading}>
+            </lightning-button>
+
+            <template if:true={isLoading}>
+                <lightning-spinner alternative-text="Loading" size="small" class="slds-m-top_medium"></lightning-spinner>
+            </template>
+
+            <template if:true={successMessage}>
+                <p class="slds-m-top_medium slds-text-color_success">
+                    <b>{successMessage}</b>
+                </p>
+            </template>
+
+            <template if:true={errorMessage}>
+                <p class="slds-m-top_medium slds-text-color_error">
+                    <b>Error:</b> {errorMessage}
+                </p>
+            </template>
+        </div>
+    </lightning-card>
+</template>

@@ -1,0 +1,46 @@
+.button-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+    background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.button-container:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.convert-button {
+    --slds-c-button-brand-color-background: #0070d2;
+    --slds-c-button-brand-color-background-hover: #005fb2;
+    --slds-c-button-brand-color-border: #0070d2;
+    --slds-c-button-brand-color-border-hover: #005fb2;
+    --slds-c-button-brand-text-color: white;
+    --slds-c-button-brand-spacing-inline-start: 1.5rem;
+    --slds-c-button-brand-spacing-inline-end: 1.5rem;
+    --slds-c-button-brand-spacing-inline-top: 0.75rem;
+    --slds-c-button-brand-spacing-inline-bottom: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.convert-button:disabled {
+    --slds-c-button-brand-color-background: #c9c7c5;
+    --slds-c-button-brand-color-border: #c9c7c5;
+    cursor: not-allowed;
+}
+
+.spinner-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+}

@@ -1,0 +1,53 @@
+<template>
+    <lightning-quick-action-panel header="Convert Lead (Mobile)">
+        <template if:true={isLoading}>
+            <div class="slds-p-around_medium">
+                <lightning-spinner size="small" alternative-text="Loading"></lightning-spinner>
+            </div>
+        </template>
+
+        <template if:false={isLoading}>
+            <div class="slds-p-around_small form-container">
+                <lightning-combobox
+                    label="Converted Status"
+                    value={convertedStatus}
+                    options={convertedStatusOptions}
+                    onchange={handleConvertedStatusChange}>
+                </lightning-combobox>
+
+                <div class="section-title">Account</div>
+                <lightning-input
+                    label="Account Name"
+                    value={newAccountName}
+                    onchange={handleNewAccountNameChange}>
+                </lightning-input>
+
+                <div class="section-title">Contact</div>
+                <lightning-input
+                    label="Contact First Name"
+                    value={newContactFirstName}
+                    onchange={handleNewContactFirstNameChange}>
+                </lightning-input>
+                <lightning-input
+                    label="Contact Last Name"
+                    value={newContactLastName}
+                    onchange={handleNewContactLastNameChange}
+                    required>
+                </lightning-input>
+
+                <div class="section-title">Opportunity</div>
+                <lightning-input
+                    label="Opportunity Name"
+                    value={opportunityName}
+                    onchange={handleOpportunityNameChange}
+                    required>
+                </lightning-input>
+            </div>
+        </template>
+
+        <div slot="footer" class="slds-modal__footer slds-grid slds-grid_align-end">
+            <lightning-button label="Cancel" onclick={handleCancel}></lightning-button>
+            <lightning-button class="slds-m-left_small" variant="brand" label="Convert" onclick={handleConvert} disabled={disableConvert}></lightning-button>
+        </div>
+    </lightning-quick-action-panel>
+</template>

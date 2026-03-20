@@ -1,0 +1,135 @@
+<template>
+    <section class="mobile-shell">
+        <header class="mobile-header">Convert Lead (Mobile V2)</header>
+
+        <template if:true={isLoading}>
+            <div class="mobile-body loading-state">
+                <lightning-spinner size="small" alternative-text="Loading"></lightning-spinner>
+            </div>
+        </template>
+
+        <template if:false={isLoading}>
+            <div class="mobile-body">
+                <div class="form-container">
+                    <lightning-combobox
+                        label="Converted Status"
+                        value={convertedStatus}
+                        options={convertedStatusOptions}
+                        onchange={handleConvertedStatusChange}
+                        required>
+                    </lightning-combobox>
+
+                    <lightning-input
+                        label="Record Owner"
+                        value={ownerName}
+                        disabled>
+                    </lightning-input>
+
+                    <div class="section-title">Account</div>
+                    <lightning-radio-group
+                        label=""
+                        options={accountModeOptions}
+                        value={accountMode}
+                        type="radio"
+                        onchange={handleAccountModeChange}>
+                    </lightning-radio-group>
+
+                    <template if:true={isNewAccountMode}>
+                        <lightning-input
+                            label="Account Name"
+                            value={newAccountName}
+                            onchange={handleNewAccountNameChange}
+                            required>
+                        </lightning-input>
+                    </template>
+
+                    <template if:true={isExistingAccountMode}>
+                        <lightning-record-picker
+                            label="Choose Existing Account"
+                            placeholder="Search for matching accounts"
+                            object-api-name="Account"
+                            value={selectedAccountId}
+                            onchange={handleExistingAccountChange}>
+                        </lightning-record-picker>
+                    </template>
+
+                    <div class="section-title">Contact</div>
+                    <lightning-radio-group
+                        label=""
+                        options={contactModeOptions}
+                        value={contactMode}
+                        type="radio"
+                        onchange={handleContactModeChange}>
+                    </lightning-radio-group>
+
+                    <template if:true={isNewContactMode}>
+                        <lightning-input
+                            label="Contact First Name"
+                            value={newContactFirstName}
+                            onchange={handleNewContactFirstNameChange}>
+                        </lightning-input>
+                        <lightning-input
+                            label="Contact Last Name"
+                            value={newContactLastName}
+                            onchange={handleNewContactLastNameChange}
+                            required>
+                        </lightning-input>
+                    </template>
+
+                    <template if:true={isExistingContactMode}>
+                        <lightning-record-picker
+                            label="Choose Existing Contact"
+                            placeholder="Search for matching contacts"
+                            object-api-name="Contact"
+                            value={selectedContactId}
+                            onchange={handleExistingContactChange}
+                            disabled={disableExistingContactLookup}>
+                        </lightning-record-picker>
+                    </template>
+
+                    <div class="section-title">Opportunity</div>
+                    <lightning-radio-group
+                        label=""
+                        options={opportunityModeOptions}
+                        value={opportunityMode}
+                        type="radio"
+                        onchange={handleOpportunityModeChange}>
+                    </lightning-radio-group>
+
+                    <lightning-input
+                        type="checkbox"
+                        label="Don't create an Opportunity upon conversion"
+                        checked={doNotCreateOpportunity}
+                        onchange={handleDoNotCreateOpportunity}>
+                    </lightning-input>
+
+                    <template if:true={showOpportunityName}>
+                        <lightning-input
+                            label="Create New Opportunity"
+                            value={opportunityName}
+                            onchange={handleOpportunityNameChange}
+                            required>
+                        </lightning-input>
+                    </template>
+
+                    <template if:true={showExistingOpportunityLookup}>
+                        <lightning-record-picker
+                            label="Choose Existing Opportunity"
+                            placeholder="Search for matching opportunities"
+                            object-api-name="Opportunity"
+                            value={selectedOpportunityId}
+                            onchange={handleExistingOpportunityChange}
+                            filter={opportunityLookupFilter}
+                            disabled={disableExistingOpportunityLookup}>
+                        </lightning-record-picker>
+                    </template>
+                </div>
+            </div>
+        </template>
+
+        <footer class="mobile-footer slds-grid slds-grid_align-end">
+            <lightning-button label="Cancel" onclick={handleCancel}></lightning-button>
+            <lightning-button class="slds-m-left_small" variant="brand" label="Convert" onclick={handleConvert} disabled={disableConvert}></lightning-button>
+        </footer>
+    </section>
+</template>

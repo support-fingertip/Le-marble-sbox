@@ -1,0 +1,587 @@
+<template>
+    <div class="form-container">
+        <div class="form-header">
+            <h2>Customer Information</h2>
+        </div>
+
+        <div class="form-body">
+            <!-- Customer Details Section -->
+            <div class="form-section">
+                <h3>Customer Details</h3>
+                <div class="field-group">
+                    <div class="field required">
+                        <label for="type">Type <span class="required-indicator">*</span></label>
+                        <div class="custom-select">
+                            <select id="type" name="type" onchange={handleTypeChange} required>
+                                <option value="">Select Type</option>
+                                <template for:each={customerTypes} for:item="type">
+                                    <option key={type} value={type}>{type}</option>
+                                </template>
+                            </select>
+                            <div class="select-arrow"></div>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label for="salutation">Salutation</label>
+                        <div class="custom-select">
+                            <select id="salutation" name="salutation" onchange={handleInputChange}>
+                                <option value="">--None--</option>
+                                <option value="Mr.">Mr.</option>
+                                <option value="Ms.">Ms.</option>
+                                <option value="Mrs.">Mrs.</option>
+                                <option value="M/s.">M/s.</option>
+                                <option value="Dr.">Dr.</option>
+                                <option value="Prof.">Prof.</option>
+                                <option value="Mx.">Mx.</option>
+                            </select>
+                            <div class="select-arrow"></div>
+                        </div>
+                    </div>
+
+                    <div class="field required">
+                        <label for="firstName">First Name/Project name <span class="required-indicator">*</span></label>
+                        <input type="text" id="firstName" name="firstName" placeholder="First Name" required
+                            onchange={handleInputChange} oninput={handleUpperCaseInput}
+                            value={customerData.firstName} />
+                    </div>
+
+                    <div class="field">
+                        <label for="lastName">Last Name</label>
+                        <input type="text" id="lastName" name="lastName" placeholder="Last Name"
+                            onchange={handleInputChange} oninput={handleUpperCaseInput} value={customerData.lastName} />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="form-section">
+                <h3>Contact Information</h3>
+                <!-- Row 1: Country, Phone Number, Email -->
+                <div class="field-group">
+                    <div class="field required">
+                        <label for="country">Country</label>
+                        <select id="country" name="country" onchange={handleCountryChange}>
+                            <template for:each={countryList} for:item="country">
+                                <option key={country.code} value={country.code}>{country.name}</option>
+                            </template>
+                        </select>
+                    </div>
+                    <div class="field required">
+                        <label for="primaryPhone">Phone Number <span class="required-indicator">*</span></label>
+                        <div class="phone-input-row">
+                            <input
+                                class="country-code"
+                                type="text"
+                                value={selectedCountryCode}
+                                readonly
+                                tabindex="-1"
+                            />
+                            <input
+                                class="phone-number"
+                                type="text"
+                                name="primaryPhone"
+                                id="primaryPhone"
+                                placeholder="Primary Phone"
+                                value={customerData.primaryPhone}
+                                maxlength="15"
+                                oninput={handlePhoneInput}
+                                required
+                            />
+                        </div>
+                        <template if:true={phoneError}>
+                            <div class="error-message">{phoneError}</div>
+                        </template>
+                    </div>
+                    <div class="field">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" placeholder="Email" onchange={handleInputChange}
+                            value={customerData.email} />
+                    </div>
+                </div>
+                <!-- Row 2: Secondary Country, Secondary Phone Number -->
+                <div class="field-group">
+                    <div class="field">
+                        <label for="secondaryCountry">Country</label>
+                        <select id="secondaryCountry" name="secondaryCountry" onchange={handleSecondaryCountryChange}>
+                            <template for:each={countryList} for:item="country">
+                                <option key={country.code} value={country.code}>{country.name}</option>
+                            </template>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="secondaryPhone">Secondary Phone Number</label>
+                        <div class="secondary-phone-input-row" style="display: flex; align-items: center; gap: 8px;">
+                            <input
+                                class="secondary-country-code"
+                                type="text"
+                                value={selectedSecondaryCountryCode}
+                                readonly
+                                tabindex="-1"
+                                style="max-width: 60px; min-width: 48px; text-align: center; font-weight: bold; background: #f8f8f8; border: 1px solid #ccc; border-radius: 4px;"
+                            />
+                            <input
+                                class="secondary-phone-number"
+                                type="text"
+                                name="secondaryPhone"
+                                id="secondaryPhone"
+                                placeholder="Secondary Phone"
+                                value={customerData.secondaryPhone}
+                                maxlength="15"
+                                oninput={handleSecondaryPhoneInput}
+                                style="flex: 1; min-width: 120px;"
+                            />
+                        </div>
+                        <template if:true={secondaryPhoneError}>
+                            <div class="error-message">{secondaryPhoneError}</div>
+                        </template>
+                    </div>
+                    <div class="field"></div> <!-- Empty for alignment -->
+                </div>
+                <!-- Row 3: State, District, Panchayat -->
+                <div class="field-group">
+                    <div class="field required">
+                        <label for="state">State <span class="required-indicator">*</span></label>
+                        <select id="state" name="state" required onchange={handleStateChange} value={customerData.state}>
+                            <option value="">Select State</option>
+                            <template for:each={statesList} for:item="state">
+                                <option key={state} value={state}>{state}</option>
+                            </template>
+                        </select>
+                    </div>
+                    <template if:true={showDistrictAndPanchayat}>
+                        <div class="field required">
+                            <label for="district">District <span class="required-indicator">*</span></label>
+                            <select id="district" name="district" required onchange={handleDistrictChange} value={customerData.district}>
+                                <option value="">Select District</option>
+                                <template for:each={keralaDistrictsList} for:item="district">
+                                    <option key={district} value={district}>{district}</option>
+                                </template>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label for="panchayat">Area/ Panchayat /Municipality/ Block Panchayat</label>
+                            <div class="search-input-wrapper">
+                                <input
+                                    type="text"
+                                    id="panchayat"
+                                    name="panchayat"
+                                    placeholder="Search Panchayat"
+                                    oninput={handlePanchayatSearch}
+                                    value={panchayatSearchTerm}
+                                    autocomplete="off"
+                                    disabled={isPanchayatDisabled}
+                                />
+                                <div if:true={showPanchayatResults} class="search-results-dropdown">
+                                    <ul>
+                                        <template for:each={filteredPanchayatOptions} for:item="panchayat">
+                                            <li key={panchayat} onclick={selectPanchayat} data-value={panchayat}>{panchayat}</li>
+                                        </template>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Additional Information -->
+            <div class="form-section">
+                <h3>Additional Information</h3>
+                <div class="field-group">
+                    <div class="field required">
+                        <label for="customerSource">Lead Source <span class="required-indicator">*</span></label>
+                        <div class="custom-select">
+                            <select id="customerSource" name="customerSource" required onchange={handleSourceChange}>
+                                <option value="">Select Source</option>
+                                <template for:each={leadSources} for:item="source">
+                                    <option key={source} value={source}>{source}</option>
+                                </template>
+                            </select>
+                            <div class="select-arrow"></div>
+                        </div>
+                    </div>
+
+                    <template if:true={showReferenceFields}>
+                        <div class="field">
+                            <label for="referenceType">Reference Type</label>
+                            <div class="custom-select">
+                                <select id="referenceType" name="referenceType" onchange={handleReferenceTypeChange}>
+                                    <option value="">Select Type</option>
+                                    <template for:each={referenceTypes} for:item="type">
+                                        <option key={type} value={type}>{type}</option>
+                                    </template>
+                                </select>
+                                <div class="select-arrow"></div>
+                            </div>
+                        </div>
+
+                        <!-- Customer Reference Fields -->
+                        <template if:true={showCustomerReferenceFields}>
+                            <div class="field required">
+                                <label for="referredPhoneNumber">Referred Customer Phone Number <span
+                                        class="required-indicator">*</span></label>
+                                <input type="tel" id="referredPhoneNumber" name="phoneNumber"
+                                    placeholder="Enter phone number" required onchange={handleReferredPhoneChange}
+                                    value={customerData.phoneNumber} />
+                            </div>
+
+                            <template if:true={showReferralNameInput}>
+                                <div class="field required">
+                                    <label for="referralCustomerName">Referral Name <span
+                                            class="required-indicator">*</span></label>
+                                    <input type="text" id="referralCustomerName" name="referralName"
+                                        placeholder="Enter referral name" required oninput={handleReferralNameChange}
+                                        value={customerData.referralName} />
+                                </div>
+                            </template>
+
+                            <template if:true={referredCustomerExists}>
+                                <div class="field">
+                                    <label>Found Customer</label>
+                                    <div class="existing-customer-info">{referredCustomerName}</div>
+                                </div>
+                            </template>
+                        </template>
+
+                        <!-- Other reference type fields (Architect, Contractor, etc.) -->
+                        <template if:true={showReferralPhoneField}>
+                            <div class="field required">
+                                <label for="referralPhoneNumber">{customerData.referenceType} Phone Number <span
+                                        class="required-indicator">*</span></label>
+                                <input type="tel" id="referralPhoneNumber" name="phoneNumber"
+                                    placeholder="Enter phone number" required onchange={handleReferralPhoneChange}
+                                    value={customerData.phoneNumber} />
+                            </div>
+
+                            <template if:true={showReferralNameInput}>
+                                <div class="field required">
+                                    <label for="referralName">{customerData.referenceType} Name <span
+                                            class="required-indicator">*</span></label>
+                                    <input type="text" id="referralName" name="referralName" placeholder="Enter name"
+                                        required oninput={handleReferralNameChange} value={customerData.referralName} />
+                                </div>
+                            </template>
+
+                            <template if:true={referralExists}>
+                                <div class="field">
+                                    <label>Found {customerData.referenceType}</label>
+                                    <div class="existing-referral-info">{referralName}</div>
+                                </div>
+                            </template>
+                        </template>
+                    </template>
+
+                    <!-- Reference Fields Section -->
+                    <template if:true={showArchitectFields}>
+                        <div class="field required architect-search-container">
+                            <label for="architectName">Architect Name/Phone number <span
+                                    class="required-indicator">*</span></label>
+                            <div class="search-input-wrapper">
+                                <input type="text" id="architectName" placeholder="Search by name or phone number"
+                                    required onkeyup={handleArchitectSearch} value={architectSearchTerm} />
+                                <div if:true={showArchitectResults} class="search-results-dropdown">
+                                    <ul>
+                                        <template for:each={architectSearchResults} for:item="architect">
+                                            <li key={architect.Id} onclick={selectArchitect} data-id={architect.Id}>
+                                                <div class="result-item">
+                                                    <strong>{architect.Name}</strong>
+                                                    <span class="company-name">{architect.Phone_Number__c}</span>
+                                                </div>
+                                            </li>
+                                        </template>
+                                        <template if:true={showAddNewOption}>
+                                            <li class="add-new-option" onclick={handleAddNewClick}>
+                                                <div class="result-item">
+                                                    <strong>+ Add New Architect</strong>
+                                                </div>
+                                            </li>
+                                        </template>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
+                    <!-- Add this after the Lead Source dropdown -->
+                    <template if:true={showSocialMediaPlatforms}>
+                        <div class="field required">
+                            <label for="socialMedia">Social Media Platform <span
+                                    class="required-indicator">*</span></label>
+                            <div class="custom-select">
+                                <select id="socialMedia" name="socialMedia" required onchange={handleSocialMediaChange}>
+                                    <option value="">Select Platform</option>
+                                    <template for:each={socialMediaPlatforms} for:item="platform">
+                                        <option key={platform} value={platform}>{platform}</option>
+                                    </template>
+                                </select>
+                                <div class="select-arrow"></div>
+                            </div>
+                        </div>
+                    </template>
+
+                    <div class="field required">
+                        <label for="customerEntryDate">Customer Entry Date <span
+                                class="required-indicator">*</span></label>
+                        <input type="date" id="customerEntryDate" name="customerEntryDate" required
+                            value={customerData.customerEntryDate} readonly />
+                    </div>
+
+                    <div class="field required">
+                        <label for="assignedExecutive">Assign Executive <span
+                                class="required-indicator">*</span></label>
+                        <div class="custom-select">
+                            <select id="assignedExecutive" name="assignedExecutive" required
+                                onchange={handleInputChange}>
+                                <option value="">Select Executive</option>
+                                <template for:each={executives} for:item="executive">
+                                    <option key={executive.Id} value={executive.Id}>{executive.Name}</option>
+                                </template>
+                            </select>
+                            <div class="select-arrow"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customer Reference Fields -->
+                <template if:true={showCustomerFields}>
+                    <div class="field required customer-search-container">
+                        <label for="customerName">Customer Name <span class="required-indicator">*</span></label>
+                        <div class="search-input-wrapper">
+                            <input type="text" id="customerName" placeholder="Search Customer" required
+                                onkeyup={handleCustomerSearch} value={customerSearchTerm} />
+                            <div if:true={showCustomerResults} class="search-results-dropdown">
+                                <ul>
+                                    <template for:each={customerSearchResults} for:item="customer">
+                                        <li key={customer.Id} onclick={selectCustomer} data-id={customer.Id}>
+                                            <div class="result-item">
+                                                <strong>{customer.Name}</strong>
+                                            </div>
+                                        </li>
+                                    </template>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- Contractor Search -->
+                <template if:true={showContractorFields}>
+                    <div class="field">
+                        <label for="contractorName">Contractor Name</label>
+                        <input type="text" id="contractorName" placeholder="Search Contractor"
+                            onkeyup={handleContractorSearch} />
+                        <div if:true={showContractorResults} class="search-results-dropdown">
+                            <ul>
+                                <template for:each={contractorSearchResults} for:item="contractor">
+                                    <li key={contractor.Id} onclick={selectContractor} data-id={contractor.Id}>
+                                        <strong>{contractor.Name}</strong>
+                                    </li>
+                                </template>
+                            </ul>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- Maison Search -->
+                <template if:true={showMaisonFields}>
+                    <div class="field">
+                        <label for="maisonName">Maison Name</label>
+                        <input type="text" id="maisonName" placeholder="Search Maison" onkeyup={handleMaisonSearch} />
+                        <div if:true={showMaisonResults} class="search-results-dropdown">
+                            <ul>
+                                <template for:each={maisonSearchResults} for:item="maison">
+                                    <li key={maison.Id} onclick={selectMaison} data-id={maison.Id}>
+                                        <strong>{maison.Name}</strong>
+                                    </li>
+                                </template>
+                            </ul>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <div if:true={isLoading} class="loading-overlay">
+            <div class="loader">
+                <div class="justify-content-center jimu-primary-loading"></div>
+            </div>
+            <p class="loading-text">Creating lead...</p>
+        </div>
+
+        <div class="form-footer">
+            <button class="btn-cancel" onclick={handleCancel} disabled={isLoading}>Cancel</button>
+            <button class="btn-save" onclick={handleSave} disabled={isLoading}>Save</button>
+        </div>
+
+        <!-- Toast Message -->
+        <div if:true={showToast} class={toastClass} onclick={handleToastClick} style={toastStyle}>
+            <div class="toast-content">
+                <span class="toast-icon">{toastIcon}</span>
+                <div class="toast-message">
+                    <h4>{toastTitle}</h4>
+                    <p>{toastMessage}</p>
+                </div>
+                <button class="toast-close" onclick={closeToast}>×</button>
+            </div>
+        </div>
+
+        <!-- New Contractor Modal -->
+        <template if:true={showNewContractorModal}>
+            <div class="modal-backdrop">
+                <div class="modal-container">
+                    <div class="modal-header">
+                        <h3>Add New Contractor</h3>
+                        <button class="close-button" onclick={closeNewContractorModal}>×</button>
+                    </div>
+                    <div class="modal-content">
+                        <div class="modal-body">
+                            <div class="field required">
+                                <label for="newContractorName">Contractor Name <span
+                                        class="required-indicator">*</span></label>
+                                <input type="text" id="newContractorName" value={newContractorData.name}
+                                    onchange={handleNewContractorInput} required />
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn-cancel" onclick={closeNewContractorModal}>Cancel</button>
+                            <button class="btn-save" onclick={createNewContractor}>Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        <!-- New Architect Modal -->
+        <template if:true={showNewArchitectModal}>
+            <div class="modal-backdrop">
+                <div class="modal-container" class:loading={isLoading}>
+                    <div class="modal-header">
+                        <h3>Add New Architect</h3>
+                        <button class="close-button" onclick={closeNewArchitectModal}>×</button>
+                    </div>
+                    <div class="modal-content">
+                        <div class="modal-body">
+                            <div class="field required">
+                                <label for="newArchitectName">Architect Name <span class="required-indicator">*</span></label>
+                                <input type="text" id="newArchitectName" name="name" value={newArchitectData.name}
+                                    oninput={handleNewArchitectInput} placeholder="Enter architect name" required />
+                            </div>
+                            <div class="field">
+                                <label for="newArchitectPhone">Phone Number</label>
+                                <input type="tel" id="newArchitectPhone" name="phoneNumber" value={newArchitectData.phoneNumber}
+                                    oninput={handleNewArchitectInput} placeholder="Enter phone number" />
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn-cancel" onclick={closeNewArchitectModal}>Cancel</button>
+                            <button class="btn-save" onclick={createNewArchitect}>Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        <!-- New Maison Modal -->
+        <template if:true={showNewMaisonModal}>
+            <div class="modal-backdrop">
+                <div class="modal-container">
+                    <div class="modal-header">
+                        <h3>Add New Maison</h3>
+                        <button class="close-button" onclick={closeNewMaisonModal}>×</button>
+                    </div>
+                    <div class="modal-content">
+                        <div class="modal-body">
+                            <div class="field required">
+                                <label for="newMaisonName">Maison Name <span class="required-indicator">*</span></label>
+                                <input type="text" id="newMaisonName" value={newMaisonData.name}
+                                    onchange={handleNewMaisonInput} required />
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn-cancel" onclick={closeNewMaisonModal}>Cancel</button>
+                            <button class="btn-save" onclick={createNewMaison}>Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        <!-- New Project Modal -->
+        <template if:true={showNewProjectModal}>
+            <div class="modal-backdrop">
+                <div class="modal-container">
+                    <div class="modal-header">
+                        <h3>Add New Project</h3>
+                        <button class="close-button" onclick={closeNewProjectModal}>×</button>
+                    </div>
+                    <div class="modal-content">
+                        <div class="modal-body">
+                            <div class="field required">
+                                <label for="newProjectName">Project Name <span
+                                        class="required-indicator">*</span></label>
+                                <input type="text" id="newProjectName" value={newProjectData.name}
+                                    onchange={handleNewProjectInput} oninput={handleNewProjectInput} required />
+                            </div>
+                            <div class="field required">
+                                <label for="firm">Firm <span class="required-indicator">*</span></label>
+                                <div class="search-input-wrapper">
+                                    <input type="text" id="firm" placeholder="Search Firm" onkeyup={handleFirmSearch}
+                                        value={firmSearchTerm} />
+                                    <div if:true={showFirmResults} class="search-results-dropdown">
+                                        <ul>
+                                            <template for:each={firmSearchResults} for:item="firm">
+                                                <li key={firm.Id} onclick={selectFirm} data-id={firm.Id}>
+                                                    <div class="result-item">
+                                                        <strong>{firm.Name}</strong>
+                                                    </div>
+                                                </li>
+                                            </template>
+                                            <li class="add-new-option" onclick={handleAddNewFirmClick}>
+                                                <div class="result-item">
+                                                    <strong>+ Add New Firm</strong>
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn-cancel" onclick={closeNewProjectModal}>Cancel</button>
+                            <button class="btn-save" onclick={createNewProject}>Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        <!-- New Firm Modal -->
+        <template if:true={showNewFirmModal}>
+            <div class="modal-backdrop">
+                <div class="modal-container">
+                    <div class="modal-header">
+                        <h3>Add New Firm</h3>
+                        <button class="close-button" onclick={closeNewFirmModal}>×</button>
+                    </div>
+                    <div class="modal-content">
+                        <div class="modal-body">
+                            <div class="field required">
+                                <label for="newFirmName">Firm Name <span class="required-indicator">*</span></label>
+                                <input type="text" id="newFirmName" value={newFirmData.name}
+                                    onchange={handleNewFirmInput} required />
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn-cancel" onclick={closeNewFirmModal}>Cancel</button>
+                            <button class="btn-save" onclick={createNewFirm}>Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        <template if:true={phoneError}>
+            <div class="error-message">TEST: {phoneError}</div>
+        </template>
+    </div>
+</template>

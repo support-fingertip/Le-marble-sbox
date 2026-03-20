@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Area__c</fullName>
+    <externalId>false</externalId>
+    <label>Area</label>
+    <required>false</required>
+    <trackHistory>false</trackHistory>
+    <type>Picklist</type>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Living Area</fullName>
+                <default>false</default>
+                <label>Living Area</label>
+            </value>
+            <value>
+                <fullName>Dining Area</fullName>
+                <default>false</default>
+                <label>Dining Area</label>
+            </value>
+            <value>
+                <fullName>Family Lounge</fullName>
+                <default>false</default>
+                <label>Family Lounge</label>
+            </value>
+            <value>
+                <fullName>Bedroom</fullName>
+                <default>false</default>
+                <label>Bedroom</label>
+            </value>
+            <value>
+                <fullName>Kitchen</fullName>
+                <default>false</default>
+                <label>Kitchen</label>
+            </value>
+            <value>
+                <fullName>Pantry</fullName>
+                <default>false</default>
+                <label>Pantry</label>
+            </value>
+            <value>
+                <fullName>Utility / Laundry</fullName>
+                <default>false</default>
+                <label>Utility / Laundry</label>
+            </value>
+            <value>
+                <fullName>Bathroom</fullName>
+                <default>false</default>
+                <label>Bathroom</label>
+            </value>
+            <value>
+                <fullName>Common Washroom</fullName>
+                <default>false</default>
+                <label>Common Washroom</label>
+            </value>
+            <value>
+                <fullName>Ablution Area</fullName>
+                <default>false</default>
+                <label>Ablution Area</label>
+            </value>
+            <value>
+                <fullName>Passage / Corridor</fullName>
+                <default>false</default>
+                <label>Passage / Corridor</label>
+            </value>
+            <value>
+                <fullName>Staircase (Internal)</fullName>
+                <default>false</default>
+                <label>Staircase (Internal)</label>
+            </value>
+            <value>
+                <fullName>Lobby / Entrance</fullName>
+                <default>false</default>
+                <label>Lobby / Entrance</label>
+            </value>
+            <value>
+                <fullName>Balcony</fullName>
+                <default>false</default>
+                <label>Balcony</label>
+            </value>
+            <value>
+                <fullName>Porch / Sit-out</fullName>
+                <default>false</default>
+                <label>Porch / Sit-out</label>
+            </value>
+            <value>
+                <fullName>Patio / Courtyard</fullName>
+                <default>false</default>
+                <label>Patio / Courtyard</label>
+            </value>
+            <value>
+                <fullName>Roof</fullName>
+                <default>false</default>
+                <label>Roof</label>
+            </value>
+            <value>
+                <fullName>Terrace</fullName>
+                <default>false</default>
+                <label>Terrace</label>
+            </value>
+            <value>
+                <fullName>Sloping Roof</fullName>
+                <default>false</default>
+                <label>Sloping Roof</label>
+            </value>
+            <value>
+                <fullName>Building Exterior</fullName>
+                <default>false</default>
+                <label>Building Exterior</label>
+            </value>
+            <value>
+                <fullName>Facade / Elevation</fullName>
+                <default>false</default>
+                <label>Facade / Elevation</label>
+            </value>
+            <value>
+                <fullName>Staircase (External)</fullName>
+                <default>false</default>
+                <label>Staircase (External)</label>
+            </value>
+            <value>
+                <fullName>Compound Wall</fullName>
+                <default>false</default>
+                <label>Compound Wall</label>
+            </value>
+            <value>
+                <fullName>Parking / Driveway</fullName>
+                <default>false</default>
+                <label>Parking / Driveway</label>
+            </value>
+            <value>
+                <fullName>Reception</fullName>
+                <default>false</default>
+                <label>Reception</label>
+            </value>
+            <value>
+                <fullName>Office</fullName>
+                <default>false</default>
+                <label>Office</label>
+            </value>
+            <value>
+                <fullName>Retail / Showroom</fullName>
+                <default>false</default>
+                <label>Retail / Showroom</label>
+            </value>
+            <value>
+                <fullName>Restaurant / Cafe</fullName>
+                <default>false</default>
+                <label>Restaurant / Cafe</label>
+            </value>
+            <value>
+                <fullName>Hotel Lobby</fullName>
+                <default>false</default>
+                <label>Hotel Lobby</label>
+            </value>
+            <value>
+                <fullName>Commercial Washroom</fullName>
+                <default>false</default>
+                <label>Commercial Washroom</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

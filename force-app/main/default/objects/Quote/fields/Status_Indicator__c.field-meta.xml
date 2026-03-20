@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Status_Indicator__c</fullName>
+    <externalId>false</externalId>
+    <formula>CASE(
+    TEXT(Status),
+
+    &quot;Draft&quot;,
+    IMAGE(&quot;/resource/orange_image&quot;, &quot;Draft&quot;, 20, 20),
+    &quot;In Review&quot;,
+    IMAGE(&quot;/resource/orange_image&quot;, &quot;In Review&quot;, 20, 20),
+   &quot;Needs Review&quot;,
+    IMAGE(&quot;/resource/orange_image&quot;, &quot;Needs Review&quot;, 20, 20),
+	
+    &quot;Approved&quot;,
+    IMAGE(&quot;/resource/green_image&quot;, &quot;Approved&quot;, 20, 20),
+ &quot;Presented&quot;,
+    IMAGE(&quot;/resource/green_image&quot;, &quot;Presented&quot;, 20, 20),
+ &quot;Accepted&quot;,
+    IMAGE(&quot;/resource/green_image&quot;, &quot;Accepted&quot;, 20, 20),
+
+    &quot;Rejected&quot;,
+    IMAGE(&quot;/resource/red_image&quot;, &quot;Rejected&quot;, 20, 20),
+&quot;Denied&quot;,
+    IMAGE(&quot;/resource/red_image&quot;, &quot;Denied&quot;, 20, 20),
+
+    &quot;&quot;
+)</formula>
+    <label>Status Indicator</label>
+    <required>false</required>
+    <trackHistory>false</trackHistory>
+    <type>Text</type>
+    <unique>false</unique>
+</CustomField>

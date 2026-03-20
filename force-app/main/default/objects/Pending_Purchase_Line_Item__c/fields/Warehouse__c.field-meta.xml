@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Warehouse__c</fullName>
+    <externalId>false</externalId>
+    <label>Warehouse</label>
+    <required>false</required>
+    <trackHistory>false</trackHistory>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <controllingField>BPL_ID__c</controllingField>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>AMP0004</fullName>
+                <default>false</default>
+                <label>AMBALAPPADY WARE HOUSE</label>
+            </value>
+            <value>
+                <fullName>BLDS0021</fullName>
+                <default>false</default>
+                <label>BILLABLE/DISPLAY WAREHOUSE</label>
+            </value>
+            <value>
+                <fullName>BLKGHO16</fullName>
+                <default>false</default>
+                <label>BLOCKING WAREHOUSE HO</label>
+            </value>
+            <value>
+                <fullName>DJS0009</fullName>
+                <default>false</default>
+                <label>DISPLAY-GROHE &amp; JAQUAR SHOWROOM</label>
+            </value>
+            <value>
+                <fullName>DMS0008</fullName>
+                <default>false</default>
+                <label>DISPLAY-MAIN SHOWROOM</label>
+            </value>
+            <value>
+                <fullName>DVS0010</fullName>
+                <default>false</default>
+                <label>DISPLAY-VENGERI SHOWROOM</label>
+            </value>
+            <value>
+                <fullName>IMAM0019</fullName>
+                <default>false</default>
+                <label>IMPORTS-AMBALAPPADY WAREHOUSE</label>
+            </value>
+            <value>
+                <fullName>IMP0015</fullName>
+                <default>false</default>
+                <label>IMPORTS MAIN WAREHOUSE</label>
+            </value>
+            <value>
+                <fullName>LVGW0014</fullName>
+                <default>false</default>
+                <label>LOAD DAMAGE MAIN WAREHOUSE</label>
+            </value>
+            <value>
+                <fullName>MLPB0001</fullName>
+                <default>false</default>
+                <label>MALAPARAMBA WARE HOUSE</label>
+            </value>
+            <value>
+                <fullName>SFNS0020</fullName>
+                <default>false</default>
+                <label>S&amp;F NSD DISPLAY</label>
+            </value>
+            <value>
+                <fullName>STSR0005</fullName>
+                <default>false</default>
+                <label>STORE - MAIN SHOWROOM</label>
+            </value>
+            <value>
+                <fullName>SVGW0011</fullName>
+                <default>false</default>
+                <label>STOCK DAMAGE MAIN WAREHOUSE</label>
+            </value>
+            <value>
+                <fullName>VNGW0002</fullName>
+                <default>false</default>
+                <label>VENGERI MAIN WARE HOUSE</label>
+            </value>
+            <value>
+                <fullName>SVGS0015</fullName>
+                <default>false</default>
+                <label>STOCK DAMAGE VENGERI SHOWROOM WAREHOUSE</label>
+            </value>
+            <value>
+                <fullName>VNGS0003</fullName>
+                <default>false</default>
+                <label>VENGERI SHOWROOM WAREHOUSE</label>
+            </value>
+            <value>
+                <fullName>NSD0007</fullName>
+                <default>false</default>
+                <label>NSD-YARD</label>
+            </value>
+            <value>
+                <fullName>SDNS0025</fullName>
+                <default>false</default>
+                <label>STOCK DAMAGE NSD-YARD</label>
+            </value>
+            <value>
+                <fullName>STNS0006</fullName>
+                <default>false</default>
+                <label>STORE-NSD</label>
+            </value>
+            <value>
+                <fullName>BDBS0022</fullName>
+                <default>false</default>
+                <label>BUDGET BUY SHOWROOM WAREHOUSE</label>
+            </value>
+            <value>
+                <fullName>DBBS0023</fullName>
+                <default>false</default>
+                <label>DISPLAY BUDGET BUY SHOWROOM</label>
+            </value>
+            <value>
+                <fullName>LBDW0023</fullName>
+                <default>false</default>
+                <label>LOAD DAMAGE BUDGET BUY WAREHOUSE</label>
+            </value>
+            <value>
+                <fullName>SBDW0024</fullName>
+                <default>false</default>
+                <label>STOCK DAMAGE BUDGET BUY WAREHOUSE</label>
+            </value>
+        </valueSetDefinition>
+        <valueSettings>
+            <controllingFieldValue>3</controllingFieldValue>
+            <valueName>AMP0004</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>3</controllingFieldValue>
+            <valueName>BLDS0021</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>3</controllingFieldValue>
+            <valueName>BLKGHO16</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>3</controllingFieldValue>
+            <valueName>DJS0009</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>3</controllingFieldValue>
+            <valueName>DMS0008</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>3</controllingFieldValue>
+            <valueName>DVS0010</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>3</controllingFieldValue>
+            <valueName>IMAM0019</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>3</controllingFieldValue>
+            <valueName>IMP0015</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>3</controllingFieldValue>
+            <valueName>LVGW0014</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>3</controllingFieldValue>
+            <valueName>MLPB0001</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>3</controllingFieldValue>
+            <valueName>SFNS0020</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>3</controllingFieldValue>
+            <valueName>STSR0005</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>3</controllingFieldValue>
+            <valueName>SVGW0011</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>3</controllingFieldValue>
+            <valueName>VNGW0002</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>4</controllingFieldValue>
+            <valueName>SVGS0015</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>4</controllingFieldValue>
+            <valueName>VNGS0003</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>5</controllingFieldValue>
+            <valueName>NSD0007</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>5</controllingFieldValue>
+            <valueName>SDNS0025</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>5</controllingFieldValue>
+            <valueName>STNS0006</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>6</controllingFieldValue>
+            <valueName>BDBS0022</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>6</controllingFieldValue>
+            <valueName>DBBS0023</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>6</controllingFieldValue>
+            <valueName>LBDW0023</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>6</controllingFieldValue>
+            <valueName>SBDW0024</valueName>
+        </valueSettings>
+    </valueSet>
+</CustomField>

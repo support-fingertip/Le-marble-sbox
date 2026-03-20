@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ListView xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>yesterays</fullName>
+    <columns>NAME</columns>
+    <columns>UPDATEDBY_USER</columns>
+    <columns>Payment_Status__c</columns>
+    <columns>Sales_Order__c</columns>
+    <columns>Total_Discount__c</columns>
+    <filterScope>Mine</filterScope>
+    <filters>
+        <field>CREATED_DATE</field>
+        <operation>equals</operation>
+        <value>YESTERDAY</value>
+    </filters>
+    <label>yesterdays</label>
+</ListView>
