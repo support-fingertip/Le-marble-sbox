@@ -50,15 +50,5 @@
     <members>*</members>
     <name>Profile</name>
   </types>
-
-  <!-- Added Users -->
-  <types>
-    <members>*</members>
-    <name>User</name>
-  </types>
-  <types>
-  <members>*</members>
-  <name>Role</name>
-</types>
   <version>58.0</version>
 </Package>
