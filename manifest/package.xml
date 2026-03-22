@@ -46,5 +46,15 @@
     <members>*</members>
     <name>PermissionSet</name>
   </types>
+   <types>
+    <members>*</members>
+    <name>Profile</name>
+  </types>
+
+  <!-- Added Users -->
+  <types>
+    <members>*</members>
+    <name>User</name>
+  </types>
   <version>58.0</version>
 </Package>
