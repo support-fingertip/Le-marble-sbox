@@ -9,10 +9,5 @@
     <columns>CREATED_DATE</columns>
     <columns>UPDATEDBY_USER</columns>
     <filterScope>Everything</filterScope>
-    <filters>
-        <field>UPDATEDBY_USER</field>
-        <operation>equals</operation>
-        <value>ADHARSH P</value>
-    </filters>
     <label>All</label>
 </ListView>

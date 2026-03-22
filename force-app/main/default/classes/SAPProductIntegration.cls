@@ -9,10 +9,12 @@ public class SAPProductIntegration implements Schedulable {
     private static final String PASSWORD = 'Mgsap12@';
 
     public void execute(SchedulableContext sc) {
-        runSync();
+         runSync(null);
     }
-
-    public static void runSync() {
+   public static void runSync() {
+        runSync(null);
+    }
+     public static void runSync(Date selectedDate) {
         try {
             
             List<Apex_Log__c> logList = new List<Apex_Log__c>();
@@ -42,7 +44,7 @@ public class SAPProductIntegration implements Schedulable {
                 log.response__c= 'Status code : '+loginRes.getStatusCode() +' Response body: '+ loginRes.getBody();
                 log.Error_Message__c = 'Status code : '+loginRes.getStatusCode()+ ' Error: Callout failed. Please review the response for additional details.';
                 
-
+insert log;
                 System.debug('❌ SAP Login Failed: ' + loginRes.getBody());
                 return;
             }
@@ -55,15 +57,25 @@ public class SAPProductIntegration implements Schedulable {
                 log.response__c= 'Status code : '+loginRes.getStatusCode() +' Response body: '+ loginRes.getBody();
                 log.Error_Message__c = 'Status code : '+loginRes.getStatusCode()+ ' Error: Callout failed. Please review the response for additional details.';
                 
-                
+                insert log;
                 System.debug('❌ Missing SAP session ID');
                 return;
             }
-
-            // 2. Determine Last Sync Time
+  DateTime fromDateTime;
             Product_Sync_Setting__c setting = Product_Sync_Setting__c.getInstance();
-            DateTime lastSync = setting.Last_Sync__c != null ? setting.Last_Sync__c : System.now().addDays(-1);
-            String formattedDate = lastSync.format('yyyy-MM-dd\'T\'HH:mm:ss');
+
+            if (selectedDate != null) {
+                // UI-supplied date: fetch everything from midnight of that date
+                fromDateTime = DateTime.newInstance(selectedDate, Time.newInstance(0, 0, 0, 0));
+                System.debug('ℹ Using UI-supplied date: ' + selectedDate);
+            } else {
+            // 2. Determine Last Sync Time
+                  fromDateTime = (setting.Last_Sync__c != null)
+                               ? setting.Last_Sync__c
+                               : System.now().addDays(-1);
+                System.debug('ℹ Using Last_Sync setting: ' + fromDateTime);
+            }
+            String formattedDate = fromDateTime.format('yyyy-MM-dd\'T\'HH:mm:ss');
             String filter = 'UpdateDate ge datetime\'' + formattedDate + '\' or CreateDate ge datetime\'' + formattedDate + '\'';
             String itemsUrl = '$filter=' + EncodingUtil.urlEncode(filter, 'UTF-8') + '&$orderby=UpdateTime';
             String ITEMS_URL = SAP_BASE_URL + '/Items?' + itemsUrl;
