@@ -30,6 +30,8 @@
      <members>Order</members>
      <members>OrderItem</members>
       <members>Product2</members>
+      <members>Pricebook2</members>
+      <members>PricebookEntry</members>
         <name>CustomObject</name>
     </types>
   <types>
