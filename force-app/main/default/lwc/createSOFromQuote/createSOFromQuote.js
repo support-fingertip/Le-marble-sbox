@@ -117,7 +117,14 @@ wiredQuoteInfo({ error, data }) {
             name: quote.Name || 'N/A',
             email: data.email || 'N/A',   
             phone: quote.Account?.Phone || 'N/A',
-            company: quote.Account?.Name || 'N/A',
+            shippingAddress: [
+                    quote.AddressLine1__c,
+                    quote.AddressLine2__c,
+                    quote.AddressLine3__c,
+                    quote.District__c,
+                    quote.State__c,
+                    quote.Pin_Code__c
+                ].filter(Boolean).join(', ') || 'N/A',
             address: quote.Account
                 ? [
                     quote.Account.BillingStreet,

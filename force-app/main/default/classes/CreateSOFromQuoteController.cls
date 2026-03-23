@@ -25,7 +25,13 @@ public static Map<String, Object> getQuoteInfo(Id quoteId) {
                 OpportunityId,
                 Pricebook2Id,
                 Email,
-                Sales_Order_Created__c
+                Sales_Order_Created__c,
+                AddressLine1__c,
+                AddressLine2__c,
+                AddressLine3__c,
+                District__c,
+                State__c,
+                Pin_Code__c
             FROM Quote
             WHERE Id = :quoteId
             LIMIT 1
