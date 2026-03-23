@@ -82,9 +82,10 @@ export default class CreateSOFromQuote extends NavigationMixin(LightningElement)
     handleCreditToggle(event) {
         this.credit = event.target.checked;
         console.log('Credit Toggle Value:', this.credit);
-        // Reset payment method when credit is turned off
+        // Reset payment method and credit amount when credit is turned off
         if (!this.credit) {
             this.selectedPaymentMethod = '';
+            this.creditAmount = '';
         }
     }
 
@@ -589,7 +590,8 @@ wiredQuoteInfo({ error, data }) {
         credit: this.credit,
         paymentMethod: this.selectedPaymentMethod,
         batchJson: JSON.stringify(batchPayload),
-        againstOrder: this.againstOrder
+        againstOrder: this.againstOrder,
+        creditAmount: this.creditAmount ? parseFloat(this.creditAmount) : 0
     });
         this.showToast(
             'Success',
