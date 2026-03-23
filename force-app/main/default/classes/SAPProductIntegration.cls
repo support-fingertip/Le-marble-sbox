@@ -121,7 +121,7 @@ insert log;
                      prod.ProductCode = String.valueOf(item.get('ItemCode'));
                     prod.Name = String.valueOf(item.get('ItemName'));
                     prod.Brand__c = (String)item.get('U_Brand');
-                    prod.Warranty__c = Decimal.valueOf(String.valueOf(item.get('U_WarrantyPeriod')));
+                    prod.Warranty__c = item.get('U_WarrantyPeriod') != null ? Decimal.valueOf(String.valueOf(item.get('U_WarrantyPeriod'))) : 0;
 
                     string vali=(String)item.get('Valid');
                     

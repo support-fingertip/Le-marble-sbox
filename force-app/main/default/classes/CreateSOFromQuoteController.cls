@@ -76,7 +76,7 @@ public static Map<String, Object> getQuoteInfo(Id quoteId) {
     // 3. Create Order from Quote
     
     @AuraEnabled
-    public static Id createOrderFromQuote(Id quoteId , Id warehouseId,List<Id> selectedQuoteLineItemIds, Map<Id, Decimal> blockQtyMap,Map<Id, String> warehouseCodeMap, Date deliveryCommittedDate, String remarks,boolean credit, String paymentMethod, String batchJson,boolean againstOrder) {
+    public static Id createOrderFromQuote(Id quoteId , Id warehouseId,List<Id> selectedQuoteLineItemIds, Map<Id, Decimal> blockQtyMap,Map<Id, String> warehouseCodeMap, Date deliveryCommittedDate, String remarks,boolean credit, String paymentMethod, String batchJson,boolean againstOrder, Decimal creditAmount) {
      
         system.debug('quoteId>>'+quoteId);
          system.debug('warehouseId>>'+warehouseId);
@@ -167,9 +167,12 @@ if (deliveryCommittedDate < Date.today()) {
         ord.Order_status__c = 'Draft';
 			ord.credit__c=credit;
             
-            // Set Payment Method if credit order
+            // Set Payment Method and Credit Amount if credit order
             if (credit && String.isNotBlank(paymentMethod)) {
                 ord.Payment_methods__c = paymentMethod;
+            }
+            if (credit && creditAmount != null) {
+                ord.Credit_Amount__c = creditAmount;
             }
             ord.Product_Category__c = category;
             ord.Against_Order__c = againstOrder;
