@@ -4,7 +4,12 @@ public class QuoteTriggerHandlerTest {
     @TestSetup
     static void setupTestData() {
         // Create Account
-        Account acc = new Account(Name = 'Test Account For Quote');
+        Account acc = new Account(
+            Name = 'Test Account For Quote',
+            BillingCountry = 'India', BillingState = 'Maharashtra',
+            BillingPostalCode = '400001', BillingStreet = '123 Test Street',
+            District__c = 'Ernakulam', Pin_Code__c = 400001
+        );
         insert acc;
         
         // Create Contact
@@ -17,11 +22,17 @@ public class QuoteTriggerHandlerTest {
         insert con;
         
         // Create Opportunity
+        String validState;
+        for (Schema.PicklistEntry pe : Opportunity.State__c.getDescribe().getPicklistValues()) {
+            if (pe.isActive()) { validState = pe.getValue(); break; }
+        }
         Opportunity opp = new Opportunity(
             Name = 'Test Opportunity',
             AccountId = acc.Id,
             StageName = 'Qualification',
-            CloseDate = Date.today().addDays(30)
+            CloseDate = Date.today().addDays(30),
+            State__c = validState,
+            Pin_Code__c = 400001
         );
         insert opp;
         
@@ -290,6 +301,9 @@ public class QuoteTriggerHandlerTest {
             OpportunityId = opp.Id
         );
         insert q;
+         Map<Id, Id> oppToQuoteMap = new Map<Id, Id>{
+            opp.Id => q.Id
+        };
         
         Test.startTest();
         // Should return early without error
@@ -299,6 +313,10 @@ public class QuoteTriggerHandlerTest {
             'Manager Test Body',
             q.Id
         );
+
+ 
+        System.enqueueJob(new SyncQuoteToOppQueueable(oppToQuoteMap));
+                
         Test.stopTest();
     }
     
@@ -510,6 +528,7 @@ public class QuoteTriggerHandlerTest {
         Quote q = new Quote(
             Name = 'Test Quote Direct Call',
             OpportunityId = opp.Id,
+            Quote_Category__c='Tile',
             Status = 'Draft'
         );
         insert q;

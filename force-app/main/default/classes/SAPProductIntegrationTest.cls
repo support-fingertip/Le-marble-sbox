@@ -217,7 +217,7 @@ public class SAPProductIntegrationTest {
         
         Test.startTest();
         SAPProductIntegration.runSync();
-        Test.stopTest();
+        Test.stopTest();	
         
         // Verify no products were created
         List<Product2> products = [SELECT Id FROM Product2 WHERE Product_Code__c LIKE 'ITEM%'];
@@ -229,7 +229,7 @@ public class SAPProductIntegrationTest {
         Test.setMock(HttpCalloutMock.class, new MockSAPCalloutSeriesFail());
         
         Test.startTest();
-        SAPProductIntegration.runSync();
+        SAPProductIntegration.runSync(system.today());
         Test.stopTest();
         
         // Products should still be created even if series fetch fails

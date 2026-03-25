@@ -3,14 +3,33 @@ private class QuotePdfControllerTest {
     
     @TestSetup
     static void setup() {
-        Account acc = new Account(Name = 'QPDF Test Account');
+        String district = Account.District__c.getDescribe().getPicklistValues()[0].getValue();
+        String state = Account.State__c.getDescribe().getPicklistValues()[0].getValue();
+        String country = Account.Country__c.getDescribe().getPicklistValues()[0].getValue();
+        Account acc = new Account(
+            Name = 'QPDF Test Account',
+            District__c = district,
+            State__c = state,
+            Country__c = country,
+            BillingCountry = 'India',
+            BillingState = 'KA',
+            BillingPostalCode = '560001',
+            BillingCity = 'Bangalore',
+            BillingStreet = '123 Test Street',
+            Pin_Code__c = 560001
+        );
         insert acc;
 
+        String oppState = Opportunity.State__c.getDescribe().getPicklistValues()[0].getValue();
+        String oppDistrict = Opportunity.District__c.getDescribe().getPicklistValues()[0].getValue();
         Opportunity opp = new Opportunity(
             Name = 'QPDF Test Opp',
             StageName = 'Prospecting',
             CloseDate = Date.today().addDays(30),
-            AccountId = acc.Id
+            AccountId = acc.Id,
+            State__c = oppState,
+            District__c = oppDistrict,
+            Pin_Code__c = 560001
         );
         insert opp;
 
@@ -47,38 +66,50 @@ private class QuotePdfControllerTest {
         // Create pricebook entries
         List<PricebookEntry> pbes = new List<PricebookEntry>();
         for (Product2 p : products) {
-            pbes.add(new PricebookEntry(
-                Pricebook2Id = stdPbId,
-                Product2Id = p.Id,
-                UnitPrice = 100,
-                IsActive = true
-            ));
-        }
+    pbes.add(new PricebookEntry(
+        Pricebook2Id = stdPbId,
+        Product2Id = p.Id,
+        UnitPrice = 100,
+        IsActive = true,
+        UseStandardPrice = false
+    ));
+}
         insert pbes;
 
         // Create quote line items with all required fields
         List<QuoteLineItem> qlis = new List<QuoteLineItem>();
         Map<Id, Product2> prodMap = new Map<Id, Product2>(products);
         for (PricebookEntry pbe : pbes) {
-            Product2 prod = prodMap.get(pbe.Product2Id);
-            qlis.add(new QuoteLineItem(
-                QuoteId = q.Id,
-                PricebookEntryId = pbe.Id,
-                Quantity = 2,
-                UnitPrice = 100,
-                Disc_Type__c = 'Percentage',
-                Dis_Value__c = 10,
-                Product_Category__c = prod.Product_Category__c
-            ));
-        }
+    Product2 prod = prodMap.get(pbe.Product2Id);
+    qlis.add(new QuoteLineItem(
+        QuoteId = q.Id,
+        PricebookEntryId = pbe.Id,
+        Quantity = 2,
+        UnitPrice = 100,
+        Disc_Type__c = 'Percentage',
+        Dis_Value__c = 10,
+        Product_Category__c = prod.Product_Category__c,
+        Description = 'Test Item',
+        Area__c = 'Living Room',
+        Room_Type__c = 'Main',
+        
+        Calculated_Total_Price__c = 180,
+        After_Disc_Price_Piece__c = 90,
+        Price_Sqft__c = 100,
+        After_Disc_Price_Sqft__c = 90,
+        Sqft__c = 2
+    ));
+}
         insert qlis;
     }
 
     private static Quote getTestQuote() {
+        Test.setCurrentPage(new PageReference('/apex/QuotePdf'));
         return [SELECT Id, Name, OpportunityId, Email FROM Quote WHERE Name = 'QPDF Test Quote' LIMIT 1];
     }
-    
+
     private static Quote getTestQuoteWithLineItems() {
+        Test.setCurrentPage(new PageReference('/apex/QuotePdf'));
         Quote q = [SELECT Id, Name, OpportunityId, Email FROM Quote WHERE Name = 'QPDF Test Quote' LIMIT 1];
         // Verify line items exist
         Integer count = [SELECT COUNT() FROM QuoteLineItem WHERE QuoteId = :q.Id];
@@ -104,7 +135,10 @@ private class QuotePdfControllerTest {
     @IsTest
     static void testControllerWithSelectedLineItems() {
         Quote q = getTestQuoteWithLineItems();
-        List<QuoteLineItem> items = [SELECT Id FROM QuoteLineItem WHERE QuoteId = :q.Id LIMIT 5];
+        List<QuoteLineItem> items = [SELECT Id, PricebookEntry.Product2.Product_Category__c
+FROM QuoteLineItem
+WHERE QuoteId = :q.Id
+LIMIT 5];
         List<String> itemIds = new List<String>();
         for (QuoteLineItem item : items) {
             itemIds.add(item.Id);
@@ -123,9 +157,14 @@ private class QuotePdfControllerTest {
     @IsTest
     static void testControllerConstructorBasic() {
         // Create a quote without line items
-        Account acc = new Account(Name = 'QPDF No Items Account');
+        String d = Account.District__c.getDescribe().getPicklistValues()[0].getValue();
+        String s = Account.State__c.getDescribe().getPicklistValues()[0].getValue();
+        String c = Account.Country__c.getDescribe().getPicklistValues()[0].getValue();
+        Account acc = new Account(Name = 'QPDF No Items Account', District__c = d, State__c = s, Country__c = c, BillingCountry = 'India', BillingState = 'KA', BillingPostalCode = '560001', BillingCity = 'Bangalore', BillingStreet = '123 Test St', Pin_Code__c = 560001);
         insert acc;
-        Opportunity opp = new Opportunity(Name = 'QPDF No Items Opp', StageName = 'Prospecting', CloseDate = Date.today().addDays(30), AccountId = acc.Id);
+        String os = Opportunity.State__c.getDescribe().getPicklistValues()[0].getValue();
+        String od = Opportunity.District__c.getDescribe().getPicklistValues()[0].getValue();
+        Opportunity opp = new Opportunity(Name = 'QPDF No Items Opp', StageName = 'Prospecting', CloseDate = Date.today().addDays(30), AccountId = acc.Id, State__c = os, District__c = od, Pin_Code__c = 560001);
         insert opp;
         Quote q = new Quote(Name = 'QPDF No Items Quote', OpportunityId = opp.Id, Pricebook2Id = Test.getStandardPricebookId());
         insert q;
@@ -520,7 +559,7 @@ private class QuotePdfControllerTest {
     static void testCategoryDetectionSanitary() {
         Quote q = getTestQuoteWithLineItems();
         QuoteLineItem item = [SELECT Id FROM QuoteLineItem WHERE QuoteId = :q.Id 
-            AND Product2.Product_Category__c = 'SANITARY' LIMIT 1];
+            AND Product_Category__c = 'SANITARY' LIMIT 1];
         ApexPages.currentPage().getParameters().put('selectedItems', item.Id);
 
         Test.startTest();
@@ -535,7 +574,7 @@ private class QuotePdfControllerTest {
     static void testCategoryDetectionFittings() {
         Quote q = getTestQuoteWithLineItems();
         QuoteLineItem item = [SELECT Id FROM QuoteLineItem WHERE QuoteId = :q.Id 
-            AND Product2.Product_Category__c = 'FITTINGS' LIMIT 1];
+            AND Product_Category__c = 'FITTINGS' LIMIT 1];
         ApexPages.currentPage().getParameters().put('selectedItems', item.Id);
 
         Test.startTest();
@@ -550,7 +589,7 @@ private class QuotePdfControllerTest {
     static void testCategoryDetectionNStone() {
         Quote q = getTestQuoteWithLineItems();
         QuoteLineItem item = [SELECT Id FROM QuoteLineItem WHERE QuoteId = :q.Id 
-            AND Product2.Product_Category__c = 'N.STONE' LIMIT 1];
+            AND Product_Category__c = 'N.STONE' LIMIT 1];
         ApexPages.currentPage().getParameters().put('selectedItems', item.Id);
 
         Test.startTest();
@@ -565,7 +604,7 @@ private class QuotePdfControllerTest {
     static void testCategoryDetectionBathingSolutions() {
         Quote q = getTestQuoteWithLineItems();
         QuoteLineItem item = [SELECT Id FROM QuoteLineItem WHERE QuoteId = :q.Id 
-            AND Product2.Product_Category__c = 'BATHING SOLUTIONS' LIMIT 1];
+            AND Product_Category__c = 'BATHING SOLUTIONS' LIMIT 1];
         ApexPages.currentPage().getParameters().put('selectedItems', item.Id);
 
         Test.startTest();
@@ -580,7 +619,7 @@ private class QuotePdfControllerTest {
     static void testCategoryDetectionTile() {
         Quote q = getTestQuoteWithLineItems();
         QuoteLineItem item = [SELECT Id FROM QuoteLineItem WHERE QuoteId = :q.Id 
-            AND Product2.Product_Category__c = 'TILE' LIMIT 1];
+            AND Product_Category__c = 'TILE' LIMIT 1];
         ApexPages.currentPage().getParameters().put('selectedItems', item.Id);
 
         Test.startTest();
@@ -595,7 +634,7 @@ private class QuotePdfControllerTest {
     static void testCategoryDetectionConstChemAdh() {
         Quote q = getTestQuoteWithLineItems();
         QuoteLineItem item = [SELECT Id FROM QuoteLineItem WHERE QuoteId = :q.Id 
-            AND Product2.Product_Category__c = 'CONST. CHEM & ADH' LIMIT 1];
+            AND Product_Category__c = 'CONST. CHEM & ADH' LIMIT 1];
         ApexPages.currentPage().getParameters().put('selectedItems', item.Id);
 
         Test.startTest();
@@ -610,7 +649,7 @@ private class QuotePdfControllerTest {
     static void testCategoryDetectionGraniteNatStone() {
         Quote q = getTestQuoteWithLineItems();
         QuoteLineItem item = [SELECT Id FROM QuoteLineItem WHERE QuoteId = :q.Id 
-            AND Product2.Product_Category__c = 'GRANITE & NAT. STONE' LIMIT 1];
+            AND Product_Category__c = 'GRANITE & NAT. STONE' LIMIT 1];
         ApexPages.currentPage().getParameters().put('selectedItems', item.Id);
 
         Test.startTest();
@@ -625,7 +664,7 @@ private class QuotePdfControllerTest {
     static void testCategoryDetectionAggloTops() {
         Quote q = getTestQuoteWithLineItems();
         QuoteLineItem item = [SELECT Id FROM QuoteLineItem WHERE QuoteId = :q.Id 
-            AND Product2.Product_Category__c = 'AGGLO & TOPS' LIMIT 1];
+            AND Product_Category__c = 'AGGLO & TOPS' LIMIT 1];
         ApexPages.currentPage().getParameters().put('selectedItems', item.Id);
 
         Test.startTest();
@@ -640,7 +679,7 @@ private class QuotePdfControllerTest {
     static void testCategoryDetectionTimberSpcFlr() {
         Quote q = getTestQuoteWithLineItems();
         QuoteLineItem item = [SELECT Id FROM QuoteLineItem WHERE QuoteId = :q.Id 
-            AND Product2.Product_Category__c = 'TIMBER / SPC FLR' LIMIT 1];
+            AND Product_Category__c = 'TIMBER / SPC FLR' LIMIT 1];
         ApexPages.currentPage().getParameters().put('selectedItems', item.Id);
 
         Test.startTest();
@@ -655,7 +694,7 @@ private class QuotePdfControllerTest {
     static void testCategoryDetectionRoofingClay() {
         Quote q = getTestQuoteWithLineItems();
         QuoteLineItem item = [SELECT Id FROM QuoteLineItem WHERE QuoteId = :q.Id 
-            AND Product2.Product_Category__c = 'ROOFING & CLAY' LIMIT 1];
+            AND Product_Category__c = 'ROOFING & CLAY' LIMIT 1];
         ApexPages.currentPage().getParameters().put('selectedItems', item.Id);
 
         Test.startTest();
@@ -670,7 +709,7 @@ private class QuotePdfControllerTest {
     static void testCategoryDetectionSinks() {
         Quote q = getTestQuoteWithLineItems();
         QuoteLineItem item = [SELECT Id FROM QuoteLineItem WHERE QuoteId = :q.Id 
-            AND Product2.Product_Category__c = 'SINKS' LIMIT 1];
+            AND Product_Category__c = 'SINKS' LIMIT 1];
         ApexPages.currentPage().getParameters().put('selectedItems', item.Id);
 
         Test.startTest();
@@ -685,7 +724,7 @@ private class QuotePdfControllerTest {
     static void testCategoryDetectionGlassMosaicPool() {
         Quote q = getTestQuoteWithLineItems();
         QuoteLineItem item = [SELECT Id FROM QuoteLineItem WHERE QuoteId = :q.Id 
-            AND Product2.Product_Category__c = 'GLASS MOSAIC & POOL' LIMIT 1];
+            AND Product_Category__c = 'GLASS MOSAIC & POOL' LIMIT 1];
         ApexPages.currentPage().getParameters().put('selectedItems', item.Id);
 
         Test.startTest();
@@ -700,7 +739,7 @@ private class QuotePdfControllerTest {
     static void testCategoryDetectionElecLighting() {
         Quote q = getTestQuoteWithLineItems();
         QuoteLineItem item = [SELECT Id FROM QuoteLineItem WHERE QuoteId = :q.Id 
-            AND Product2.Product_Category__c = 'ELEC. & LIGHTING' LIMIT 1];
+            AND Product_Category__c = 'ELEC. & LIGHTING' LIMIT 1];
         ApexPages.currentPage().getParameters().put('selectedItems', item.Id);
 
         Test.startTest();
@@ -715,7 +754,7 @@ private class QuotePdfControllerTest {
     static void testCategoryDetectionTools() {
         Quote q = getTestQuoteWithLineItems();
         QuoteLineItem item = [SELECT Id FROM QuoteLineItem WHERE QuoteId = :q.Id 
-            AND Product2.Product_Category__c = 'TOOLS' LIMIT 1];
+            AND Product_Category__c = 'TOOLS' LIMIT 1];
         ApexPages.currentPage().getParameters().put('selectedItems', item.Id);
 
         Test.startTest();
@@ -730,7 +769,7 @@ private class QuotePdfControllerTest {
     static void testCategoryDetectionFacadesCladding() {
         Quote q = getTestQuoteWithLineItems();
         QuoteLineItem item = [SELECT Id FROM QuoteLineItem WHERE QuoteId = :q.Id 
-            AND Product2.Product_Category__c = 'FACADES & CLADDING' LIMIT 1];
+            AND Product_Category__c = 'FACADES & CLADDING' LIMIT 1];
         ApexPages.currentPage().getParameters().put('selectedItems', item.Id);
 
         Test.startTest();
@@ -745,7 +784,7 @@ private class QuotePdfControllerTest {
     static void testCategoryDetectionImpMarbles() {
         Quote q = getTestQuoteWithLineItems();
         QuoteLineItem item = [SELECT Id FROM QuoteLineItem WHERE QuoteId = :q.Id 
-            AND Product2.Product_Category__c = 'IMP. MARBLES' LIMIT 1];
+            AND Product_Category__c = 'IMP. MARBLES' LIMIT 1];
         ApexPages.currentPage().getParameters().put('selectedItems', item.Id);
 
         Test.startTest();
@@ -760,7 +799,7 @@ private class QuotePdfControllerTest {
     static void testCategoryDetectionPlumbingBath() {
         Quote q = getTestQuoteWithLineItems();
         QuoteLineItem item = [SELECT Id FROM QuoteLineItem WHERE QuoteId = :q.Id 
-            AND Product2.Product_Category__c = 'PLUMBING & BATH' LIMIT 1];
+            AND Product_Category__c = 'PLUMBING & BATH' LIMIT 1];
         ApexPages.currentPage().getParameters().put('selectedItems', item.Id);
 
         Test.startTest();
@@ -775,7 +814,7 @@ private class QuotePdfControllerTest {
     static void testCategoryDetectionHeadOfficeDivision() {
         Quote q = getTestQuoteWithLineItems();
         QuoteLineItem item = [SELECT Id FROM QuoteLineItem WHERE QuoteId = :q.Id 
-            AND Product2.Product_Category__c = 'HEAD OFFICE DIVISION' LIMIT 1];
+            AND Product_Category__c = 'HEAD OFFICE DIVISION' LIMIT 1];
         ApexPages.currentPage().getParameters().put('selectedItems', item.Id);
 
         Test.startTest();
@@ -902,9 +941,14 @@ private class QuotePdfControllerTest {
     @IsTest
     static void testWithAreaAndRoomType() {
         // Create test data with Area__c and Room_Type__c populated
-        Account acc = new Account(Name = 'Area Test Account');
+        String d = Account.District__c.getDescribe().getPicklistValues()[0].getValue();
+        String s = Account.State__c.getDescribe().getPicklistValues()[0].getValue();
+        String c = Account.Country__c.getDescribe().getPicklistValues()[0].getValue();
+        Account acc = new Account(Name = 'Area Test Account', District__c = d, State__c = s, Country__c = c, BillingCountry = 'India', BillingState = 'KA', BillingPostalCode = '560001', BillingCity = 'Bangalore', BillingStreet = '123 Test St', Pin_Code__c = 560001);
         insert acc;
-        Opportunity opp = new Opportunity(Name = 'Area Test Opp', StageName = 'Prospecting', CloseDate = Date.today().addDays(30), AccountId = acc.Id);
+        String os = Opportunity.State__c.getDescribe().getPicklistValues()[0].getValue();
+        String od = Opportunity.District__c.getDescribe().getPicklistValues()[0].getValue();
+        Opportunity opp = new Opportunity(Name = 'Area Test Opp', StageName = 'Prospecting', CloseDate = Date.today().addDays(30), AccountId = acc.Id, State__c = os, District__c = od, Pin_Code__c = 560001);
         insert opp;
         Quote q = new Quote(Name = 'Area Test Quote', OpportunityId = opp.Id, Pricebook2Id = Test.getStandardPricebookId());
         insert q;
@@ -912,17 +956,26 @@ private class QuotePdfControllerTest {
         Product2 prod = new Product2(Name = 'Area Product', IsActive = true, Product_Category__c = 'SANITARY');
         insert prod;
         
-        PricebookEntry pbe = new PricebookEntry(Pricebook2Id = Test.getStandardPricebookId(), Product2Id = prod.Id, UnitPrice = 100, IsActive = true);
+       PricebookEntry pbe = new PricebookEntry(
+    Pricebook2Id = Test.getStandardPricebookId(),
+    Product2Id = prod.Id,
+    UnitPrice = 100,
+    IsActive = true,
+    UseStandardPrice = false
+);
         insert pbe;
         
-        QuoteLineItem qli = new QuoteLineItem(
-            QuoteId = q.Id,
-            PricebookEntryId = pbe.Id,
-            Quantity = 2,
-            UnitPrice = 100,
-            Area__c = 'Living Room',
-            Room_Type__c = 'Main'
-        );
+       QuoteLineItem qli = new QuoteLineItem(
+    QuoteId = q.Id,
+    PricebookEntryId = pbe.Id,
+    Quantity = 2,
+    UnitPrice = 100,
+    Area__c = 'Living Room',
+    Room_Type__c = 'Main',
+   
+    Calculated_Total_Price__c = 200,
+    After_Disc_Price_Piece__c = 100
+);
         insert qli;
         
         Test.startTest();

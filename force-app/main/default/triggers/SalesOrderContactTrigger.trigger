@@ -11,19 +11,7 @@ trigger SalesOrderContactTrigger on Order (after update, after insert, before de
     }
     SalesOrderTriggerHandler.isRunning = true;
 system.debug('SalesOrderTriggerHandler.isRunning '+SalesOrderTriggerHandler.isRunning );
-    // AFTER INSERT
-    /*if (Trigger.isInsert) {
 
-        for (Order newRec : Trigger.new) {
-system.debug('newRec.Order_Status__c>>'+newRec.Order_Status__c);
-            if (newRec.Order_Status__c == 'Approved' ) {
-
-                System.enqueueJob(
-                    new SendOrderToSAPQueueable(newRec.Id)
-                );
-            }
-        }
-    }*/
 
     // AFTER UPDATE
     if (Trigger.isUpdate) {
@@ -58,15 +46,7 @@ system.debug('newRec.Order_Status__c>>'+newRec.Order_Status__c);
                 }
             }
         }
-            // Existing SAP logic
-       /*     if (newRec.Order_Status__c == 'Approved' &&
-                oldRec.Order_Status__c != 'Approved' &&
-                newRec.SAP_Doc_Num__c == null) {
-                System.enqueueJob(
-                    new SendOrderToSAPQueueable(newRec.Id)
-                );
-            }
-        }*/
+
         if (!oppsToUpdate.isEmpty()) {
             try {
                 update oppsToUpdate;

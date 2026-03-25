@@ -4,8 +4,22 @@ public class AccHistoryandActivityControllerTest {
     @isTest
     static void testGetData_AllFilters() {
 
-        // Create Account
-        Account acc = new Account(Name = 'Test Account');
+        // Create Account with required picklist fields
+        String district = Account.District__c.getDescribe().getPicklistValues()[0].getValue();
+        String state = Account.State__c.getDescribe().getPicklistValues()[0].getValue();
+        String country = Account.Country__c.getDescribe().getPicklistValues()[0].getValue();
+        Account acc = new Account(
+            Name = 'Test Account',
+            District__c = district,
+            State__c = state,
+            Country__c = country,
+            BillingCountry = 'India',
+            BillingState = 'KA',
+            BillingPostalCode = '560001',
+            BillingCity = 'Bangalore',
+            BillingStreet = '123 Test Street',
+            Pin_Code__c = 560001
+        );
         insert acc;
 
         // Create Contact
@@ -16,11 +30,16 @@ public class AccHistoryandActivityControllerTest {
         insert con;
 
         // Create Opportunity
+        String oppState = Opportunity.State__c.getDescribe().getPicklistValues()[0].getValue();
+        String oppDistrict = Opportunity.District__c.getDescribe().getPicklistValues()[0].getValue();
         Opportunity opp = new Opportunity(
             Name = 'Test Opportunity',
             AccountId = acc.Id,
             StageName = 'Prospecting',
-            CloseDate = Date.today()
+            CloseDate = Date.today(),
+            State__c = oppState,
+            District__c = oppDistrict,
+            Pin_Code__c = 560001
         );
         insert opp;
 

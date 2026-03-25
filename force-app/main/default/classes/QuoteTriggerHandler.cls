@@ -2,44 +2,7 @@ public class QuoteTriggerHandler {
     
     // Recursion control for Coordinator name update
     private static Boolean isUpdatingCoordinator = false;
-    
-    /*    public static void beforeInsert(List<Quote> newQuotes) {
-populateEmailFromPrimaryContact(newQuotes);
-}
 
-private static void populateEmailFromPrimaryContact(List<Quote> newQuotes) {
-
-Set<Id> oppIds = new Set<Id>();
-
-for (Quote q : newQuotes) {
-if (q.OpportunityId != null && q.Email == null) {
-oppIds.add(q.OpportunityId);
-}
-}
-
-if (oppIds.isEmpty()) return;
-
-// Get Primary Contact Email per Opportunity
-Map<Id, String> oppToEmail = new Map<Id, String>();
-
-for (OpportunityContactRole ocr : [
-SELECT OpportunityId, Contact.Email
-FROM OpportunityContactRole
-WHERE IsPrimary = true
-AND OpportunityId IN :oppIds
-AND Contact.Email != null
-]) {
-oppToEmail.put(ocr.OpportunityId, ocr.Contact.Email);
-}
-
-// Populate Quote Email
-for (Quote q : newQuotes) {
-if (oppToEmail.containsKey(q.OpportunityId)) {
-q.Email = oppToEmail.get(q.OpportunityId);
-}
-}
-}*/
-    
     // 🔹 Existing task logic (unchanged)
     public static void handleAfterSave(List<Quote> newList,Map<Id, Quote> oldMap,Boolean isInsert) {
         Set<Id> acceptedQuoteIds = new Set<Id>();

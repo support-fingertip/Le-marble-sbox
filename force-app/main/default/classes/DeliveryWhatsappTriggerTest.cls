@@ -27,7 +27,15 @@ public with sharing class DeliveryWhatsappTriggerTest {
         insert sc;
 
         // Delivery_Group__c requires Sales_Order__c (Order) + Delivery_Status__c
-        Account acc = new Account(Name = 'Test Account');
+        Account acc = new Account(
+            Name              = 'Test Account',
+            BillingCountry    = 'India',
+            BillingState      = 'Maharashtra',
+            BillingPostalCode = '400001',
+            BillingStreet     = '123 Test Street',
+            District__c       = 'Ernakulam',
+            Pin_Code__c       = 400001
+        );
         insert acc;
 
         Order ord = new Order(

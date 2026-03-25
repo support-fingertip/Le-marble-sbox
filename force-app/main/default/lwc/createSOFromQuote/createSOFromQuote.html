@@ -78,8 +78,8 @@
                                 </div>
 
                                 <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-p-around_x-small">
-                                    <div class="slds-text-title">Company</div>
-                                    <div>{customerInfo.company}</div>
+                                    <div class="slds-text-title">shipping Address</div>
+                                    <div>{customerInfo.shippingAddress}</div>
                                 </div>
 
                                 <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-p-around_x-small">
@@ -128,6 +128,8 @@
                     </div>
                 </div>  
 
+                    <!-- Payment Mode Selection (visible only when Credit Order is ON) -->
+
                     <!-- Against Order Checkbox Option -->
 
                     <div class="slds-grid slds-wrap slds-m-bottom_medium">
@@ -139,12 +141,9 @@
                                 onchange={handleAgainstOrderChange}>
                             </lightning-input>
                         </div>
-                    </div>
-
-                    <!-- Payment Mode & Credit Amount (visible only when Credit Order is ON) -->
-                    <template if:true={credit}>
-                        <div class="slds-grid slds-wrap slds-m-bottom_medium">
-                            <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-p-right_small">
+                        <template if:true={credit}>
+                             <div class="slds-grid slds-wrap slds-m-bottom_medium">
+                            <div class="slds-col slds-size_1-of-1 slds-medium-size_3-of-6 slds-p-right_small">
                                 <lightning-combobox
                                     label="Payment Mode"
                                     placeholder="Select Payment Mode"
@@ -154,7 +153,7 @@
                                     required>
                                 </lightning-combobox>
                             </div>
-                            <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
+                            <div class="slds-col slds-size_1-of-1 slds-medium-size_3-of-6">
                                 <lightning-input
                                     type="number"
                                     label="Credit Amount"
@@ -166,7 +165,8 @@
                                 </lightning-input>
                             </div>
                         </div>
-                    </template>
+                        </template>
+                    </div>
 
                     <div class="slds-m-bottom_medium">
                         <lightning-combobox

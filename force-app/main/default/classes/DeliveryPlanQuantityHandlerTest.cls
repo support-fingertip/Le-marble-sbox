@@ -4,7 +4,15 @@ public class DeliveryPlanQuantityHandlerTest {
     // ─── shared setup helpers ────────────────────────────────────────────────
 
     private static Map<String, Object> buildOrderWithProduct(Integer oi_Quantity) {
-        Account acc = new Account(Name = 'Test Account');
+        Account acc = new Account(
+            Name              = 'Test Account',
+            BillingCountry    = 'India',
+            BillingState      = 'Maharashtra',
+            BillingPostalCode = '400001',
+            BillingStreet     = '123 Test Street',
+            District__c       = 'Ernakulam',
+            Pin_Code__c       = 400001
+        );
         insert acc;
 
         Order ord = new Order(
@@ -45,7 +53,6 @@ public class DeliveryPlanQuantityHandlerTest {
     private static Delivery_Group__c buildDeliveryPlan(Id ordId, String deliveryStatus, String approvalStatus) {
         Delivery_Group__c dp = new Delivery_Group__c(
             Sales_Order__c     = ordId,
-            Quantity__c        = 10,
             Delivery_Status__c = deliveryStatus,
             Approval_Status__c = approvalStatus
         );
@@ -155,7 +162,6 @@ public class DeliveryPlanQuantityHandlerTest {
 
         Test.startTest();
         // Update an unrelated field — status stays 'Draft'
-        dp.Quantity__c = 20;
         update dp;
         Test.stopTest();
 
@@ -258,7 +264,6 @@ public class DeliveryPlanQuantityHandlerTest {
 
         Test.startTest();
         // Second update on an already-Delivered plan — handler should skip (old == new == 'Delivered')
-        dp.Quantity__c = 20;
         update dp;
         Test.stopTest();
 

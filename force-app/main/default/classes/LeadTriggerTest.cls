@@ -731,6 +731,17 @@ public class LeadTriggerTest {
         );
         insert l;
 
+        Account existingAcc = new Account(
+            Name              = 'Convert AfterUpdate',
+            BillingCountry    = 'India',
+            BillingState      = 'Kerala',
+            BillingPostalCode = '682001',
+            BillingStreet     = 'Test Street',
+            District__c       = 'Ernakulam',
+            Pin_Code__c       = 682001
+        );
+        insert existingAcc;
+
         String convertedStatus = [
             SELECT MasterLabel FROM LeadStatus WHERE IsConverted = true LIMIT 1
         ].MasterLabel;
@@ -740,6 +751,7 @@ public class LeadTriggerTest {
         lc.setLeadId(l.Id);
         lc.setConvertedStatus(convertedStatus);
         lc.setDoNotCreateOpportunity(true);
+        lc.setAccountId(existingAcc.Id);
         Database.LeadConvertResult result = Database.convertLead(lc);
         Test.stopTest();
 
