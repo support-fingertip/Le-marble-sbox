@@ -1,4 +1,6 @@
 public class sapIntegration {
+    //  SAP_Config__mdt md=[select id,SAP_BASE_URL__c,COMPANY_DB__c,PASSWORD__c,USERNAME__c from SAP_Config__mdt where Label='sapIntegration'];
+
     public static final String SAP_BASE_URL = 'https://lemrg.hstconnect.in:50000/b1s/v1';
     private static final String COMPANY_DB = 'MG_LIVE_WIP_1';
     private static final String USERNAME = 'manager';
@@ -1162,7 +1164,7 @@ public class sapIntegration {
                         inv.VehicleType__c = String.valueOf(item.get('VehicleType'));
                         inv.TransportationMode__c = String.valueOf(item.get('TransportationMode'));
                         inv.Driver__c = String.valueOf(item.get('U_DRIVER'));
-                        inv.Total_KM__c = Decimal.valueOf(String.valueOf(item.get('U_TOTALKM')));
+                        inv.Total_KM__c =String.valueOf(item.get('U_TOTALKM'))!=null? Decimal.valueOf(String.valueOf(item.get('U_TOTALKM'))):0;
                         inv.Card_Name__c = String.valueOf(item.get('CardName'));
                         inv.Address__c = String.valueOf(item.get('Address'));
                         invList.add(inv);    

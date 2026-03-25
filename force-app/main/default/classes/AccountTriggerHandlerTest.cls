@@ -1,16 +1,30 @@
 @IsTest
 public class AccountTriggerHandlerTest {
 
+    private static Account newAcc(String name) {
+        return new Account(
+            Name              = name,
+            BillingCountry    = 'India',
+            BillingState      = 'Maharashtra',
+            BillingPostalCode = '400001',
+            District__c       = 'Ernakulam',
+            BillingStreet     = '123 Test Street',
+            Pin_Code__c       = 400001
+        );
+    }
+
     // ═══════════════════════════════════════════════════════════════════════
     //  INSERT — duplicate Phone
     // ═══════════════════════════════════════════════════════════════════════
 
     @IsTest
     static void testInsert_DuplicatePhone() {
-        Account acc1 = new Account(Name = 'A1', Phone = '9991112222');
+        Account acc1 = newAcc('A1');
+        acc1.Phone = '9991112222';
         insert acc1;
 
-        Account acc2 = new Account(Name = 'A2', Phone = '9991112222');
+        Account acc2 = newAcc('A2');
+        acc2.Phone = '9991112222';
 
         Test.startTest();
         Database.SaveResult sr = Database.insert(acc2, false);
@@ -27,10 +41,12 @@ public class AccountTriggerHandlerTest {
 
     @IsTest
     static void testInsert_DuplicateSecondaryPhone() {
-        Account acc1 = new Account(Name = 'A1', Secondary_Phone__c = '8881112222');
+        Account acc1 = newAcc('A1');
+        acc1.Secondary_Phone__c = '8881112222';
         insert acc1;
 
-        Account acc2 = new Account(Name = 'A2', Secondary_Phone__c = '8881112222');
+        Account acc2 = newAcc('A2');
+        acc2.Secondary_Phone__c = '8881112222';
 
         Test.startTest();
         Database.SaveResult sr = Database.insert(acc2, false);
@@ -47,10 +63,12 @@ public class AccountTriggerHandlerTest {
 
     @IsTest
     static void testInsert_PhoneMatchesSecondaryPhone() {
-        Account acc1 = new Account(Name = 'A1', Secondary_Phone__c = '9991112222');
+        Account acc1 = newAcc('A1');
+        acc1.Secondary_Phone__c = '9991112222';
         insert acc1;
 
-        Account acc2 = new Account(Name = 'A2', Phone = '9991112222');
+        Account acc2 = newAcc('A2');
+        acc2.Phone = '9991112222';
 
         Test.startTest();
         Database.SaveResult sr = Database.insert(acc2, false);
@@ -67,10 +85,12 @@ public class AccountTriggerHandlerTest {
 
     @IsTest
     static void testInsert_SecondaryPhoneMatchesPhone() {
-        Account acc1 = new Account(Name = 'A1', Phone = '8881112222');
+        Account acc1 = newAcc('A1');
+        acc1.Phone = '8881112222';
         insert acc1;
 
-        Account acc2 = new Account(Name = 'A2', Secondary_Phone__c = '8881112222');
+        Account acc2 = newAcc('A2');
+        acc2.Secondary_Phone__c = '8881112222';
 
         Test.startTest();
         Database.SaveResult sr = Database.insert(acc2, false);
@@ -87,10 +107,12 @@ public class AccountTriggerHandlerTest {
 
     @IsTest
     static void testInsert_DuplicateGST() {
-        Account acc1 = new Account(Name = 'B1', GST_Number__c = '29ABCDE1234F1Z5');
+        Account acc1 = newAcc('B1');
+        acc1.GST_Number__c = '29ABCDE1234F1Z5';
         insert acc1;
 
-        Account acc2 = new Account(Name = 'B2', GST_Number__c = '29ABCDE1234F1Z5');
+        Account acc2 = newAcc('B2');
+        acc2.GST_Number__c = '29ABCDE1234F1Z5';
 
         Test.startTest();
         Database.SaveResult sr = Database.insert(acc2, false);
@@ -107,10 +129,12 @@ public class AccountTriggerHandlerTest {
 
     @IsTest
     static void testInsert_DuplicateGSTCaseInsensitive() {
-        Account acc1 = new Account(Name = 'B1', GST_Number__c = '07BBBCC2222G1Z3');
+        Account acc1 = newAcc('B1');
+        acc1.GST_Number__c = '07BBBCC2222G1Z3';
         insert acc1;
 
-        Account acc2 = new Account(Name = 'B2', GST_Number__c = '07BBBCC2222G1Z3');
+        Account acc2 = newAcc('B2');
+        acc2.GST_Number__c = '07BBBCC2222G1Z3';
 
         Test.startTest();
         Database.SaveResult sr = Database.insert(acc2, false);
@@ -125,10 +149,12 @@ public class AccountTriggerHandlerTest {
 
     @IsTest
     static void testInsert_DuplicatePAN() {
-        Account acc1 = new Account(Name = 'B1', PAN_Number__c = 'ABCDE1234F');
+        Account acc1 = newAcc('B1');
+        acc1.PAN_Number__c = 'ABCDE1234F';
         insert acc1;
 
-        Account acc2 = new Account(Name = 'B2', PAN_Number__c = 'ABCDE1234F');
+        Account acc2 = newAcc('B2');
+        acc2.PAN_Number__c = 'ABCDE1234F';
 
         Test.startTest();
         Database.SaveResult sr = Database.insert(acc2, false);
@@ -145,10 +171,12 @@ public class AccountTriggerHandlerTest {
 
     @IsTest
     static void testInsert_DuplicatePANCaseInsensitive() {
-        Account acc1 = new Account(Name = 'B1', PAN_Number__c = 'BBBCC2222G');
+        Account acc1 = newAcc('B1');
+        acc1.PAN_Number__c = 'BBBCC2222G';
         insert acc1;
 
-        Account acc2 = new Account(Name = 'B2', PAN_Number__c = 'BBBCC2222G');
+        Account acc2 = newAcc('B2');
+        acc2.PAN_Number__c = 'BBBCC2222G';
 
         Test.startTest();
         Database.SaveResult sr = Database.insert(acc2, false);
@@ -163,10 +191,12 @@ public class AccountTriggerHandlerTest {
 
     @IsTest
     static void testInsert_PhoneNormalization() {
-        Account acc1 = new Account(Name = 'A1', Phone = '9876543210');
+        Account acc1 = newAcc('A1');
+        acc1.Phone = '9876543210';
         insert acc1;
 
-        Account acc2 = new Account(Name = 'A2', Phone = '987-654-3210');
+        Account acc2 = newAcc('A2');
+        acc2.Phone = '987-654-3210';
 
         Test.startTest();
         Database.SaveResult sr = Database.insert(acc2, false);
@@ -181,22 +211,18 @@ public class AccountTriggerHandlerTest {
 
     @IsTest
     static void testInsert_NoDuplicates() {
-        Account acc1 = new Account(
-            Name              = 'E1',
-            Phone             = '1112223333',
-            Secondary_Phone__c = '4445556666',
-            GST_Number__c     = '27CCCDD3333H1Z4',
-            PAN_Number__c     = 'CCCDD3333H'
-        );
+        Account acc1 = newAcc('E1');
+        acc1.Phone = '1112223333';
+        acc1.Secondary_Phone__c = '4445556666';
+        acc1.GST_Number__c = '27CCCDD3333H1Z4';
+        acc1.PAN_Number__c = 'CCCDD3333H';
         insert acc1;
 
-        Account acc2 = new Account(
-            Name              = 'E2',
-            Phone             = '7778889999',
-            Secondary_Phone__c = '0001112222',
-            GST_Number__c     = '06DDDEE4444J1Z6',
-            PAN_Number__c     = 'DDDEE4444J'
-        );
+        Account acc2 = newAcc('E2');
+        acc2.Phone = '7778889999';
+        acc2.Secondary_Phone__c = '0001112222';
+        acc2.GST_Number__c = '06DDDEE4444J1Z6';
+        acc2.PAN_Number__c = 'DDDEE4444J';
 
         Test.startTest();
         Database.SaveResult sr = Database.insert(acc2, false);
@@ -211,7 +237,7 @@ public class AccountTriggerHandlerTest {
 
     @IsTest
     static void testInsert_BlankFields() {
-        Account acc = new Account(Name = 'Blank');
+        Account acc = newAcc('Blank');
 
         Test.startTest();
         Database.SaveResult sr = Database.insert(acc, false);
@@ -226,20 +252,16 @@ public class AccountTriggerHandlerTest {
 
     @IsTest
     static void testInsert_MultipleFieldsDuplicate() {
-        Account acc1 = new Account(
-            Name          = 'Multi1',
-            Phone         = '5555555555',
-            GST_Number__c = '08EEEGG5555K1Z7',
-            PAN_Number__c = 'EEEGG5555K'
-        );
+        Account acc1 = newAcc('Multi1');
+        acc1.Phone = '5555555555';
+        acc1.GST_Number__c = '08EEEGG5555K1Z7';
+        acc1.PAN_Number__c = 'EEEGG5555K';
         insert acc1;
 
-        Account acc2 = new Account(
-            Name          = 'Multi2',
-            Phone         = '5555555555',
-            GST_Number__c = '08EEEGG5555K1Z7',
-            PAN_Number__c = 'EEEGG5555K'
-        );
+        Account acc2 = newAcc('Multi2');
+        acc2.Phone = '5555555555';
+        acc2.GST_Number__c = '08EEEGG5555K1Z7';
+        acc2.PAN_Number__c = 'EEEGG5555K';
 
         Test.startTest();
         Database.SaveResult sr = Database.insert(acc2, false);
@@ -254,9 +276,12 @@ public class AccountTriggerHandlerTest {
 
     @IsTest
     static void testUpdate_DuplicatePhone() {
-        Account acc1 = new Account(Name = 'D1', Phone = '1234567890');
+        Account acc1 = newAcc('D1');
+        acc1.Phone = '1234567890';
         insert acc1;
-        Account acc2 = new Account(Name = 'D2', Phone = '0987654321');
+
+        Account acc2 = newAcc('D2');
+        acc2.Phone = '0987654321';
         insert acc2;
 
         acc2.Phone = '1234567890';
@@ -274,9 +299,12 @@ public class AccountTriggerHandlerTest {
 
     @IsTest
     static void testUpdate_DuplicateGST() {
-        Account acc1 = new Account(Name = 'D1', GST_Number__c = '09FFFHH6666L1Z8');
+        Account acc1 = newAcc('D1');
+        acc1.GST_Number__c = '09FFFHH6666L1Z8';
         insert acc1;
-        Account acc2 = new Account(Name = 'D2', GST_Number__c = '10GGGKK7777M1Z9');
+
+        Account acc2 = newAcc('D2');
+        acc2.GST_Number__c = '10GGGKK7777M1Z9';
         insert acc2;
 
         acc2.GST_Number__c = '09FFFHH6666L1Z8';
@@ -294,9 +322,12 @@ public class AccountTriggerHandlerTest {
 
     @IsTest
     static void testUpdate_DuplicatePAN() {
-        Account acc1 = new Account(Name = 'D1', PAN_Number__c = 'FFFHH6666L');
+        Account acc1 = newAcc('D1');
+        acc1.PAN_Number__c = 'FFFHH6666L';
         insert acc1;
-        Account acc2 = new Account(Name = 'D2', PAN_Number__c = 'GGGKK7777M');
+
+        Account acc2 = newAcc('D2');
+        acc2.PAN_Number__c = 'GGGKK7777M';
         insert acc2;
 
         acc2.PAN_Number__c = 'FFFHH6666L';
@@ -314,12 +345,10 @@ public class AccountTriggerHandlerTest {
 
     @IsTest
     static void testUpdate_NoChange() {
-        Account acc = new Account(
-            Name          = 'NoChange',
-            Phone         = '1231231234',
-            GST_Number__c = '24HHHLL8888N1Z1',
-            PAN_Number__c = 'HHHLL8888N'
-        );
+        Account acc = newAcc('NoChange');
+        acc.Phone = '1231231234';
+        acc.GST_Number__c = '24HHHLL8888N1Z1';
+        acc.PAN_Number__c = 'HHHLL8888N';
         insert acc;
 
         acc.Name = 'NoChange Updated';
@@ -337,9 +366,12 @@ public class AccountTriggerHandlerTest {
 
     @IsTest
     static void testUpdate_CrossSecPhoneToPhone() {
-        Account acc1 = new Account(Name = 'X1', Phone = '6666666666');
+        Account acc1 = newAcc('X1');
+        acc1.Phone = '6666666666';
         insert acc1;
-        Account acc2 = new Account(Name = 'X2', Secondary_Phone__c = '7777777777');
+
+        Account acc2 = newAcc('X2');
+        acc2.Secondary_Phone__c = '7777777777';
         insert acc2;
 
         acc2.Secondary_Phone__c = '6666666666';
@@ -357,18 +389,21 @@ public class AccountTriggerHandlerTest {
 
     @IsTest
     static void testBulkInsert() {
-        Account existing = new Account(
-            Name  = 'BExist',
-            Phone = '1010101010',
-            GST_Number__c = '33JJJMM9999P1Z2'
-        );
+        Account existing = newAcc('BExist');
+        existing.Phone = '1010101010';
+        existing.GST_Number__c = '33JJJMM9999P1Z2';
         insert existing;
 
-        List<Account> newAccounts = new List<Account>{
-            new Account(Name = 'BDupPhone', Phone = '1010101010'),
-            new Account(Name = 'BClean',    Phone = '2020202020'),
-            new Account(Name = 'BDupGST',   GST_Number__c = '33JJJMM9999P1Z2')
-        };
+        Account dup1 = newAcc('BDupPhone');
+        dup1.Phone = '1010101010';
+
+        Account clean = newAcc('BClean');
+        clean.Phone = '2020202020';
+
+        Account dup2 = newAcc('BDupGST');
+        dup2.GST_Number__c = '33JJJMM9999P1Z2';
+
+        List<Account> newAccounts = new List<Account>{ dup1, clean, dup2 };
 
         Test.startTest();
         List<Database.SaveResult> results = Database.insert(newAccounts, false);
@@ -386,26 +421,19 @@ public class AccountTriggerHandlerTest {
 
     @IsTest
     static void testInsert_EmailFields_NoMatch() {
-        Account acc1 = new Account(
-            Name    = 'Em1',
-            Email__c = 'test@email.com',
-            Secondary_Email__c = 'sec@email.com'
-        );
+        Account acc1 = newAcc('Em1');
+        acc1.Email__c = 'test@email.com';
+        acc1.Secondary_Email__c = 'sec@email.com';
         insert acc1;
 
-        // Email collection IS commented out, so these should NOT trigger dup errors
-        Account acc2 = new Account(
-            Name    = 'Em2',
-            Email__c = 'other@email.com',
-            Secondary_Email__c = 'othersec@email.com'
-        );
+        Account acc2 = newAcc('Em2');
+        acc2.Email__c = 'other@email.com';
+        acc2.Secondary_Email__c = 'othersec@email.com';
 
         Test.startTest();
         Database.SaveResult sr = Database.insert(acc2, false);
         Test.stopTest();
 
-        // Since email collection is commented out, the query won't find them
-        // so no duplicate error for email — insert should succeed
         System.assert(sr.isSuccess(),
             'Email collection is commented out — should not block insert');
     }
@@ -416,16 +444,17 @@ public class AccountTriggerHandlerTest {
 
     @IsTest
     static void testDirectCall_BeforeInsert() {
-        Account existing = new Account(Name = 'Dir1', Phone = '3333333333');
+        Account existing = newAcc('Dir1');
+        existing.Phone = '3333333333';
         insert existing;
 
-        Account newAcc = new Account(Name = 'Dir2', Phone = '3333333333');
+        Account newAccount = newAcc('Dir2');
+        newAccount.Phone = '3333333333';
 
         Test.startTest();
-        AccountTriggerHandler.beforeInsert(new List<Account>{ newAcc });
+        AccountTriggerHandler.beforeInsert(new List<Account>{ newAccount });
         Test.stopTest();
 
-        // addError was called — handler exercised directly
         System.assertNotEquals(null, existing.Id);
     }
 
@@ -435,9 +464,12 @@ public class AccountTriggerHandlerTest {
 
     @IsTest
     static void testDirectCall_BeforeUpdate() {
-        Account acc1 = new Account(Name = 'Up1', Phone = '4444444444');
+        Account acc1 = newAcc('Up1');
+        acc1.Phone = '4444444444';
         insert acc1;
-        Account acc2 = new Account(Name = 'Up2', Phone = '5555555555');
+
+        Account acc2 = newAcc('Up2');
+        acc2.Phone = '5555555555';
         insert acc2;
 
         Account oldAcc2 = acc2.clone(true, true, true, true);

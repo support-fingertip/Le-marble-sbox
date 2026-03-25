@@ -149,7 +149,7 @@
         <enabled>false</enabled>
     </classAccesses>
     <classAccesses>
-        <apexClass>DeliveryPlanTriggerHandlerTest</apexClass>
+        <apexClass>DeliveryPlanTriggerHandlerTest_New</apexClass>
         <enabled>false</enabled>
     </classAccesses>
     <classAccesses>
@@ -170,6 +170,10 @@
     </classAccesses>
     <classAccesses>
         <apexClass>EditQuoteController</apexClass>
+        <enabled>false</enabled>
+    </classAccesses>
+    <classAccesses>
+        <apexClass>EditQuoteControllerTest</apexClass>
         <enabled>false</enabled>
     </classAccesses>
     <classAccesses>
@@ -194,6 +198,10 @@
     </classAccesses>
     <classAccesses>
         <apexClass>ForgotPasswordControllerTest</apexClass>
+        <enabled>false</enabled>
+    </classAccesses>
+    <classAccesses>
+        <apexClass>InvoiceMasterMockCallout</apexClass>
         <enabled>false</enabled>
     </classAccesses>
     <classAccesses>
@@ -314,6 +322,10 @@
     </classAccesses>
     <classAccesses>
         <apexClass>PaymentScheduler</apexClass>
+        <enabled>false</enabled>
+    </classAccesses>
+    <classAccesses>
+        <apexClass>PendingPurchaseUpdateTriggerTest</apexClass>
         <enabled>false</enabled>
     </classAccesses>
     <classAccesses>
@@ -477,6 +489,10 @@
         <enabled>false</enabled>
     </classAccesses>
     <classAccesses>
+        <apexClass>SalesOrderTriggerTest</apexClass>
+        <enabled>false</enabled>
+    </classAccesses>
+    <classAccesses>
         <apexClass>SendOrderToSAPQueueable</apexClass>
         <enabled>false</enabled>
     </classAccesses>
@@ -543,6 +559,10 @@
     <classAccesses>
         <apexClass>WhatsAppMessageSender</apexClass>
         <enabled>true</enabled>
+    </classAccesses>
+    <classAccesses>
+        <apexClass>WhatsAppMessageSenderMock</apexClass>
+        <enabled>false</enabled>
     </classAccesses>
     <classAccesses>
         <apexClass>WhatsAppMessageSenderTest</apexClass>
@@ -2520,6 +2540,11 @@
     <fieldPermissions>
         <editable>true</editable>
         <field>Order.ContractName</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Order.Credit_Amount__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>

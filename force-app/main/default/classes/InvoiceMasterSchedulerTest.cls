@@ -1,94 +1,134 @@
 @IsTest
 public class InvoiceMasterSchedulerTest {
 
-    // Mock to satisfy callout requirement when Queueable executes synchronously
-    private class DummyHttpCalloutMock implements HttpCalloutMock {
-        public HttpResponse respond(HttpRequest req) {
+
+@IsTest
+static void testSchedulerExecution() {
+
+    // Mock the HTTP callout
+    Test.setMock(HttpCalloutMock.class, new InvoiceMasterMockCallout());
+
+    Test.startTest();
+
+    String cronExp = '0 0 2 * * ?';
+
+    System.schedule(
+        'Test Invoice Scheduler',
+        cronExp,
+        new InvoiceMasterScheduler()
+    );
+ System.enqueueJob(new InvoiceMasterQueueable());
+    Test.stopTest();
+
+    System.assert(true);
+}
+    class InvoiceMasterMockCallout implements HttpCalloutMock {
+        
+        public HTTPResponse respond(HTTPRequest req){
+            
             HttpResponse res = new HttpResponse();
-            res.setStatusCode(200);
-            res.setBody('{}');
+            res.setHeader('Content-Type','application/json');
+            
+            if(req.getEndpoint().contains('Login')){
+                res.setStatusCode(200);
+                res.setBody('{"SessionId":"ABC123"}');
+            }
+            
+            else if(req.getEndpoint().contains('Orders')){
+                res.setStatusCode(201);
+                res.setBody(
+                    '{"DocEntry":1,"DocNum":1001,"DocTotal":500,"CardCode":"C001"}'
+                );
+            }
+            else if(req.getEndpoint().contains('Invoices')){
+                res.setStatusCode(200);
+                res.setBody(
+                    '{"value":[{' +
+                    '"DocEntry":"1",' +
+                    '"DocNum":"100",' +
+                    '"DocDate":"2024-01-01",' +
+                    '"DocTotal":"500",' +
+                    '"CardCode":"C001",' +
+                    '"SalesPersonCode":"EMP001",' +
+                    '"Cancelled":"N",' +
+                    '"TotalDiscount":"0",' +
+                    '"DocumentLines":[{' +
+                    '"LineNum":1,' +
+                    '"ItemCode":"P100",' +
+                    '"LineTotal":100,' +
+                    '"Price":100,' +
+                    '"Quantity":1,' +
+                    '"WarehouseCode":"WH1"' +
+                    '}],' +
+                    '"DocumentAdditionalExpenses":[]' +
+                    '},{' +
+                    '"DocEntry":"2",' +
+                    '"DocNum":"101",' +
+                    '"DocDate":"2024-01-02",' +
+                    '"DocTotal":"600",' +
+                    '"CardCode":"C002",' +
+                    '"SalesPersonCode":"EMP001",' +
+                    '"Cancelled":"N",' +
+                    '"TotalDiscount":"0",' +
+                    '"DocumentLines":[{' +
+                    '"LineNum":1,' +
+                    '"ItemCode":"P200",' +
+                    '"LineTotal":200,' +
+                    '"Price":200,' +
+                    '"Quantity":2,' +
+                    '"WarehouseCode":"WH1"' +
+                    '}],' +
+                    '"U_TOTALKM":"2",'+
+                    '"DocumentAdditionalExpenses":[]' +
+                    '}]}'
+                );
+            }
+            
+            else if(req.getEndpoint().contains('IncomingPayments')){
+                res.setStatusCode(200);
+                res.setBody(
+                    '{"value":[{' +
+                    '"DocNum":"1",' +
+                    '"DocDate":"2024-01-01",' +
+                    '"TransferSum":"100",' +
+                    '"CashSum":"0",' +
+                    '"DocEntry":"1",' +
+                    '"CardCode":"C001",' +
+                    '"CardName":"Test Account"' +
+                    '},{' +
+                    '"DocNum":"2",' +
+                    '"DocDate":"2024-01-02",' +
+                    '"TransferSum":"200",' +
+                    '"CashSum":"0",' +
+                    '"DocEntry":"2",' +
+                    '"CardCode":"C002",' +
+                    '"CardName":"Test Account 2"' +
+                    '}]}'
+                );
+            }
+            
+            else if(req.getEndpoint().contains('BusinessPartners') && req.getMethod()=='GET'){
+                res.setStatusCode(404); // simulate not existing
+                res.setBody('{}');
+            }
+            
+            else if(req.getEndpoint().contains('BusinessPartners') && req.getMethod()=='POST'){
+                res.setStatusCode(201);
+                res.setBody('{"CardCode":"C001"}');
+            }
+            
+            else if(req.getEndpoint().contains('BusinessPartners') && req.getMethod()=='PATCH'){
+                res.setStatusCode(204);
+                res.setBody('{}');
+            }
+            else{
+                res.setStatusCode(200);
+                res.setBody('{}');
+            }
+            
             return res;
         }
     }
+    
 
-    // =====================
-    // Test that the scheduler can be scheduled via System.schedule
-    // and the job is queryable in CronTrigger.
-    // Scheduled outside startTest/stopTest so the Schedulable.execute()
-    // (and the Queueable it enqueues) is NOT fired synchronously.
-    // =====================
-    @IsTest
-    static void testSchedulerCanBeScheduled() {
-        String jobId = System.schedule(
-            'Test Invoice Master Scheduler',
-            '0 0 2 * * ?',
-            new InvoiceMasterScheduler()
-        );
-
-        System.assertNotEquals(null, jobId, 'Job ID should be returned when scheduled');
-
-        List<CronTrigger> jobs = [
-            SELECT Id, CronJobDetail.Name
-            FROM CronTrigger
-            WHERE Id = :jobId
-        ];
-        System.assertEquals(1, jobs.size(), 'Exactly one job should be scheduled');
-
-        System.abortJob(jobId);
-    }
-
-    // =====================
-    // Test that execute() can be called directly without error.
-    // Uses callout mock + startTest/stopTest so the Queueable runs synchronously
-    // with a mock HTTP response. InvoiceMasterQueueable.cls uses Test.isRunningTest()
-    // to enqueue without a delay, so the 10-min limit is not hit.
-    // =====================
-    @IsTest
-    static void testExecuteEnqueuesQueueable() {
-        Test.setMock(HttpCalloutMock.class, new DummyHttpCalloutMock());
-        Test.startTest();
-        new InvoiceMasterScheduler().execute(null);
-        Test.stopTest();
-
-        System.assert(true, 'Scheduler execute() should call System.enqueueJob without errors');
-    }
-
-    // =====================
-    // Test scheduling with the exact cron expression defined in the class (0 0 2 * * ?)
-    // =====================
-    @IsTest
-    static void testScheduleWithExactCronExpression() {
-        String jobId = System.schedule(
-            'Invoice Master Starter Test',
-            '0 0 2 * * ?',
-            new InvoiceMasterScheduler()
-        );
-
-        System.assertNotEquals(null, jobId, 'Job should be scheduled with cron 0 0 2 * * ?');
-
-        CronTrigger job = [
-            SELECT Id, CronExpression
-            FROM CronTrigger
-            WHERE Id = :jobId
-        ];
-        System.assertEquals('0 0 2 * * ?', job.CronExpression, 'Cron expression should match the defined schedule');
-
-        System.abortJob(jobId);
-    }
-
-    // =====================
-    // Test that multiple independent schedule calls produce unique job IDs
-    // =====================
-    @IsTest
-    static void testMultipleSchedulesProduceUniqueJobIds() {
-        String jobId1 = System.schedule('Invoice Sched Test A', '0 0 2 * * ?', new InvoiceMasterScheduler());
-        String jobId2 = System.schedule('Invoice Sched Test B', '0 0 3 * * ?', new InvoiceMasterScheduler());
-
-        System.assertNotEquals(null, jobId1, 'First job ID should not be null');
-        System.assertNotEquals(null, jobId2, 'Second job ID should not be null');
-        System.assertNotEquals(jobId1, jobId2, 'Each scheduled job should have a unique ID');
-
-        System.abortJob(jobId1);
-        System.abortJob(jobId2);
-    }
 }

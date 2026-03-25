@@ -155,7 +155,15 @@ public class DeliveryManagementControllerTest {
             Cart_Line_Item__c cli    = [SELECT Id FROM Cart_Line_Item__c LIMIT 1];
 
             // Account + Order required for Delivery_Group__c
-            Account acc = new Account(Name = 'Delivery Test Account');
+            Account acc = new Account(
+                Name              = 'Delivery Test Account',
+                BillingCountry    = 'India',
+                BillingState      = 'Maharashtra',
+                BillingPostalCode = '400001',
+                BillingStreet     = '123 Test Street',
+                District__c       = 'Ernakulam',
+                Pin_Code__c       = 400001
+            );
             insert acc;
             Order ord = new Order(
                 AccountId     = acc.Id,
@@ -201,7 +209,15 @@ public class DeliveryManagementControllerTest {
             Cart_Line_Item__c cli    = [SELECT Id FROM Cart_Line_Item__c LIMIT 1];
 
             // Account + Order required for Delivery_Group__c
-            Account acc = new Account(Name = 'Delivery Test Account');
+            Account acc = new Account(
+                Name              = 'Delivery Test Account',
+                BillingCountry    = 'India',
+                BillingState      = 'Maharashtra',
+                BillingPostalCode = '400001',
+                BillingStreet     = '123 Test Street',
+                District__c       = 'Ernakulam',
+                Pin_Code__c       = 400001
+            );
             insert acc;
             Order ord = new Order(
                 AccountId     = acc.Id,

@@ -20,18 +20,18 @@ public static Map<String, Object> getQuoteInfo(Id quoteId) {
                 Account.BillingPostalCode,
                 Account.BillingCountry,
              Account.Blocked_Account__c,
+               AddressLine1__c,
+                    AddressLine2__c,
+                    AddressLine3__c,
+                    District__c,
+                    State__c,
+                    Pin_Code__c,
              Opportunity.Delivery_Committed_Date__c,
                 Owner.Name,
                 OpportunityId,
                 Pricebook2Id,
                 Email,
-                Sales_Order_Created__c,
-                AddressLine1__c,
-                AddressLine2__c,
-                AddressLine3__c,
-                District__c,
-                State__c,
-                Pin_Code__c
+                Sales_Order_Created__c
             FROM Quote
             WHERE Id = :quoteId
             LIMIT 1
@@ -173,11 +173,11 @@ if (deliveryCommittedDate < Date.today()) {
         ord.Order_status__c = 'Draft';
 			ord.credit__c=credit;
             
-            // Set Payment Method and Credit Amount if credit order
+            // Set Payment Method if credit order
             if (credit && String.isNotBlank(paymentMethod)) {
                 ord.Payment_methods__c = paymentMethod;
             }
-            if (credit && creditAmount != null) {
+             if (credit && creditAmount != null) {
                 ord.Credit_Amount__c = creditAmount;
             }
             ord.Product_Category__c = category;

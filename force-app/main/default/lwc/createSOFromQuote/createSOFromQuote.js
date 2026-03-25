@@ -49,6 +49,7 @@ export default class CreateSOFromQuote extends NavigationMixin(LightningElement)
         phone: '',
         company: '',
         address: '',
+        shippingAddress: '',
         executive: ''
     };
     @track againstOrder = false;
@@ -82,10 +83,9 @@ export default class CreateSOFromQuote extends NavigationMixin(LightningElement)
     handleCreditToggle(event) {
         this.credit = event.target.checked;
         console.log('Credit Toggle Value:', this.credit);
-        // Reset payment method and credit amount when credit is turned off
+        // Reset payment method when credit is turned off
         if (!this.credit) {
             this.selectedPaymentMethod = '';
-            this.creditAmount = '';
         }
     }
 
@@ -114,17 +114,10 @@ wiredQuoteInfo({ error, data }) {
      //   this.showCreateSOButton = !quote.Sales_Order_Created__c;
 
         this.customerInfo = {
-            name: quote.Name || 'N/A',
+            name:  quote.Account?.Name|| 'N/A',
             email: data.email || 'N/A',   
             phone: quote.Account?.Phone || 'N/A',
-            shippingAddress: [
-                    quote.AddressLine1__c,
-                    quote.AddressLine2__c,
-                    quote.AddressLine3__c,
-                    quote.District__c,
-                    quote.State__c,
-                    quote.Pin_Code__c
-                ].filter(Boolean).join(', ') || 'N/A',
+            company: quote.Account?.Name || 'N/A',
             address: quote.Account
                 ? [
                     quote.Account.BillingStreet,
@@ -134,6 +127,14 @@ wiredQuoteInfo({ error, data }) {
                     quote.Account.BillingCountry
                   ].filter(Boolean).join(', ')
                 : 'N/A',
+            shippingAddress: [
+                    quote.AddressLine1__c,
+                    quote.AddressLine2__c,
+                    quote.AddressLine3__c,
+                    quote.District__c,
+                    quote.State__c,
+                    quote.Pin_Code__c
+                    ].filter(Boolean).join(', ') || 'N/A',
             executive: quote.Owner?.Name || 'N/A'
         };
          this.deliveryCommittedDate = quote.Opportunity?.Delivery_Committed_Date__c || '';
@@ -598,7 +599,7 @@ wiredQuoteInfo({ error, data }) {
         paymentMethod: this.selectedPaymentMethod,
         batchJson: JSON.stringify(batchPayload),
         againstOrder: this.againstOrder,
-        creditAmount: this.creditAmount ? parseFloat(this.creditAmount) : 0
+         creditAmount: this.creditAmount ? parseFloat(this.creditAmount) : 0
     });
         this.showToast(
             'Success',
