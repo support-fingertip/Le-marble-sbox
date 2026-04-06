@@ -4,6 +4,31 @@ public class sapIntegrationTest {
     /* ------------------------------------------------
        HTTP MOCK
     ------------------------------------------------ */
+    
+    class SAPMock1 implements HttpCalloutMock {
+        
+        public HTTPResponse respond(HTTPRequest req){
+            
+            HttpResponse res = new HttpResponse();
+            res.setHeader('Content-Type','application/json');
+            
+            if(req.getEndpoint().contains('Login')){
+                res.setStatusCode(200);
+                res.setBody('{"SessionId":"ABC123"}');
+            }
+            
+
+        else if(req.getEndpoint().contains('Orders')){
+    res.setStatusCode(205);
+    res.setBody(
+        '{"DocEntry":1,"DocNum":1001,"DocTotal":500,"CardCode":"C001"}'
+    );
+}
+        return res;
+    }
+}
+            
+            
    class SAPMock implements HttpCalloutMock {
 
     public HTTPResponse respond(HTTPRequest req){
@@ -60,7 +85,10 @@ res.setBody(
 '"Quantity":2,' +
 '"WarehouseCode":"WH1"' +
 '}],' +
-'"DocumentAdditionalExpenses":[]' +
+'"DocumentAdditionalExpenses":[{' +
+'"ExpenseCode":1,'+
+  '"LineTotal":1'+  
+    '}]' +
 '}]}'
 );
         }
@@ -522,6 +550,27 @@ static void testSendOrderDirect(){
 
     System.assert(true);
 }
+    @isTest
+static void testSendOrderDirect1(){
+
+    prepareUser();
+    Test.setMock(HttpCalloutMock.class,new SAPMock1());
+
+    Account acc=createAccount();
+    Opportunity opp=createOpportunity(acc.Id);
+    Order ord=createOrder(acc.Id,opp.Id);
+
+    Test.startTest();
+    try{
+        sapIntegration.getProductMaster('2025-09-11');
+        sapIntegration.sendOrderToSAP(ord.Id);
+    }catch(Exception e){
+        System.debug(e);
+    }
+    Test.stopTest();
+
+}
+    
 @isTest
 static void testStockCall(){
 

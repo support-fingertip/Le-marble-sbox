@@ -201,6 +201,10 @@
         <enabled>true</enabled>
     </classAccesses>
     <classAccesses>
+        <apexClass>GetPaymentsQueueable</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <classAccesses>
         <apexClass>InvoiceMasterMockCallout</apexClass>
         <enabled>true</enabled>
     </classAccesses>
@@ -322,6 +326,10 @@
     </classAccesses>
     <classAccesses>
         <apexClass>PaymentScheduler</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <classAccesses>
+        <apexClass>PaymentSchedulerTest</apexClass>
         <enabled>true</enabled>
     </classAccesses>
     <classAccesses>
@@ -653,6 +661,11 @@
     <fieldPermissions>
         <editable>true</editable>
         <field>Account.Credit_Limit__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Account.Customer_Number_Ext__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>

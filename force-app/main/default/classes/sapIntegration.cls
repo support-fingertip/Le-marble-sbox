@@ -8,8 +8,8 @@ public class sapIntegration {
     
     @AuraEnabled 
     public static list<account> getAccount(){
-        return [select id, name,Customer_Number__c from account];	
-        
+        return [select id, name,Customer_Number_Ext__c from account];	
+        //Customer_Number__c
     }
     public class Sap_comp{
         @auraEnabled public list<product2> items{get;set;}
@@ -70,8 +70,8 @@ public class sapIntegration {
         try {
             
             
-            Account deal = [
-                SELECT Customer_Number__c, Name, Email__c, Phone, Secondary_Phone__c,Type,
+            Account deal = [//Customer_Number__c
+                SELECT Customer_Number_Ext__c, Name, Email__c, Phone, Secondary_Phone__c,Type,
                 Address_Line1__c, Address_Line2__c,Address_Line3__c,Corporation__c,Municipality__c,Panchayath__c,Village__c,State__c,Country__c,Description,District__c,GST_Number__c,Owner_Name__c,
                 ShippingState,ShippingCountry, ShippingCity,ShippingStreet,ShippingAddress,BillingAddress,ShippingPostalCode,Customer_Type__c,GST_Type__c,POC_Name__c,POC_Number__c,pin_code__c,
                 BillingState,BillingCountry, BillingCity,BillingStreet,BillingPostalCode,ownerId FROM Account
@@ -82,15 +82,15 @@ public class sapIntegration {
             String ownerSAPCode = [SELECT Id,name,SAP_Emp_Code__c FROM User WHERE id=:deal.ownerId].SAP_Emp_Code__c; 
             notification.setTitle('Account :'+deal.Name);
             String NotificationBody =  'Account Name : ' + Account.Name +'\nAccount created by : ' + deal.Owner_Name__c;
-            
-            log.Request_Type__c ='Account -'+deal.Customer_Number__c;
+            //
+            log.Request_Type__c ='Account -'+deal.Customer_Number_Ext__c;
             
             Http http = new Http();
             string sessionId= loginToSAP();
             
             // 1. Check if BP exists in SAP
             HttpRequest getRequest = new HttpRequest();
-            getRequest.setEndpoint('https://lemrg.hstconnect.in:50000/b1s/v1/BusinessPartners(\'' + deal.Customer_Number__c + '\')');
+            getRequest.setEndpoint('https://lemrg.hstconnect.in:50000/b1s/v1/BusinessPartners(\'' + deal.Customer_Number_Ext__c + '\')');
             getRequest.setMethod('GET');
             getRequest.setHeader('Cookie', 'B1SESSION=' + sessionId);
             HttpResponse getResponse = http.send(getRequest);
@@ -98,9 +98,9 @@ public class sapIntegration {
             if (getResponse.getStatusCode() == 200) {
                 log.status__c='Failed';
                 log.response__c= 'Status code : '+getResponse.getStatusCode() +' Response body: '+ getResponse.getBody();
-                log.Error_Message__c = 'Status code : '+getResponse.getStatusCode()+ 'BP already exists in SAP for Customer_ID: ' + deal.Customer_Number__c;
+                log.Error_Message__c = 'Status code : '+getResponse.getStatusCode()+ 'BP already exists in SAP for Customer_ID: ' + deal.Customer_Number_Ext__c;
                 insert  log; 
-                notification.setBody('BP already exists in SAP for Customer_ID: ' + deal.Customer_Number__c);    
+                notification.setBody('BP already exists in SAP for Customer_ID: ' + deal.Customer_Number_Ext__c);    
                 try {
                     notification.send(addressee);
                     
@@ -108,7 +108,7 @@ public class sapIntegration {
                 catch (Exception ee) {
                     System.debug('Problem sending notification: ' + ee.getMessage());
                 }
-                System.debug(LoggingLevel.INFO, 'BP already exists in SAP for Customer_ID: ' + deal.Customer_Number__c);
+                System.debug(LoggingLevel.INFO, 'BP already exists in SAP for Customer_ID: ' + deal.Customer_Number_Ext__c);
                 return;
             }
             
@@ -220,7 +220,7 @@ public class sapIntegration {
                         bpAddresses.add(billToAddress);
           
             Map<String, Object> bpPayload = new Map<String, Object>{
-                	'CardCode'       => deal.Customer_Number__c!=null? deal.Customer_Number__c:'',
+                	'CardCode'       => deal.Customer_Number_Ext__c!=null? deal.Customer_Number_Ext__c:'',
                     'CardName'       => deal.Name!=null? deal.Name:'',
                     'CardType'       => 'cCustomer',
                     'Currency'       => deal.BillingCountry=='India'? 'INR':'',
@@ -309,14 +309,14 @@ public class sapIntegration {
         try {
             
             Account deal = [
-                SELECT Customer_Number__c, Name, Email__c, Phone, Secondary_Phone__c,Type,
+                SELECT Customer_Number_Ext__c, Name, Email__c, Phone, Secondary_Phone__c,Type,
                 Address_Line1__c, Address_Line2__c,Address_Line3__c,Corporation__c,Municipality__c,Panchayath__c,Village__c,State__c,Country__c,Description,District__c,GST_Number__c,POC_Number__c,
                 ShippingState,ShippingCountry, ShippingCity,ShippingStreet,ShippingAddress,BillingAddress,ShippingPostalCode,GST_Type__c,POC_Name__c,Account.OwnerId, Account.Customer_Type__c,pin_code__c,
                 BillingState,BillingCountry, BillingCity,BillingStreet,BillingPostalCode FROM Account
                 WHERE Id = :dealId
                 LIMIT 1
             ];
-            log.Request_Type__c ='Account Update -'+deal.Customer_Number__c;
+            log.Request_Type__c ='Account Update -'+deal.Customer_Number_Ext__c;
             Http http = new Http();
           String ownerSAPCode = [SELECT Id,name,SAP_Emp_Code__c FROM User WHERE id=:deal.ownerId].SAP_Emp_Code__c; 
    
@@ -343,7 +343,7 @@ public class sapIntegration {
             
             List<Map<String, Object>> bpAddresses = new List<Map<String, Object>>();
             HttpRequest getRequest = new HttpRequest();
-            getRequest.setEndpoint('https://lemrg.hstconnect.in:50000/b1s/v1/BusinessPartners(\'' + deal.Customer_Number__c + '\')');
+            getRequest.setEndpoint('https://lemrg.hstconnect.in:50000/b1s/v1/BusinessPartners(\'' + deal.Customer_Number_Ext__c + '\')');
             getRequest.setMethod('GET');
             getRequest.setHeader('Cookie', 'B1SESSION=' + sessionId);
             HttpResponse getResponse = http.send(getRequest);
@@ -497,7 +497,7 @@ public class sapIntegration {
                     };
             system.debug(JSON.serialize(updatePayload));                
             HttpRequest patchRequest = new HttpRequest();
-            patchRequest.setEndpoint('https://lemrg.hstconnect.in:50000/b1s/v1/BusinessPartners(\'' + deal.Customer_Number__c + '\')');
+            patchRequest.setEndpoint('https://lemrg.hstconnect.in:50000/b1s/v1/BusinessPartners(\'' + deal.Customer_Number_Ext__c + '\')');
             patchRequest.setMethod('PATCH');
             patchRequest.setHeader('Content-Type', 'application/json');
             patchRequest.setHeader('Cookie', 'B1SESSION=' + sessionId);
@@ -596,7 +596,7 @@ public class sapIntegration {
                 Order_Owner__c,
                 accountId,
                 account.name,
-                account.Customer_Number__c,
+                account.Customer_Number_Ext__c,
                 account.Customer_Type__c,
                 Warehouse__r.Warehouse_Code__c,
                 OpportunityId,  
@@ -906,7 +906,7 @@ public class sapIntegration {
             uType = order.opportunity.Sale_Type__c;
         }
 
-        payload.CardCode                = order.account.Customer_Number__c;
+        payload.CardCode                = order.account.Customer_Number_Ext__c;
         payload.DocDate                 = docDate;
         payload.DocDueDate              = dueDate;
         payload.DocCurrency             = 'INR';
@@ -1120,8 +1120,8 @@ public class sapIntegration {
                     }
 
                     Map<String, Id> accountMap = new Map<String, Id>();
-                    for (Account a : [SELECT Id, Customer_Number__c FROM Account WHERE Customer_Number__c IN :accountCodes]) {
-                        accountMap.put(a.Customer_Number__c, a.Id);
+                    for (Account a : [SELECT Id, Customer_Number_Ext__c FROM Account WHERE Customer_Number_Ext__c IN :accountCodes]) {
+                        accountMap.put(a.Customer_Number_Ext__c, a.Id);
                     }
                     Map<String, Id> userMap = new Map<String, Id>();
                     for (User u : [SELECT Id, SAP_Emp_Code__c FROM User WHERE SAP_Emp_Code__c IN :salesPersonCodes]) {
@@ -1205,13 +1205,13 @@ public class sapIntegration {
                                 Map<String, Object> line = (Map<String, Object>) lineObj;
                                 Integer lineNum = (Integer) line.get('ExpenseCode');
                                 if(lineNum == 1){
-                                    inv.Freight_Charge__c  = (Integer) line.get('LineTotal');
+                                    inv.Freight_Charge__c  = (decimal) line.get('LineTotal');
                                 }
                                 else if(lineNum == 2){
-                                    inv.Loading_Charge__c  = (Integer) line.get('LineTotal');
+                                    inv.Loading_Charge__c  = (decimal) line.get('LineTotal');
                                 }
                                 else if(lineNum == 3){
-                                    inv.Unloading_Charge__c  = (Integer) line.get('LineTotal');
+                                    inv.Unloading_Charge__c  = (decimal) line.get('LineTotal');
                                 }
                             }
                         }
@@ -1238,7 +1238,7 @@ public class sapIntegration {
     @AuraEnabled(cacheable=false)  
     public static decimal getCustOutstanding(string accountId) {
         
-        string bpCode=[select id,Customer_Number__c from account where id=:accountId].Customer_Number__c;
+        string bpCode=[select id,Customer_Number_Ext__c from account where id=:accountId].Customer_Number_Ext__c;
         decimal CurrentAccountBalance;
         String sessionId=loginToSAP();
         if(sessionId!=null){  
@@ -1300,7 +1300,7 @@ public class sapIntegration {
         return CurrentAccountBalance;  
     }
 
-    @AuraEnabled  
+    @AuraEnabled  @future(callout=true) 
     public static void getPayments() {
         String sessionId = loginToSAP();
         if (sessionId != null) {
@@ -1353,8 +1353,8 @@ public class sapIntegration {
                         if (inv != null && inv != '') invCodes.add(inv);
                     }
                     Map<String, Id> accountMap = new Map<String, Id>();
-                    for (Account a : [SELECT Id, Customer_Number__c FROM Account WHERE Customer_Number__c IN :cardCodes]) {
-                        accountMap.put(a.Customer_Number__c, a.Id);
+                    for (Account a : [SELECT Id, Customer_Number_Ext__c FROM Account WHERE Customer_Number_Ext__c IN :cardCodes]) {
+                        accountMap.put(a.Customer_Number_Ext__c, a.Id);
                     }
                     Map<String, Id> invMap = new Map<String, Id>();
                     for (Invoice__c a : [SELECT Id, Doc_Entry__c FROM Invoice__c WHERE Doc_Entry__c IN :invCodes]) {
@@ -1411,7 +1411,7 @@ public class sapIntegration {
     @AuraEnabled
     public static String addShipToAddressToSAP(Id opportunityId) {
         Opportunity opp = [
-            SELECT Id, AccountId, Account.Customer_Number__c,
+            SELECT Id, AccountId, Account.Customer_Number_Ext__c,
                    AddressLine1__c, AddressLine2__c, AddressLine3__c,
                    Corporation__c, Municipality__c, Panchayath__c,
                    Village__c, District__c, State__c, Country__c, Pin_Code__c,
@@ -1421,7 +1421,7 @@ public class sapIntegration {
             LIMIT 1
         ];
 
-        if (opp.Account.Customer_Number__c == null) {
+        if (opp.Account.Customer_Number_Ext__c == null) {
             throw new AuraHandledException('Account does not have a Customer Number.');
         }
 
@@ -1469,7 +1469,7 @@ public class sapIntegration {
         }
 
         HttpRequest getReq = new HttpRequest();
-        getReq.setEndpoint(SAP_BASE_URL + '/BusinessPartners(\'' + opp.Account.Customer_Number__c + '\')');
+        getReq.setEndpoint(SAP_BASE_URL + '/BusinessPartners(\'' + opp.Account.Customer_Number_Ext__c + '\')');
         getReq.setMethod('GET');
         getReq.setHeader('Cookie', 'B1SESSION=' + sessionId);
         HttpResponse getRes = http.send(getReq);
@@ -1483,7 +1483,7 @@ public class sapIntegration {
                 }
             }
         } else {
-            throw new AuraHandledException('Business Partner not found in SAP: ' + opp.Account.Customer_Number__c);
+            throw new AuraHandledException('Business Partner not found in SAP: ' + opp.Account.Customer_Number_Ext__c);
         }
 
         bpAddresses.add(shipToAddress);
@@ -1493,7 +1493,7 @@ public class sapIntegration {
         };
 
         HttpRequest patchReq = new HttpRequest();
-        patchReq.setEndpoint(SAP_BASE_URL + '/BusinessPartners(\'' + opp.Account.Customer_Number__c + '\')');
+        patchReq.setEndpoint(SAP_BASE_URL + '/BusinessPartners(\'' + opp.Account.Customer_Number_Ext__c + '\')');
         patchReq.setMethod('PATCH');
         patchReq.setHeader('Content-Type', 'application/json');
         patchReq.setHeader('Cookie', 'B1SESSION=' + sessionId);

@@ -36,9 +36,9 @@ public with sharing class QuotePdfController {
 
         System.debug('Quote ID in constructor: ' + this.cart.Id);
 
-        // Fetch the complete Quote record with all related fields you might need
+        // Fetch the complete Quote record with all related fields you might need   account.Customer_Number__c,
         List<Quote> qList = [
-        SELECT Id, Name,Quote_Number__c, AccountId, OpportunityId,account.Customer_Number__c,
+        SELECT Id, Name,Quote_Number__c, AccountId, OpportunityId,account.Customer_Number_Ext__c,account.Customer_Number__c,
          Freight_Charge__c, Loading_Charge__c, Unloading_Charge__c,Round_Off__c,
         Total_Amount1__c, Subtotal, TotalPrice, GrandTotal, Discount,
         Email, Phone, Fax,
@@ -401,11 +401,11 @@ System.debug('Final products list size: ' + this.products.size());
         // Link the file to the Opportunity (if present) otherwise to the Quote
         ContentDocumentLink cdl = new ContentDocumentLink();
         cdl.ContentDocumentId = contentDocumentId;
-        if (quoteRecord.OpportunityId != null) {
-            cdl.LinkedEntityId = quoteRecord.OpportunityId;
-        } else {
-            cdl.LinkedEntityId = quoteRecord.Id;
-        }
+       // if (quoteRecord.OpportunityId != null) {
+         //   cdl.LinkedEntityId = quoteRecord.OpportunityId;
+        //} else {
+            cdl.LinkedEntityId = cartId;
+        //}
         cdl.ShareType = 'V'; // Viewer permission
         cdl.Visibility = 'AllUsers';
         insert cdl;

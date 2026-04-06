@@ -365,7 +365,7 @@ public static Order getOrderById(Id orderId) {
             SELECT Id, Name, Account.Name, OrderNumber,
                    Phone__c, QuoteId, Quote_Name__c, Order_Owner__c,
                    BillingStreet, BillingCity, Product_Category__c, Sales_Order_Number__c,
-                   BillingPostalCode, TotalAmount, BillingState, BillingCountry, Warehouse__c,
+                   BillingPostalCode, TotalAmount, BillingState, BillingCountry, Warehouse__c,Delivery_Committed_Date__c,
                    (SELECT Id, Product2.Name, Quantity, UnitPrice
                     FROM OrderItems)
             FROM Order

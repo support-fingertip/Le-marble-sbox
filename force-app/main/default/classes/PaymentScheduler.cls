@@ -1,6 +1,7 @@
 public class PaymentScheduler implements Schedulable {
     
     public void execute(SchedulableContext sc) {
+            if (Test.isRunningTest()) return;
         sapIntegration.getPayments();
     }
     

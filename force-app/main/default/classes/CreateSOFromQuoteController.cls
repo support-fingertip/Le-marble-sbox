@@ -358,7 +358,7 @@ if (deliveryCommittedDate < Date.today()) {
    @AuraEnabled(cacheable=true)
     public static List<Warehouse__c> getActiveWarehouses() {
     return [
-        SELECT Id, Name,type__c
+        SELECT Id, Name,type__c,Warehouse_Code__c
         FROM Warehouse__c
         ORDER BY Name
     ];
