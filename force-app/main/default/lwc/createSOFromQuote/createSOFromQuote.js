@@ -182,7 +182,7 @@ wiredQuoteInfo({ error, data }) {
         wiredWarehouses({ data, error }) {
             if (data) {
                 this.warehouseOptions = data.map(w => ({
-                    label: w.Name,
+                    label: w.Warehouse_Code__c +' : '+w.Name,
                     value: w.Id,
                     type: w.Type__c 
                 }));

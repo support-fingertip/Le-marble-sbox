@@ -78,6 +78,7 @@ today;
                         postalCode: sc.BillingPostalCode,
                         country: sc.BillingCountry
                     },
+                    preferredDeliveryDate: sc.Delivery_Committed_Date__c,
                     totalAmount: sc.TotalAmount,
                     warehouse: sc.Warehouse__c,
                     productCategory: sc.Product_Category__c,
@@ -188,7 +189,7 @@ today;
                     productCategory: sc.Product_Category__c,
                     QuoteId: sc.QuoteId,
                     cartLineItems: sc.OrderItems || [],
-                //    preferredDeliveryDate: sc.Preferred_Delivery_Date__c
+                    preferredDeliveryDate: sc.Delivery_Committed_Date__c
                 }
             }));
         } catch (error) {
