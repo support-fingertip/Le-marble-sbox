@@ -551,7 +551,7 @@ email.setToAddresses(new List<String>{ finalEmail });
         public Decimal sqft { get; set; }
         public Decimal unitPrice { get; set; }
         public Decimal beforeDiscPrice { get; set; }
-        public Decimal total { get; set; }
+        public Decimal total { get { return total != null ? total.setScale(2, RoundingMode.HALF_UP) : null; } set; }
         public String uom { get; set; }
         public String imageUrl { get; set; }
         public String roomType { get; set; }
