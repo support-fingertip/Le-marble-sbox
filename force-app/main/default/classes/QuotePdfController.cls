@@ -288,13 +288,16 @@ this.mrpTotal += item.Without_Discount_Total_Price__c;
             System.debug('Processing item: ' + item.Product2.Name);
           Decimal discountAmount = 0;
 
-                if (item.Disc_Type__c == 'Percentage' && 
+                if (item.Disc_Type__c == 'Percentage' &&
                     item.Dis_Value__c != null &&
                     item.UnitPrice != null &&
                     item.Quantity != null) {
-                
+
                     Decimal originalTotal = item.UnitPrice * item.Quantity;
                     discountAmount = (originalTotal * item.Dis_Value__c) / 100;
+                } else if (item.Disc_Type__c == 'Amount' &&
+                           item.Dis_Value__c != null) {
+                    discountAmount = item.Dis_Value__c;
                 }
             String imageUrl = null;
             if (item.Product2Id != null && productImageUrls.containsKey(item.Product2Id)) {
