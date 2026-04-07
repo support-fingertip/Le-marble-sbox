@@ -95,6 +95,28 @@ insert log;
             System.debug('CreateDate callout URL: ' + EncodingUtil.urlDecode(createUrl, 'UTF-8'));
             fetchItems(sessionId, createUrl, http, allRecords, pbItems, log);
 
+            // 3. Upsert all collected records after all callouts complete
+            if (!allRecords.isEmpty()) {
+                List<Database.UpsertResult> results = Database.upsert(allRecords, Product2.Fields.Product_Code__c, false);
+                for (Integer i = 0, sz = results.size(); i < sz; i++) {
+                    if (!results[i].isSuccess()) {
+                        for (Database.Error error : results[i].getErrors()) {
+                            System.debug('Product Error: ' + error.getStatusCode() + ' : ' + error.getFields());
+                        }
+                    }
+                }
+            }
+            if (!pbItems.isEmpty()) {
+                List<Database.UpsertResult> results1 = Database.upsert(pbItems, PricebookEntry.Fields.PricebookItem_ExtId__c, false);
+                for (Integer i = 0, sz = results1.size(); i < sz; i++) {
+                    if (!results1[i].isSuccess()) {
+                        for (Database.Error error : results1[i].getErrors()) {
+                            System.debug('PB Error: ' + error.getStatusCode() + ' : ' + error.getFields());
+                        }
+                    }
+                }
+            }
+
             // 4. Save last sync time
             setting.Last_Sync__c = System.now();
             upsert setting;
@@ -181,25 +203,6 @@ insert log;
                 prod.U_ProductName__c = (String)item.get('U_ProductName');
 
                 allRecords.add(prod);
-            }
-
-            // Upsert per page to stay within governor limits
-            List<Database.UpsertResult> results = Database.upsert(allRecords, Product2.Fields.Product_Code__c, false);
-            List<Database.UpsertResult> results1 = Database.upsert(pbItems, PricebookEntry.Fields.PricebookItem_ExtId__c, false);
-
-            for (Integer i = 0, sz = results.size(); i < sz; i++) {
-                if (!results[i].isSuccess()) {
-                    for (Database.Error error : results[i].getErrors()) {
-                        System.debug('Product Error: ' + error.getStatusCode() + ' : ' + error.getFields());
-                    }
-                }
-            }
-            for (Integer i = 0, sz = results1.size(); i < sz; i++) {
-                if (!results1[i].isSuccess()) {
-                    for (Database.Error error : results1[i].getErrors()) {
-                        System.debug('PB Error: ' + error.getStatusCode() + ' : ' + error.getFields());
-                    }
-                }
             }
 
             itemsUrl = (String) jsonResp.get('@odata.nextLink');
