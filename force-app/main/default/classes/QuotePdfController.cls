@@ -306,7 +306,7 @@ this.mrpTotal += item.Without_Discount_Total_Price__c;
             products.add(new QuotationLineItem(
                 item.Product2.Name,
                 item.Product_Category__c,
-                item.Quantity,
+                (item.Product_Category__c == 'N.STONE' ? null : item.Quantity),
                 item.Sqft__c,
                 (item.Product_Category__c == 'TILE' ? item.Price_Sqft__c : item.After_Disc_Price_Piece__c + discountAmount),
                 // Set beforeDiscPrice: if tile, use After_Disc_Price_Sqft__c, else After_Disc_Price_Piece__c
