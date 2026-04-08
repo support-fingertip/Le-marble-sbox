@@ -39,6 +39,7 @@ openPreview=false;
     @track unloadingCharge = 0;
     @track roundOff=0;
   @track orderTotal = 0;
+  @track isConfirming = false;
 @track useMRP = true; 
     get isCategoryDisabled() {
         return !this.selectedPB || this.selectedPB === 'select';  // disabled when no Pricebook selected
@@ -1048,6 +1049,8 @@ this.recalculateOrderTotal();
         }
 
    async handleConfirm(event) {
+        if (this.isConfirming) return;
+        this.isConfirming = true;
         try {
             console.log('handleConfirm called, current recordId:', this.recordId);
             
@@ -1193,6 +1196,7 @@ this.recalculateOrderTotal();
                 })
             );
             this.openPreview=false;
+            this.isConfirming = false;
         }
     }
 
