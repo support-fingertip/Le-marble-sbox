@@ -25,6 +25,7 @@ export default class NewQuoteFromOpp extends NavigationMixin(LightningElement) {
     pbEntryIdMap = new Map();
     @track isDropdownOpen = false;
     @track isLoading = false;
+    @track isConfirmed = false;
     @track searchQuery = '';
     @track products = []; // Initialize products array
     @track selectedProducts = []; // Initialize selectedProducts array
@@ -396,7 +397,9 @@ wiredAreaPicklist({ data, error }) {
                 unitPrice:0,
                 afterDiscPricePiece:  0,
                 afterDiscPricePieceWithoutTax:  0,
-                 afterDiscPriceSqftWithoutTax:  0,
+                afterDiscPriceSqftWithoutTax:  0,
+                afterDiscPrice: 0,
+                afterDiscPriceWithoutTax: 0,
                 totalPrice: 0,
                 description: '',
                 discType: 'Amount',
@@ -439,7 +442,9 @@ var i=0;
                     msp: item.msp,
                     afterDiscPricePiece: item.UnitPrice,
                     afterDiscPricePieceWithoutTax:  0,
-                 afterDiscPriceSqftWithoutTax:  0,
+                    afterDiscPriceSqftWithoutTax:  0,
+                    afterDiscPrice: 0,
+                    afterDiscPriceWithoutTax: 0,
                     totalPrice: item.TotalPrice,
                     description: item.Description? item.Description: '',
                     discType: item.Disc_Type__c,
@@ -532,11 +537,13 @@ var i=0;
                 unitPrice: 0,
                 msp: 0,
                 afterDiscPricePiece: 0,
+                afterDiscPrice: 0,
+                afterDiscPriceWithoutTax: 0,
                 totalPrice: 0,
                 description: '',
                 discType: 'Amount',
                 discValue: 0,
-                roomType: '', 
+                roomType: '',
                 areaDesc: '',
                 requiredSqft: 0,
                 pricePerSqft: 0,
@@ -720,8 +727,8 @@ var i=0;
             console.log(product.isNaturalStone);
      //    alert(JSON.stringify(product));   
             if (product.isNaturalStone) {
-                // Natural Stone calculation (no tax logic needed)
                 const unitPrice = parseFloat(product.unitPrice) || 0;
+                const taxPercent = parseFloat(product.Tax) || 0;
                 const requiredSqft = parseFloat(product.requiredSqft) || 0;
                 const discType = product.discType || 'Percentage';
                 const discValue = parseFloat(product.discValue) || 0;
@@ -731,11 +738,14 @@ var i=0;
                     afterDiscPrice = unitPrice * (1 - discValue / 100);
                     totalPrice = afterDiscPrice * requiredSqft;
                 } else if (discType === 'Amount' && discValue > 0) {
-                    // For amount, reduce from unit price
                     afterDiscPrice = Math.max(unitPrice - discValue, 0);
                     totalPrice = afterDiscPrice * requiredSqft;
                 }
+                const afterDiscPriceWithoutTax = taxPercent > 0
+                    ? parseFloat((afterDiscPrice / (1 + taxPercent / 100)).toFixed(6))
+                    : afterDiscPrice;
                 product.afterDiscPrice = afterDiscPrice.toFixed(6);
+                product.afterDiscPriceWithoutTax = afterDiscPriceWithoutTax.toFixed(6);
                 product.totalPrice = totalPrice.toFixed(2);
                 this.selectedProducts  = [...this.selectedProducts];
                 return;
@@ -1094,6 +1104,8 @@ this.recalculateOrderTotal();
                 return;
             }
 
+            this.isConfirmed = true;
+
             // Show loading toast
  /*           this.dispatchEvent(
                 new ShowToastEvent({
@@ -1123,6 +1135,8 @@ this.recalculateOrderTotal();
                     uom: item.uom,
                     sqft: item.sqft || 0,
                     sqm: item.sqm || 0,
+                    afterDiscPrice: item.afterDiscPrice,
+                    afterDiscPriceWithoutTax: item.afterDiscPriceWithoutTax,
                     afterDiscPricePiece: item.afterDiscPricePiece,
                     afterDiscPriceSqft: item.afterDiscPriceSqft,
                     afterDiscPricePieceWithoutTax: item.afterDiscPricePieceWithoutTax,
@@ -1192,6 +1206,7 @@ this.recalculateOrderTotal();
                     variant: 'error'
                 })
             );
+            this.isConfirmed = false;
             this.openPreview=false;
         }
     }
@@ -1335,6 +1350,8 @@ alert('hi');
                 afterDiscPricePiece: 0,
                 afterDiscPriceSqft: 0,
                 afterDiscPriceUnit: 0,
+                afterDiscPrice: 0,
+                afterDiscPriceWithoutTax: 0,
                 pricePerSqft: 0,
                 totalPrice: 0,
                 description: '',
@@ -1645,28 +1662,32 @@ handleAreaDesChange(event) {
             if (!product || !product.isNaturalStone) return;    
 
             const unitPrice = parseFloat(product.unitPrice) || 0;
+            const taxPercent = parseFloat(product.Tax) || 0;
             const requiredSqft = parseFloat(product.requiredSqft) || 0;
             const discType = product.discType || 'Percentage';
             const discValue = parseFloat(product.discValue) || 0;
-            
+
             let afterDiscPrice = unitPrice;
             let totalPrice = unitPrice * requiredSqft;
-            
+
             if (discType === 'Percentage' && discValue > 0) {
-                // For percentage discount
                 const discountMultiplier = 1 - (discValue / 100);
                 afterDiscPrice = unitPrice * discountMultiplier;
                 totalPrice = afterDiscPrice * requiredSqft;
             } else if (discType === 'Amount' && discValue > 0) {
-                // For amount, reduce from unit price
                 afterDiscPrice = Math.max(unitPrice - discValue, 0);
                 totalPrice = afterDiscPrice * requiredSqft;
             }
-            
+
+            const afterDiscPriceWithoutTax = taxPercent > 0
+                ? parseFloat((afterDiscPrice / (1 + taxPercent / 100)).toFixed(6))
+                : afterDiscPrice;
+
             // Update only if values have changed
             if (product.afterDiscPrice !== Number(afterDiscPrice).toFixed(2)) {
                 this.updateProduct(productId, 'afterDiscPrice', Number(afterDiscPrice).toFixed(2),idx);
             }
+            this.updateProduct(productId, 'afterDiscPriceWithoutTax', Number(afterDiscPriceWithoutTax).toFixed(6),idx);
             if (product.totalPrice !== Number(totalPrice).toFixed(2)) {
                 this.updateProduct(productId, 'totalPrice', Number(totalPrice).toFixed(2),idx);
             }
@@ -1745,6 +1766,8 @@ handleAreaDesChange(event) {
                     unitPrice:0,
                     msp:0,
                     afterDiscPricePiece:  0,
+                    afterDiscPrice: 0,
+                    afterDiscPriceWithoutTax: 0,
                     totalPrice: 0,
                     description: '',
                     discType: 'Amount',
