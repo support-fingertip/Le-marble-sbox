@@ -25,6 +25,7 @@ export default class NewQuoteFromOpp extends NavigationMixin(LightningElement) {
     pbEntryIdMap = new Map();
     @track isDropdownOpen = false;
     @track isLoading = false;
+    @track isConfirmed = false;
     @track searchQuery = '';
     @track products = []; // Initialize products array
     @track selectedProducts = []; // Initialize selectedProducts array
@@ -1094,6 +1095,8 @@ this.recalculateOrderTotal();
                 return;
             }
 
+            this.isConfirmed = true;
+
             // Show loading toast
  /*           this.dispatchEvent(
                 new ShowToastEvent({
@@ -1192,6 +1195,7 @@ this.recalculateOrderTotal();
                     variant: 'error'
                 })
             );
+            this.isConfirmed = false;
             this.openPreview=false;
         }
     }
