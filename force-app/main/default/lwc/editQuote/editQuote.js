@@ -791,7 +791,7 @@ console.log('discValue.>>>>:', discValue);
     
     // VALIDATION LOOP
     for (let item of this.selectedProducts) {
-        if (!item.roomType || item.roomType.trim() === '') {
+        if (item.category !== 'ADHESIVE' && (!item.roomType || item.roomType.trim() === '')) {
             this.showError(`Please enter Area/Room Type for product: ${item.name}`);
             return;
         }

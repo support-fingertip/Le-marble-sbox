@@ -281,8 +281,12 @@ this.mrpTotal += item.Without_Discount_Total_Price__c;
                 this.mrpTotal += item.UnitPrice*item.Quantity;
             }
             String descriptionField = null;
+            String displayName = item.Product2.Name;
             if (item.Product_Category__c == 'N.STONE') {
                 descriptionField = item.Description;
+                if (String.isNotBlank(item.Description)) {
+                    displayName = item.Product2.Name + ': ' + item.Description;
+                }
             }
             
             System.debug('Processing item: ' + item.Product2.Name);
@@ -305,7 +309,7 @@ this.mrpTotal += item.Without_Discount_Total_Price__c;
                 imageUrl = productImageUrls.get(item.Product2Id);
             }
             products.add(new QuotationLineItem(
-                item.Product2.Name,
+                displayName,
                 item.Product_Category__c,
  				 (item.Product_Category__c == 'N.STONE' ? null : item.Quantity),                
                 item.Sqft__c,

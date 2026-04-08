@@ -924,7 +924,7 @@ console.log('Selected products for preview:', JSON.stringify(this.selectedProduc
     */
     // VALIDATION LOOP
     for (let item of this.selectedProducts) {
-        if (!item.roomType || item.roomType.trim() === '') {
+        if (item.category !== 'ADHESIVE' && (!item.roomType || item.roomType.trim() === '')) {
             this.showError(`Please enter Area/Room Type for product: ${item.name}`);
             return;
         }
