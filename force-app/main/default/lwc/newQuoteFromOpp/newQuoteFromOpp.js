@@ -802,7 +802,7 @@ var i=0;
                 // New: set without tax fields
             //    product.pricePerSqftWithoutTax = pricePerSqftWithoutTax.toFixed(6);
                 product.afterDiscPriceSqftWithoutTax = afterDiscPriceSqftWithoutTax.toFixed(6);
-            //    product.afterDiscPriceUnitWithoutTax = afterDiscPriceUnitWithoutTax.toFixed(6);
+                product.afterDiscPriceUnitWithoutTax = afterDiscPriceUnitWithoutTax.toFixed(6);
 
                 this.selectedProducts  = [...this.selectedProducts];
                 return;
@@ -1141,6 +1141,7 @@ this.recalculateOrderTotal();
                     afterDiscPriceSqft: item.afterDiscPriceSqft,
                     afterDiscPricePieceWithoutTax: item.afterDiscPricePieceWithoutTax,
                     afterDiscPriceSqftWithoutTax: item.afterDiscPriceSqftWithoutTax,
+                    afterDiscPriceUnitWithoutTax: item.afterDiscPriceUnitWithoutTax,
                     price: item.unitPrice,
                     discount: item.discValue,
                     totalPrice: item.totalPrice,

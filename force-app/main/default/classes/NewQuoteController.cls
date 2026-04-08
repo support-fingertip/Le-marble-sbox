@@ -295,8 +295,8 @@ lineItem.Sqft__c = safeDecimalConversion(item.get('sqft'));
             if(item.containsKey('afterDiscPriceSqft')) {
                 lineItem.After_Disc_Price_Sqft__c = safeDecimalConversion(item.get('afterDiscPriceSqft'));
                 // Save without tax if available
-                if(item.containsKey('afterDiscPriceSqftWithoutTax') &&  lineItem.Product_Category__c  == 'TILE') {
-                    lineItem.After_Discount_UOM_Price__c = safeDecimalConversion(item.get('afterDiscPriceSqftWithoutTax'));
+                if(item.containsKey('afterDiscPriceUnitWithoutTax') &&  lineItem.Product_Category__c  == 'TILE') {
+                    lineItem.After_Discount_UOM_Price__c = safeDecimalConversion(item.get('afterDiscPriceUnitWithoutTax'));
                 }
             }
             
@@ -631,8 +631,8 @@ lineItem.Sqft__c = safeDecimalConversion(item.get('sqft'));
                                                 if(item.containsKey('afterDiscPriceSqft')) {
                                                     lineItem.After_Disc_Price_Sqft__c = safeDecimalConversion(item.get('afterDiscPriceSqft'));
                                                     // Save without tax if available
-                                                    if(item.containsKey('afterDiscPriceSqftWithoutTax') && item.get('isTile') == true) {
-                                                        lineItem.After_Discount_UOM_Price__c = safeDecimalConversion(item.get('afterDiscPriceSqftWithoutTax'));
+                                                    if(item.containsKey('afterDiscPriceUnitWithoutTax') && item.get('isTile') == true) {
+                                                        lineItem.After_Discount_UOM_Price__c = safeDecimalConversion(item.get('afterDiscPriceUnitWithoutTax'));
                                                     }
                                                 }
                                                 
