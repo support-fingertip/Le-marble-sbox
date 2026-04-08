@@ -85,13 +85,13 @@ insert log;
             List<PricebookEntry> pbItems = new List<PricebookEntry>();
 
             // First callout: fetch products by UpdateDate
-            String updateUrl = SAP_BASE_URL + '/Items?$filter=' + EncodingUtil.urlEncode(updateFilter, 'UTF-8') + '&$orderby=UpdateTime';
+            String updateUrl = SAP_BASE_URL + '/Items?$filter=' + EncodingUtil.urlEncode(updateFilter, 'UTF-8') + '&$orderby=UpdateTime'+'&$top=5000';
             log.Request__c = EncodingUtil.urlDecode(updateUrl, 'UTF-8');
             System.debug('UpdateDate callout URL: ' + EncodingUtil.urlDecode(updateUrl, 'UTF-8'));
             fetchItems(sessionId, updateUrl, http, allRecords, pbItems, log);
 
             // Second callout: fetch products by CreateDate
-            String createUrl = SAP_BASE_URL + '/Items?$filter=' + EncodingUtil.urlEncode(createFilter, 'UTF-8') + '&$orderby=CreateTime';
+            String createUrl = SAP_BASE_URL + '/Items?$filter=' + EncodingUtil.urlEncode(createFilter, 'UTF-8') + '&$orderby=CreateTime'+'&$top=5000';
             System.debug('CreateDate callout URL: ' + EncodingUtil.urlDecode(createUrl, 'UTF-8'));
             fetchItems(sessionId, createUrl, http, allRecords, pbItems, log);
 

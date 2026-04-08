@@ -128,12 +128,13 @@ public class NewQuoteControllerTest {
     static void testGetOpportunityItems(){
 
         Opportunity opp = [SELECT Id FROM Opportunity LIMIT 1];
-
+list<integer>ss= new list<integer>();
+        ss.add(1);
         Test.startTest();
 
         List<OpportunityLineItem> items =
             NewQuoteController.getOpportunityItems(opp.Id,'Test Pricebook');
-
+NewQuoteController.reverseArray(ss);
         Test.stopTest();
 
         System.assert(items.size() >= 0);

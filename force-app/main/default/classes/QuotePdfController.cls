@@ -288,17 +288,18 @@ this.mrpTotal += item.Without_Discount_Total_Price__c;
             System.debug('Processing item: ' + item.Product2.Name);
           Decimal discountAmount = 0;
 
-                if (item.Disc_Type__c == 'Percentage' &&
+                if (item.Disc_Type__c == 'Percentage' && 
                     item.Dis_Value__c != null &&
                     item.UnitPrice != null &&
                     item.Quantity != null) {
-
+                
                     Decimal originalTotal = item.UnitPrice * item.Quantity;
                     discountAmount = (originalTotal * item.Dis_Value__c) / 100;
-                } else if (item.Disc_Type__c == 'Amount' &&
-                           item.Dis_Value__c != null) {
-                    discountAmount = item.Dis_Value__c;
-                }
+                    }
+            else if (item.Disc_Type__c == 'Amount' && 
+                     item.Dis_Value__c != null) {
+                         discountAmount = item.Dis_Value__c;
+                     }
             String imageUrl = null;
             if (item.Product2Id != null && productImageUrls.containsKey(item.Product2Id)) {
                 imageUrl = productImageUrls.get(item.Product2Id);
@@ -306,7 +307,7 @@ this.mrpTotal += item.Without_Discount_Total_Price__c;
             products.add(new QuotationLineItem(
                 item.Product2.Name,
                 item.Product_Category__c,
-                (item.Product_Category__c == 'N.STONE' ? null : item.Quantity),
+ 				 (item.Product_Category__c == 'N.STONE' ? null : item.Quantity),                
                 item.Sqft__c,
                 (item.Product_Category__c == 'TILE' ? item.Price_Sqft__c : item.After_Disc_Price_Piece__c + discountAmount),
                 // Set beforeDiscPrice: if tile, use After_Disc_Price_Sqft__c, else After_Disc_Price_Piece__c
@@ -554,7 +555,7 @@ email.setToAddresses(new List<String>{ finalEmail });
         public Decimal sqft { get; set; }
         public Decimal unitPrice { get; set; }
         public Decimal beforeDiscPrice { get; set; }
-        public Decimal total { get { return total != null ? total.setScale(2, RoundingMode.HALF_UP) : null; } set; }
+       public Decimal total { get { return total != null ? total.setScale(2, RoundingMode.HALF_UP) : null; } set; }
         public String uom { get; set; }
         public String imageUrl { get; set; }
         public String roomType { get; set; }

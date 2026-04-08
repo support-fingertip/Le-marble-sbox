@@ -884,8 +884,8 @@ var i=0;
         return;
     }
 console.log('Selected products for preview:', JSON.stringify(this.selectedProducts));
-//duplicate
-   const validRows = this.selectedProducts
+//duplicate removed as client req: 2/4/26
+ /*  const validRows = this.selectedProducts
     .map((item, index) => ({ item, index }))
     .filter(({ item }) =>
         item.quantity > 0 ||
@@ -911,7 +911,7 @@ console.log('Selected products for preview:', JSON.stringify(this.selectedProduc
         return;
     }
 } 
-    
+    */
     // VALIDATION LOOP
     for (let item of this.selectedProducts) {
         if (!item.roomType || item.roomType.trim() === '') {
