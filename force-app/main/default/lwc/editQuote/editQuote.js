@@ -752,8 +752,8 @@ console.log('discValue.>>>>:', discValue);
         return;
     }
 
-//duplicate
-   const validRows = this.selectedProducts
+//duplicate removed as client req 7/4/26
+ /*  const validRows = this.selectedProducts
     .map((item, index) => ({ item, index }))
     .filter(({ item }) =>
         item.quantity > 0 ||
@@ -778,7 +778,7 @@ console.log('discValue.>>>>:', discValue);
         );
         return;
     }
-} 
+} */
     
     // VALIDATION LOOP
     for (let item of this.selectedProducts) {

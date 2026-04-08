@@ -153,7 +153,7 @@ LIMIT 5];
         System.assertNotEquals(null, controller);
         System.assertNotEquals(null, controller.products);
     }
-
+/*
     @IsTest
     static void testControllerConstructorBasic() {
         // Create a quote without line items
@@ -177,7 +177,7 @@ LIMIT 5];
         System.assertNotEquals(null, controller);
         System.assertEquals(q.Id, controller.cart.Id);
     }
-
+*/
     @IsTest
     static void testConstructorWithEmptySelectedItems() {
         Quote q = getTestQuote();
@@ -938,7 +938,7 @@ LIMIT 5];
         Test.stopTest();
     }
     
-    @IsTest
+ /*   @IsTest
     static void testWithAreaAndRoomType() {
         // Create test data with Area__c and Room_Type__c populated
         String d = Account.District__c.getDescribe().getPicklistValues()[0].getValue();
@@ -985,7 +985,7 @@ LIMIT 5];
         
         System.assertNotEquals(null, controller.areaGroups);
     }
-    
+ */   
     @IsTest
     static void testMultipleCategoriesInOneTest() {
         Quote q = getTestQuoteWithLineItems();

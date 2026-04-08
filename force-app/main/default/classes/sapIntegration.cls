@@ -1005,7 +1005,11 @@ public class sapIntegration {
                 dl.UnitPrice      = oi.UOM_Price_without_tax_and_after_disc__c;
                 dl.BatchNumbers   = new List<BatchNumber>();
                 dl.U_ReservedQTY  = oi.Block_Quantity__c;
+               /* if(oi.Product2.Product_Category__c=='TILE'){
+                      dl.Quantity       = oi.Quantity;
+                }*/
                 dl.Quantity       = oi.Quantity;
+                
                 dl.DiscountPercent = discPct;   // ← NEW
                 payload.DocumentLines.add(dl);
                 continue;
