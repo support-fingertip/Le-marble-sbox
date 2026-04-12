@@ -246,37 +246,49 @@ public class QuoteTriggerHandler {
         }
         
         if (acceptedQuotes.isEmpty()) return;
-        Map<Id, User> users = new Map<Id, User>([SELECT Id, ManagerId FROM User WHERE Id IN :ownIds  AND ManagerId != null]);
-        
-        
+        Map<Id, User> users = new Map<Id, User>([SELECT Id, ManagerId, Profile.Name FROM User WHERE Id IN :ownIds]);
+
+
+        // Build lookup keys based on owner's profile:
+        //  - Manager profile  -> find Coordinators directly reporting to the owner (ManagerId = owner.Id)
+        //  - Otherwise (e.g. Executive) -> find Coordinators sharing the same ManagerId as the owner
         Set<Id> managerIds = new Set<Id>();
         for (User u : users.values()) {
-            managerIds.add(u.ManagerId);
+            if (u.Profile != null && u.Profile.Name == 'Manager') {
+                managerIds.add(u.Id);
+            } else if (u.ManagerId != null) {
+                managerIds.add(u.ManagerId);
+            }
         }
-        
+
         if (managerIds.isEmpty()) return;
-        
+
         Map<Id, List<User>> managerToCoordinators = new Map<Id, List<User>>();
-        
+
         for (User u : [ SELECT Id, Name, ManagerId FROM User WHERE ManagerId IN :managerIds AND Profile.Name = 'Coordinator' AND IsActive = true ]) {
             if (!managerToCoordinators.containsKey(u.ManagerId)) {
                 managerToCoordinators.put(u.ManagerId, new List<User>());
             }
             managerToCoordinators.get(u.ManagerId).add(u);
         }
-        
+
         // 2. Fetch Opportunity → Account
         Map<Id, Opportunity> oppMap = new Map<Id, Opportunity>([SELECT Id, Account.Name FROM Opportunity WHERE Id IN :oppIds ]);
-        
+
         // 3. Notify internal user (Quote Owner) and save Coordinator name
         List<Quote> quotesToUpdate = new List<Quote>();
-        
+
         for (Quote q : acceptedQuotes.values()) {
-            
+
             User owner = users.get(q.OwnerId);
             if (owner == null) continue;
-            
-            List<User> coordinators = managerToCoordinators.get(owner.ManagerId);
+
+            Id lookupKey = (owner.Profile != null && owner.Profile.Name == 'Manager')
+                ? owner.Id
+                : owner.ManagerId;
+            if (lookupKey == null) continue;
+
+            List<User> coordinators = managerToCoordinators.get(lookupKey);
             if (coordinators == null || coordinators.isEmpty()) continue;
             
             // Get the first Coordinator's name and save to Quote
