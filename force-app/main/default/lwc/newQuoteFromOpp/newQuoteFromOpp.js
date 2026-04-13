@@ -775,25 +775,23 @@ var i=0;
                     pricePerSqftWithoutTax = parseFloat((unitPriceWithoutTax / sqftPerPiece).toFixed(6));
                 }
 
-                // 3. Discounted price per sqft and per piece (with and without tax)
-                let afterDiscPriceSqft = pricePerSqft;
-                let afterDiscPriceUnit = unitPriceAfterTax;
+                // 3. Apply discount on the BEFORE-tax per-sqft price, then add tax
                 let afterDiscPriceSqftWithoutTax = pricePerSqftWithoutTax;
                 let afterDiscPriceUnitWithoutTax = unitPriceWithoutTax;
 
                 if (discType === 'Percentage' && discValue > 0) {
-                    afterDiscPriceSqft = parseFloat((pricePerSqft * (1 - discValue / 100)).toFixed(6));
-                    afterDiscPriceUnit = afterDiscPriceSqft * sqftPerPiece;
                     afterDiscPriceSqftWithoutTax = parseFloat((pricePerSqftWithoutTax * (1 - discValue / 100)).toFixed(6));
                     afterDiscPriceUnitWithoutTax = afterDiscPriceSqftWithoutTax * sqftPerPiece;
                 } else if (discType === 'Amount' && discValue > 0) {
-                    afterDiscPriceSqft = parseFloat((pricePerSqft - discValue).toFixed(6));
-                    afterDiscPriceUnit = afterDiscPriceSqft * sqftPerPiece;
-                    afterDiscPriceSqftWithoutTax = parseFloat((pricePerSqftWithoutTax - discValue).toFixed(6));
+                    afterDiscPriceSqftWithoutTax = parseFloat(Math.max(pricePerSqftWithoutTax - discValue, 0).toFixed(6));
                     afterDiscPriceUnitWithoutTax = afterDiscPriceSqftWithoutTax * sqftPerPiece;
                 }
 
-                // 4. Total Amount (use the after discount price per sqft)
+                // 4. Add tax on top of the discounted before-tax price
+                const afterDiscPriceSqft = parseFloat((afterDiscPriceSqftWithoutTax * (1 + taxPercent / 100)).toFixed(6));
+                const afterDiscPriceUnit = afterDiscPriceSqft * sqftPerPiece;
+
+                // 5. Total Amount (use the after discount price per sqft)
                 const totalPrice = parseFloat((afterDiscPriceSqft * finalSqft).toFixed(6));
                 product.unitPriceAfterTax = unitPriceAfterTax.toFixed(6);
                 product.pricePerSqft = pricePerSqft.toFixed(6); // always show original after-tax per sqft
@@ -818,17 +816,16 @@ var i=0;
             const unitPriceAfterTax = unitPrice * (1 + taxPercent / 100);
             // 1a. Unit Price Without Tax
             const unitPriceWithoutTax = unitPrice;
-            // 2. Discounted price per piece (with and without tax)
-            let afterDiscPricePiece = unitPriceAfterTax;
+            // 2. Apply discount on the BEFORE-tax unit price
             let afterDiscPricePieceWithoutTax = unitPriceWithoutTax;
             if (discType === 'Percentage' && discValue > 0) {
-                afterDiscPricePiece = unitPriceAfterTax * (1 - discValue / 100);
                 afterDiscPricePieceWithoutTax = unitPriceWithoutTax * (1 - discValue / 100);
             } else if (discType === 'Amount' && discValue > 0) {
-                afterDiscPricePiece = Math.max(unitPriceAfterTax - discValue, 0);
                 afterDiscPricePieceWithoutTax = Math.max(unitPriceWithoutTax - discValue, 0);
             }
-            // 3. Total
+            // 3. Add tax on top of the discounted before-tax price
+            const afterDiscPricePiece = afterDiscPricePieceWithoutTax * (1 + taxPercent / 100);
+            // 4. Total
             const totalPrice = afterDiscPricePiece * quantity;
             product.unitPriceAfterTax = unitPriceAfterTax.toFixed(2);
             product.afterDiscPricePiece = afterDiscPricePiece.toFixed(6);
