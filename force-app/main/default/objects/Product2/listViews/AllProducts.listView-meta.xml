@@ -14,5 +14,10 @@
     <columns>Warranty__c</columns>
     <columns>PRODUCT2.LAST_UPDATE</columns>
     <filterScope>Everything</filterScope>
+    <filters>
+        <field>Product_Category__c</field>
+        <operation>equals</operation>
+        <value>N.STONE</value>
+    </filters>
     <label>All Products</label>
 </ListView>

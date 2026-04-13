@@ -47,7 +47,7 @@ trigger Account_Trigger on Account (before insert, before update,after insert, a
                 
                 oldDeal.corporation__c != newDeal.corporation__c ||
                 oldDeal.State__c != newDeal.State__c ||
-                oldDeal.State__c != newDeal.State__c ||
+                oldDeal.District__c != newDeal.District__c ||
                 oldDeal.country__c != newDeal.country__c ||
                  oldDeal.POC_Name__c != newDeal.POC_Name__c 
                 

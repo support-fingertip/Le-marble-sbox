@@ -599,6 +599,7 @@ public class sapIntegration {
                 account.Customer_Number_Ext__c,
                 account.Customer_Type__c,
                 Warehouse__r.Warehouse_Code__c,
+             Warehouse__r.BranchId__c,
                 OpportunityId,  
                 ownerid,
                 SAP_Doc_Num__c,
@@ -784,7 +785,8 @@ public class sapIntegration {
         public String ItemCode;
         public Decimal Quantity;
         public String WarehouseCode;
-        public Decimal UnitPrice;
+      //  public Decimal UnitPrice;
+     public Decimal Price;
         public String TaxCode;
         public Decimal U_ReservedQTY;
         // ── NEW FIELD ──────────────────────────────────────────────────────────
@@ -910,7 +912,7 @@ public class sapIntegration {
         payload.DocDate                 = docDate;
         payload.DocDueDate              = dueDate;
         payload.DocCurrency             = 'INR';
-        payload.BPL_IDAssignedToInvoice = '3';
+        payload.BPL_IDAssignedToInvoice =  order.Warehouse__r.BranchId__c;
         payload.U_To_Delivery_date      = deliveryDate;
         payload.U_DELIVERY_TIME         = deliveryTime;
         payload.U_TYPE                  = uType;
@@ -1002,7 +1004,8 @@ public class sapIntegration {
                 dl.WarehouseCode  = oi.Warehouse__r.Warehouse_Code__c != null
                                     ? oi.Warehouse__r.Warehouse_Code__c
                                     : order.Warehouse__r.Warehouse_Code__c;
-                dl.UnitPrice      = oi.UOM_Price_without_tax_and_after_disc__c;
+           //     dl.UnitPrice      = oi.UOM_Price_without_tax_and_after_disc__c;
+               dl.Price      = oi.UOM_Price_without_tax_and_after_disc__c;
                 dl.BatchNumbers   = new List<BatchNumber>();
                 dl.U_ReservedQTY  = oi.Block_Quantity__c;
                /* if(oi.Product2.Product_Category__c=='TILE'){
@@ -1029,7 +1032,8 @@ public class sapIntegration {
                 DocumentLine dl   = new DocumentLine();
                 dl.ItemCode       = oi.PricebookEntry.Product2.Product_Code__c;
                 dl.WarehouseCode  = wh;
-                dl.UnitPrice      = oi.UOM_Price_without_tax_and_after_disc__c;
+               // dl.UnitPrice      = oi.UOM_Price_without_tax_and_after_disc__c;
+                dl.Price      = oi.UOM_Price_without_tax_and_after_disc__c;
                 dl.BatchNumbers   = new List<BatchNumber>();
                 dl.DiscountPercent = discPct;   // ← NEW
 

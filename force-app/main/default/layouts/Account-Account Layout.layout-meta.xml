@@ -96,8 +96,12 @@
                 <field>Communication_Channel__c</field>
             </layoutItems>
             <layoutItems>
-                <behavior>Edit</behavior>
+                <behavior>Readonly</behavior>
                 <field>Customer_Number_Ext__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Readonly</behavior>
+                <field>Customer_Code__c</field>
             </layoutItems>
         </layoutColumns>
         <layoutColumns>
