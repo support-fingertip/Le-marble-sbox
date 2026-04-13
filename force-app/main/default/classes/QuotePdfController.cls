@@ -38,7 +38,7 @@ public with sharing class QuotePdfController {
 
         // Fetch the complete Quote record with all related fields you might need   account.Customer_Number__c,
         List<Quote> qList = [
-        SELECT Id, Name,Quote_Number__c, AccountId, OpportunityId,account.Customer_Number_Ext__c,account.Customer_Number__c,
+        SELECT Id, Name,Quote_Number__c, AccountId, OpportunityId,account.Customer_Number_Ext__c,
          Freight_Charge__c, Loading_Charge__c, Unloading_Charge__c,Round_Off__c,
         Total_Amount1__c, Subtotal, TotalPrice, GrandTotal, Discount,
         Email, Phone, Fax,
@@ -281,8 +281,12 @@ this.mrpTotal += item.Without_Discount_Total_Price__c;
                 this.mrpTotal += item.UnitPrice*item.Quantity;
             }
             String descriptionField = null;
+               String displayName = item.Product2.Name;
             if (item.Product_Category__c == 'N.STONE') {
                 descriptionField = item.Description;
+                     if (String.isNotBlank(item.Description)) {
+                    displayName = item.Product2.Name + ': ' + item.Description;
+                }
             }
             
             System.debug('Processing item: ' + item.Product2.Name);
@@ -305,13 +309,14 @@ this.mrpTotal += item.Without_Discount_Total_Price__c;
                 imageUrl = productImageUrls.get(item.Product2Id);
             }
             products.add(new QuotationLineItem(
-                item.Product2.Name,
+             displayName,
+                //  item.Product2.Name,
                 item.Product_Category__c,
  				 (item.Product_Category__c == 'N.STONE' ? null : item.Quantity),                
                 item.Sqft__c,
-                (item.Product_Category__c == 'TILE' ? item.Price_Sqft__c : item.After_Disc_Price_Piece__c + discountAmount),
+                (item.Product_Category__c == 'TILE'? item.Price_Sqft__c : (item.Product_Category__c == 'N.STONE'? item.After_Disc_Price_Sqft__c + discountAmount: item.After_Disc_Price_Piece__c + discountAmount)),
                 // Set beforeDiscPrice: if tile, use After_Disc_Price_Sqft__c, else After_Disc_Price_Piece__c
-                (item.Product_Category__c == 'TILE' ? item.After_Disc_Price_Sqft__c : item.After_Disc_Price_Piece__c),
+                (item.Product_Category__c == 'TILE' || item.Product_Category__c == 'N.STONE'? item.After_Disc_Price_Sqft__c : item.After_Disc_Price_Piece__c),
                 item.Dis_Value__c,
                 item.Calculated_Total_Price__c,   // ✔ FIXED HERE
                 item.UOM__c,

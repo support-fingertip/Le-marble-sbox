@@ -27,6 +27,7 @@ deletedQLIIds=[];
     pbEntryIdMap = new Map();
     @track isDropdownOpen = false;
     @track isLoading = false;
+     @track isConfirmed = false;
     @track searchQuery = '';
     @track products = []; // Initialize products array
     @track selectedProducts = []; // Initialize selectedProducts array
@@ -316,9 +317,12 @@ wiredAreaPicklist({ data, error }) {
             discType:item.Disc_Type__c,
             afterDiscPricePiece:item.After_Disc_Price_Piece__c,
             discValue:item.Dis_Value__c || 0,
-             afterDiscPricePieceWithoutTax: item.Product2.Product_Category__c === 'TILE'? 0:item.After_Discount_UOM_Price__c,
-                    afterDiscPriceSqftWithoutTax: item.Product2.Product_Category__c === 'TILE'? item.After_Discount_UOM_Price__c:0,
-            roomType:item.Area__c,
+                     afterDiscPricePieceWithoutTax: item.Product2.Product_Category__c === 'TILE'? 0:item.After_Discount_UOM_Price__c,
+            afterDiscPriceSqftWithoutTax: 0,
+            afterDiscPrice: 0,
+            afterDiscPriceWithoutTax: item.Product2.Product_Category__c === 'N.STONE'? item.After_Discount_UOM_Price__c : 0,
+            afterDiscPriceUnitWithoutTax: item.Product2.Product_Category__c === 'TILE'? item.After_Discount_UOM_Price__c : 0,
+             roomType:item.Area__c,
             areaDesc:item.Room_Type__c,
             description:item.Description,
             requiredSqft:item.Sqft__c,
@@ -584,6 +588,7 @@ console.log('product.compositeKey>>'+product.compositeKey);
             // Natural Stone
             if (product.isNaturalStone) {
                 const unitPrice = parseFloat(product.unitPrice) || 0;
+                 const taxPercent = parseFloat(product.Tax) || 0;
                 const requiredSqft = parseFloat(product.requiredSqft) || 0;
                 const discType = product.discType || 'Percentage';
                 const discValue = parseFloat(product.discValue) || 0;
@@ -596,7 +601,11 @@ console.log('product.compositeKey>>'+product.compositeKey);
                     afterDiscPrice = Math.max(unitPrice - discValue, 0);
                     totalPrice = afterDiscPrice * requiredSqft;
                 }
+                     const afterDiscPriceWithoutTax = taxPercent > 0
+                    ? parseFloat((afterDiscPrice / (1 + taxPercent / 100)).toFixed(6))
+                    : afterDiscPrice;
                 product.afterDiscPrice = afterDiscPrice.toFixed(6);
+                  product.afterDiscPriceWithoutTax = afterDiscPriceWithoutTax.toFixed(6);
                 product.totalPrice = totalPrice.toFixed(2);
                 this.selectedProducts = [...this.selectedProducts];
 
@@ -661,8 +670,7 @@ console.log('discValue.>>>>:', discValue);
                     afterDiscPriceSqftWithoutTax = parseFloat((pricePerSqftWithoutTax - discValue).toFixed(6));
                 }
                 product.afterDiscPriceSqftWithoutTax = afterDiscPriceSqftWithoutTax.toFixed(6);
-                // product.afterDiscPriceUnitWithoutTax = afterDiscPriceUnitWithoutTax.toFixed(6); // Uncomment if needed
-
+                         product.afterDiscPriceUnitWithoutTax = (afterDiscPriceSqftWithoutTax * sqftPerPiece).toFixed(6);
                 this.selectedProducts = [...this.selectedProducts];
 
                 return;
@@ -962,17 +970,7 @@ console.log('Prepared items for preview:', JSON.stringify(this.selectedProducts)
                 return;
             }
 
-            // Show loading toast
- /*           this.dispatchEvent(
-                new ShowToastEvent({
-                    title: 'Creating Cart',
-                    message: 'Please wait while we create your cart...',
-                    variant: 'info'
-                })
-            );*/
-
-            // Get cart summary values from the modal
-       //     const { freightCharge, loadingCharge, unloadingCharge,orderTotal } = event.detail.summary || {};
+                 this.isConfirmed = true;
 
             // Prepare cart items with only the necessary data to minimize payload size
             const cartItems = this.selectedProducts.map(item => {
@@ -992,10 +990,13 @@ console.log('Prepared items for preview:', JSON.stringify(this.selectedProducts)
                     uom: item.uom,
                     sqft: item.sqft || 0,
                     sqm: item.sqm || 0,
+                     afterDiscPrice: item.afterDiscPrice,
+                    afterDiscPriceWithoutTax: item.afterDiscPriceWithoutTax,
                     afterDiscPricePiece: item.afterDiscPricePiece,
                     afterDiscPriceSqft: item.afterDiscPriceSqft,
-                     afterDiscPricePieceWithoutTax: item.afterDiscPricePieceWithoutTax,
+                    afterDiscPricePieceWithoutTax: item.afterDiscPricePieceWithoutTax,
                     afterDiscPriceSqftWithoutTax: item.afterDiscPriceSqftWithoutTax,
+                      afterDiscPriceUnitWithoutTax: item.afterDiscPriceUnitWithoutTax,
                     price: item.unitPrice,
                     discount: item.discValue,
                     totalPrice: item.totalPrice,
@@ -1070,6 +1071,7 @@ console.log('Prepared items for preview:', JSON.stringify(this.selectedProducts)
                     variant: 'error'
                 })
             );
+              this.isConfirmed = false;
             this.openPreview=false;
         }
     }
@@ -1122,8 +1124,11 @@ console.log('Prepared items for preview:', JSON.stringify(this.selectedProducts)
                 afterDiscPricePiece: 0,
                 afterDiscPriceSqft: 0,
                 afterDiscPriceUnit: 0,
-                 afterDiscPricePieceWithoutTax: 0,
-                    afterDiscPriceSqftWithoutTax: 0,
+                   afterDiscPrice: 0,
+                afterDiscPriceWithoutTax: 0,
+                afterDiscPricePieceWithoutTax: 0,
+                afterDiscPriceSqftWithoutTax: 0,
+                afterDiscPriceUnitWithoutTax: 0,
                   
                 pricePerSqft: 0,
                 totalPrice: 0,
@@ -1428,7 +1433,7 @@ handleAreaDesChange(event) {
         try {
             const product = this.selectedProducts[idx];
             if (!product || !product.isNaturalStone) return;    
-
+ const taxPercent = parseFloat(product.Tax) || 0;
             const unitPrice = parseFloat(product.unitPrice) || 0;
             const requiredSqft = parseFloat(product.requiredSqft) || 0;
             const discType = product.discType || 'Percentage';
@@ -1447,11 +1452,16 @@ handleAreaDesChange(event) {
                 afterDiscPrice = Math.max(unitPrice - discValue, 0);
                 totalPrice = afterDiscPrice * requiredSqft;
             }
-            
+                  const afterDiscPriceWithoutTax = taxPercent > 0
+                ? parseFloat((afterDiscPrice / (1 + taxPercent / 100)).toFixed(6))
+                : afterDiscPrice;
+
             // Update only if values have changed
             if (product.afterDiscPrice !== Number(afterDiscPrice).toFixed(2)) {
                 this.updateProduct(productId, 'afterDiscPrice', Number(afterDiscPrice).toFixed(2),idx);
             }
+             this.updateProduct(productId, 'afterDiscPriceWithoutTax', Number(afterDiscPriceWithoutTax).toFixed(6),idx);
+
             if (product.totalPrice !== Number(totalPrice).toFixed(2)) {
                 this.updateProduct(productId, 'totalPrice', Number(totalPrice).toFixed(2),idx);
             }
@@ -1537,6 +1547,8 @@ handleAreaDesChange(event) {
                     unitPrice:0,
                     msp:0,
                     afterDiscPricePiece:  0,
+                      afterDiscPrice: 0,
+                    afterDiscPriceWithoutTax: 0,
                     totalPrice: 0,
                     description: '',
                     discType: 'Amount',
@@ -1551,6 +1563,7 @@ handleAreaDesChange(event) {
                      isNaturalStone: false,
                       afterDiscPricePieceWithoutTax: 0,
                     afterDiscPriceSqftWithoutTax: 0,
+                          afterDiscPriceUnitWithoutTax: 0,
                       isTile: false,
                     showDropdown: false,
                 isActive: true,
