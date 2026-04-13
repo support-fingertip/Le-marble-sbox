@@ -725,25 +725,26 @@ var i=0;
             console.log(product.isNaturalStone);
      //    alert(JSON.stringify(product));   
             if (product.isNaturalStone) {
-                // Natural Stone calculation (no tax logic needed)
+                // Natural Stone calculation: discount on before-tax price, then add tax
                 const unitPrice = parseFloat(product.unitPrice) || 0;
                                 const taxPercent = parseFloat(product.Tax) || 0;
                 const requiredSqft = parseFloat(product.requiredSqft) || 0;
                 const discType = product.discType || 'Percentage';
                 const discValue = parseFloat(product.discValue) || 0;
-                let afterDiscPrice = unitPrice;
-                let totalPrice = unitPrice * requiredSqft;
+
+                // 1. Apply discount on BEFORE-tax unit price
+                let afterDiscPriceWithoutTax = unitPrice;
                 if (discType === 'Percentage' && discValue > 0) {
-                    afterDiscPrice = unitPrice * (1 - discValue / 100);
-                    totalPrice = afterDiscPrice * requiredSqft;
+                    afterDiscPriceWithoutTax = unitPrice * (1 - discValue / 100);
                 } else if (discType === 'Amount' && discValue > 0) {
-                    // For amount, reduce from unit price
-                    afterDiscPrice = Math.max(unitPrice - discValue, 0);
-                    totalPrice = afterDiscPrice * requiredSqft;
+                    afterDiscPriceWithoutTax = Math.max(unitPrice - discValue, 0);
                 }
-                    const afterDiscPriceWithoutTax = taxPercent > 0
-                    ? parseFloat((afterDiscPrice / (1 + taxPercent / 100)).toFixed(6))
-                    : afterDiscPrice;
+
+                // 2. Add tax on top of the discounted before-tax price
+                const afterDiscPrice = afterDiscPriceWithoutTax * (1 + taxPercent / 100);
+
+                // 3. Total (after tax)
+                const totalPrice = afterDiscPrice * requiredSqft;
 
                 product.afterDiscPrice = afterDiscPrice.toFixed(6);
                   product.afterDiscPriceWithoutTax = afterDiscPriceWithoutTax.toFixed(6);
@@ -1664,23 +1665,18 @@ handleAreaDesChange(event) {
 
             const discValue = parseFloat(product.discValue) || 0;
             
-            let afterDiscPrice = unitPrice;
-            let totalPrice = unitPrice * requiredSqft;
-            
+            // Apply discount on BEFORE-tax unit price, then add tax
+            let afterDiscPriceWithoutTax = unitPrice;
+
             if (discType === 'Percentage' && discValue > 0) {
-                // For percentage discount
                 const discountMultiplier = 1 - (discValue / 100);
-                afterDiscPrice = unitPrice * discountMultiplier;
-                totalPrice = afterDiscPrice * requiredSqft;
+                afterDiscPriceWithoutTax = unitPrice * discountMultiplier;
             } else if (discType === 'Amount' && discValue > 0) {
-                // For amount, reduce from unit price
-                afterDiscPrice = Math.max(unitPrice - discValue, 0);
-                totalPrice = afterDiscPrice * requiredSqft;
+                afterDiscPriceWithoutTax = Math.max(unitPrice - discValue, 0);
             }
-            
-            const afterDiscPriceWithoutTax = taxPercent > 0
-                ? parseFloat((afterDiscPrice / (1 + taxPercent / 100)).toFixed(6))
-                : afterDiscPrice;
+
+            const afterDiscPrice = afterDiscPriceWithoutTax * (1 + taxPercent / 100);
+            const totalPrice = afterDiscPrice * requiredSqft;
 
 
             // Update only if values have changed
