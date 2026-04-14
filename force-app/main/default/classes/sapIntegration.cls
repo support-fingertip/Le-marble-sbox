@@ -188,7 +188,8 @@ public class sapIntegration {
             
             Map<String, Object> shipToAddress = new Map<String, Object>{
                 'AddressName'   => deal.Address_Line1__c!=null? deal.Address_Line1__c:'',
-                    'Street'        => deal.Corporation__c!=null? deal.Corporation__c +', ':'' + deal.Municipality__c!=null? deal.Municipality__c+', ':'' + deal.Panchayath__c!=null? deal.Panchayath__c:'',
+                 //   'Street'        => deal.Corporation__c!=null? deal.Corporation__c +', ':'' + deal.Municipality__c!=null? deal.Municipality__c+', ':'' + deal.Panchayath__c!=null? deal.Panchayath__c:'',
+                    'Street'        =>'',
                     'City'          => deal.Village__c!=null? deal.Village__c:'',
                      'County'         => deal.district__c!=null? deal.district__c:'',   
                     'State'         => deal.State__c!=null? deal.State__c:'',
