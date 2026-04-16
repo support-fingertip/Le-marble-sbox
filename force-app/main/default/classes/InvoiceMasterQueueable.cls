@@ -1,7 +1,8 @@
 public class InvoiceMasterQueueable  implements Queueable, Database.AllowsCallouts {
 /*
  * Created by Roopesh
- * Purpose: the invoice api runs every 55 minutes exactly
+ * Purpose: the invoice api runs at minute 50 of every hour,
+ *          driven by InvoiceMasterScheduler's cron expression.
  * */
     public void execute(QueueableContext context) {
 
@@ -13,9 +14,8 @@ public class InvoiceMasterQueueable  implements Queueable, Database.AllowsCallou
             return;
         }
 
-        // Re-scheduling on a 55-minute cadence is handled by InvoiceMasterScheduler.
-        // System.enqueueJob(...,delay) caps the delay at 10 minutes, so we cannot
-        // self-chain here to achieve a 55-minute interval.
+        // Cadence is owned by InvoiceMasterScheduler's cron expression
+        // ('0 50 * * * ?'), so this Queueable just performs one sync pass.
         sapIntegration.getInvoiceMaster('');
     }
 }

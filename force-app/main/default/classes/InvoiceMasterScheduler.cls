@@ -1,39 +1,24 @@
 global class InvoiceMasterScheduler implements Schedulable {
 
+    // Fires at minute 50 of every hour: 00:50, 01:50, 02:50, ...
     @TestVisible
-    private static final Integer INTERVAL_MINUTES = 55;
+    public static final String HOURLY_AT_MIN_50 = '0 50 * * * ?';
 
     global void execute(SchedulableContext sc) {
-        // Kick off the invoice-master sync
+        // The cron expression drives cadence — just kick off the sync.
         System.enqueueJob(new InvoiceMasterQueueable());
-
-        // Re-schedule this class to fire 55 minutes from now.
-        // (System.enqueueJob's delay argument is capped at 10 minutes, so the
-        //  Queueable itself cannot self-chain at a 55-minute cadence — we drive
-        //  the cadence from the Schedulable instead.)
-        if (sc != null) {
-            System.abortJob(sc.getTriggerId());
-        }
-        DateTime next = System.now().addMinutes(INTERVAL_MINUTES);
-        String cron = String.valueOf(next.second()) + ' '
-                    + String.valueOf(next.minute()) + ' '
-                    + String.valueOf(next.hour())   + ' '
-                    + String.valueOf(next.day())    + ' '
-                    + String.valueOf(next.month())  + ' ? '
-                    + String.valueOf(next.year());
-        System.schedule(
-            'InvoiceMasterScheduler-' + next.getTime(),
-            cron,
-            new InvoiceMasterScheduler()
-        );
     }
+
 /*
- * Kick off once via the developer console:
+ * Kick off once via the developer console (only needed when the job
+ * is not already scheduled in Setup → Scheduled Jobs):
+ *
  *   System.schedule(
- *       'Invoice Master Starter',
- *       '0 0 2 * * ?',
+ *       'Invoice Master Scheduler',
+ *       InvoiceMasterScheduler.HOURLY_AT_MIN_50,   // '0 50 * * * ?'
  *       new InvoiceMasterScheduler()
  *   );
- * After the first run, each execution re-schedules itself 55 minutes later.
+ *
+ * Thereafter the platform fires the job automatically at :50 every hour.
  */
 }
