@@ -1,6 +1,7 @@
 import { LightningElement, api, wire, track } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import getPaymentTypeOptions from '@salesforce/apex/CreateSOFromQuoteController.getPaymentTypeOptions';
+import getPaymentMethodOptions from '@salesforce/apex/CreateSOFromQuoteController.getPaymentMethodOptions';
 import getItemInventoryByWarehouse from '@salesforce/apex/SAPMasterDataService.getItemInventoryByWarehouse';
 import getQuoteInfo from '@salesforce/apex/CreateSOFromQuoteController.getQuoteInfo';
 import getQuoteLineItems from '@salesforce/apex/CreateSOFromQuoteController.getQuoteLineItems';
@@ -27,7 +28,9 @@ export default class CreateSOFromQuote extends NavigationMixin(LightningElement)
     @track remarks = '';
     @track credit = false;
     @track isAccountBlocked = false;
-@track isFactoryWarehouse = false;
+    @track isFactoryWarehouse = false;
+    @track paymentMethodOptions = [];
+    @track selectedPaymentMethod = '';
 
     @api recordId; 
     @track isModalOpen = false;
@@ -46,10 +49,16 @@ export default class CreateSOFromQuote extends NavigationMixin(LightningElement)
         phone: '',
         company: '',
         address: '',
+        shippingAddress: '',
         executive: ''
     };
-    
+    @track againstOrder = false;
     isBatchModalOpen = false;
+
+        handleAgainstOrderChange(event) {
+            this.againstOrder = event.target.checked;
+            console.log('Against Order:', this.againstOrder);
+        }
     batchList = [];
     batchQtyMap = {};
     selectedOrderItemId;
@@ -74,6 +83,15 @@ export default class CreateSOFromQuote extends NavigationMixin(LightningElement)
     handleCreditToggle(event) {
         this.credit = event.target.checked;
         console.log('Credit Toggle Value:', this.credit);
+        // Reset payment method when credit is turned off
+        if (!this.credit) {
+            this.selectedPaymentMethod = '';
+        }
+    }
+
+    handlePaymentMethodChange(event) {
+        this.selectedPaymentMethod = event.detail.value;
+        console.log('Selected Payment Method:', this.selectedPaymentMethod);
     }
     get showCreditAmount() {
         return this.selectedPaymentType === 'Credit';
@@ -96,7 +114,7 @@ wiredQuoteInfo({ error, data }) {
      //   this.showCreateSOButton = !quote.Sales_Order_Created__c;
 
         this.customerInfo = {
-            name: quote.Name || 'N/A',
+            name:  quote.Account?.Name|| 'N/A',
             email: data.email || 'N/A',   
             phone: quote.Account?.Phone || 'N/A',
             company: quote.Account?.Name || 'N/A',
@@ -109,8 +127,17 @@ wiredQuoteInfo({ error, data }) {
                     quote.Account.BillingCountry
                   ].filter(Boolean).join(', ')
                 : 'N/A',
+            shippingAddress: [
+                    quote.AddressLine1__c,
+                    quote.AddressLine2__c,
+                    quote.AddressLine3__c,
+                    quote.District__c,
+                    quote.State__c,
+                    quote.Pin_Code__c
+                    ].filter(Boolean).join(', ') || 'N/A',
             executive: quote.Owner?.Name || 'N/A'
         };
+         this.deliveryCommittedDate = quote.Opportunity?.Delivery_Committed_Date__c || '';
         this.remarks = '';
     } else if (error) {
         console.error(error);
@@ -139,8 +166,10 @@ wiredQuoteInfo({ error, data }) {
                 category: item.PricebookEntry?.Product2?.Product_Category__c || 'N/A'
             };
         });
+         this.isQuoteItemsLoaded = true;
     } else if (error) {
         this.quoteLineItems = [];
+         this.isQuoteItemsLoaded = true;
         this.showToast(
             'Error',
             error.body?.message || 'Failed to fetch quote line items',
@@ -153,7 +182,7 @@ wiredQuoteInfo({ error, data }) {
         wiredWarehouses({ data, error }) {
             if (data) {
                 this.warehouseOptions = data.map(w => ({
-                    label: w.Name,
+                    label: w.Warehouse_Code__c +' : '+w.Name,
                     value: w.Id,
                     type: w.Type__c 
                 }));
@@ -169,6 +198,15 @@ wiredQuoteInfo({ error, data }) {
             this.paymentTypeOptions = data;
         } else if (error) {
             this.showToast('Error', error.body?.message || 'Failed to fetch payment types', 'error');
+        }
+    }
+
+    @wire(getPaymentMethodOptions)
+    wiredPaymentMethods({ error, data }) {
+        if (data) {
+            this.paymentMethodOptions = data;
+        } else if (error) {
+            this.showToast('Error', error.body?.message || 'Failed to fetch payment methods', 'error');
         }
     }
 
@@ -550,16 +588,19 @@ wiredQuoteInfo({ error, data }) {
 
 
     const orderId = await createOrderFromQuote({
-    quoteId: this.recordId,
-    warehouseId: this.selectedWarehouse,
-    selectedQuoteLineItemIds: selectedItems.map(i => i.Id),
-    blockQtyMap: blockQtyMap,
-    warehouseCodeMap: warehouseCodeMap,
-    deliveryCommittedDate: this.deliveryCommittedDate,
-    remarks: this.remarks,
-    credit : this.credit,
-    batchJson: JSON.stringify(batchPayload)
-});
+        quoteId: this.recordId,
+        warehouseId: this.selectedWarehouse,
+        selectedQuoteLineItemIds: selectedItems.map(i => i.Id),
+        blockQtyMap: blockQtyMap,
+        warehouseCodeMap: warehouseCodeMap,
+        deliveryCommittedDate: this.deliveryCommittedDate,
+        remarks: this.remarks,
+        credit: this.credit,
+        paymentMethod: this.selectedPaymentMethod,
+        batchJson: JSON.stringify(batchPayload),
+        againstOrder: this.againstOrder,
+         creditAmount: this.creditAmount ? parseFloat(this.creditAmount) : 0
+    });
         this.showToast(
             'Success',
             'Sales Order created successfully',
@@ -677,6 +718,8 @@ handleViewBatch(event) {
         const saved = savedBatches.find(sb => sb.Eid === b.Eid);
         return {
             ...b,
+            reserved: Math.trunc(b.reserved),
+            billable: Math.trunc(b.billable),
             quantity: saved ? saved.quantity : null
         };
     });
@@ -718,7 +761,7 @@ handleBatchQtyChange(event) {
             quantity: 0,
             blkQty: 0,
             inStock: row.inStock,
-            reserved: row.reserved,
+              reserved: row.reserved,
             billable: row.billable
         };
     }

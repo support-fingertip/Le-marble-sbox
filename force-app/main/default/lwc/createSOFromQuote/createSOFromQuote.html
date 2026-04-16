@@ -62,32 +62,32 @@
                         <div class="customer-card-body slds-p-around_small">
                             <div class="slds-grid slds-wrap">
 
-                                <div class="slds-col slds-size_1-of-2 slds-p-around_x-small">
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-p-around_x-small">
                                     <div class="slds-text-title">Customer Name</div>
                                     <div>{customerInfo.name}</div>
                                 </div>
 
-                                <div class="slds-col slds-size_1-of-2 slds-p-around_x-small">
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-p-around_x-small">
                                     <div class="slds-text-title">Email</div>
                                     <div>{customerInfo.email}</div>
                                 </div>
 
-                                <div class="slds-col slds-size_1-of-2 slds-p-around_x-small">
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-p-around_x-small">
                                     <div class="slds-text-title">Phone</div>
                                     <div>{customerInfo.phone}</div>
                                 </div>
 
-                                <div class="slds-col slds-size_1-of-2 slds-p-around_x-small">
-                                    <div class="slds-text-title">Company</div>
-                                    <div>{customerInfo.company}</div>
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-p-around_x-small">
+                                    <div class="slds-text-title">shipping Address</div>
+                                    <div>{customerInfo.shippingAddress}</div>
                                 </div>
 
-                                <div class="slds-col slds-size_1-of-2 slds-p-around_x-small">
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-p-around_x-small">
                                     <div class="slds-text-title">Executive Assigned</div>
                                     <div>{customerInfo.executive}</div>
                                 </div>
 
-                                <div class="slds-col slds-size_1-of-2 slds-p-around_x-small">
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-p-around_x-small">
                                     <div class="slds-text-title">Address</div>
                                     <div>{customerInfo.address}</div>
                                 </div>
@@ -100,7 +100,7 @@
                        <!-- ================= WAREHOUSE SELECTION ================= -->
 
                 <div class="slds-grid slds-wrap slds-m-bottom_medium slds-grid_vertical-align-center">
-                    <div class="slds-col slds-size_1-of-2 slds-p-right_small">
+                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-p-right_small">
                         <lightning-input
                             type="date"
                             label="Delivery Committed Date"
@@ -109,7 +109,7 @@
                             required>
                         </lightning-input>
                     </div>
-                    <div class="slds-col slds-size_1-of-2 slds-align_absolute-center">
+                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-align_absolute-center">
                         <lightning-input
                             type="toggle"
                             label="Credit Order : "
@@ -127,6 +127,46 @@
                     </template>
                     </div>
                 </div>  
+
+                    <!-- Payment Mode Selection (visible only when Credit Order is ON) -->
+
+                    <!-- Against Order Checkbox Option -->
+
+                    <div class="slds-grid slds-wrap slds-m-bottom_medium">
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-p-right_small">
+                            <lightning-input
+                                type="checkbox"
+                                label="Against Order"
+                                checked={againstOrder}
+                                onchange={handleAgainstOrderChange}>
+                            </lightning-input>
+                        </div>
+                        <template if:true={credit}>
+                             <div class="slds-grid slds-wrap slds-m-bottom_medium">
+                            <div class="slds-col slds-size_1-of-1 slds-medium-size_3-of-6 slds-p-right_small">
+                                <lightning-combobox
+                                    label="Payment Mode"
+                                    placeholder="Select Payment Mode"
+                                    value={selectedPaymentMethod}
+                                    options={paymentMethodOptions}
+                                    onchange={handlePaymentMethodChange}
+                                    required>
+                                </lightning-combobox>
+                            </div>
+                            <div class="slds-col slds-size_1-of-1 slds-medium-size_3-of-6">
+                                <lightning-input
+                                    type="number"
+                                    label="Credit Amount"
+                                    value={creditAmount}
+                                    onchange={handleCreditAmountChange}
+                                    step="0.01"
+                                    min="0"
+                                    formatter="currency">
+                                </lightning-input>
+                            </div>
+                        </div>
+                        </template>
+                    </div>
 
                     <div class="slds-m-bottom_medium">
                         <lightning-combobox
@@ -386,16 +426,23 @@
         <div class="slds-backdrop slds-backdrop_open"></div>
       </div>
      <template if:true={isBatchModalOpen}>
-        <section role="dialog" class="slds-modal slds-fade-in-open slds-modal_medium">
-        <div class="slds-modal__container">
+        <section role="dialog" class="slds-modal slds-fade-in-open batch-modal">
+        <div class="slds-modal__container batch-modal-container">
 
         <header class="slds-modal__header">
             <h2 class="slds-text-heading_medium">Batch Details</h2>
+            <lightning-button-icon
+                icon-name="utility:close"
+                alternative-text="Close"
+                onclick={closeBatchModal}
+                class="slds-modal__close">
+            </lightning-button-icon>
         </header>
 
-        <div class="slds-modal__content slds-p-around_medium">
+        <div class="slds-modal__content slds-p-around_medium batch-modal-body">
 
-            <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+          <div class="table-scroll-wrapper">
+            <table class="slds-table slds-table_bordered slds-table_cell-buffer batch-table">
                 <thead>
                     <tr>
                         <th>Warehouse</th>
@@ -415,20 +462,9 @@
                             <td>{b.warehouseCode}</td>
                             <td>{b.Batch}</td>
                             <td>{b.inStock}</td>
-                            <td>
-                                <lightning-formatted-number
-                                    value={b.billable}
-                                    minimum-fraction-digits="2"
-                                    maximum-fraction-digits="2">
-                                </lightning-formatted-number>
-                            </td>
-                            <td>
-                                <lightning-formatted-number
-                                    value={b.reserved}
-                                    minimum-fraction-digits="2"
-                                    maximum-fraction-digits="2">
-                                </lightning-formatted-number>
-                            </td>
+                            <td>{b.billable}</td>
+                            <td>{b.reserved}</td>
+                           
                         <template if:true={isBatchEditable}>
                             <td>
                                 <lightning-input
@@ -466,16 +502,19 @@
 
                         </tr>
                     </template>
-                    <template if:false={batchList.length}>
-                        <tr>
-                            <td colspan="7" class="slds-text-align_center slds-text-color_error slds-p-vertical_medium">
-                                ❌ No batch stock available.
-                            </td>
-                        </tr>
+                    <template if:true={isBatchLoaded}>
+                        <template if:false={batchList.length}>
+                            <tr>
+                                <td colspan="7" class="slds-text-align_center slds-text-color_error slds-p-vertical_medium">
+                                    ❌ No batch stock available.
+                                </td>
+                            </tr>
+                        </template>
                     </template>
                 </tbody>
 
             </table>
+          </div>
 
         </div>
 
@@ -496,7 +535,6 @@
         </section>
         <div class="slds-backdrop slds-backdrop_open"></div>
     </template>
-
 
 
 

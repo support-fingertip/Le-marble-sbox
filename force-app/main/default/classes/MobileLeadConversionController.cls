@@ -184,7 +184,7 @@ public with sharing class MobileLeadConversionController {
             SELECT Id, OwnerId, Company, FirstName, LastName, Phone, MobilePhone, Customer_Type__c,
                    Product_Category__c, Branch_Location__c, Check_List_Items__c,
                    Street, City, State, PostalCode, Country,
-                   GST_Type__c, GST_Number__c
+                   GST_Type__c, GST_Number__c, Pin_Code__c, State__c
             FROM Lead
             WHERE Id = :leadId
             LIMIT 1
@@ -245,6 +245,14 @@ public with sharing class MobileLeadConversionController {
                     'Lead Address is required before conversion. Please fill: ' + String.join(missingAddressFields, ', ')
                 );
             }
+        }
+
+        // VALIDATE PIN CODE AND STATE FOR SHIPPING ADDRESS
+        if (leadToUpdate.Pin_Code__c == null) {
+            throw new AuraHandledException('Pin Code is required before converting the Lead.');
+        }
+        if (String.isBlank(leadToUpdate.State__c)) {
+            throw new AuraHandledException('State is required before converting the Lead.');
         }
 
 
@@ -861,13 +869,37 @@ public with sharing class MobileLeadConversionController {
         if (String.isBlank(labelOrApiValue)) {
             return null;
         }
+        system.debug('labelOrApiValue>>'+labelOrApiValue);
         String normalized = labelOrApiValue.trim().toLowerCase();
         // India special case
         if (normalized == 'india' || normalized == 'in') {
             return 'IN';
         }
-        // Add more mappings if needed, or query global value set if dynamic mapping is required
-        return labelOrApiValue;
+        // Validate against actual picklist values
+        Set<String> validApiValues = new Set<String>();
+        Map<String, String> labelToApiMap = new Map<String, String>();
+        Schema.DescribeFieldResult fieldResult = Opportunity.Country__c.getDescribe();
+        for (Schema.PicklistEntry entry : fieldResult.getPicklistValues()) {
+            if (entry.isActive()) {
+                validApiValues.add(entry.getValue().toLowerCase());
+                labelToApiMap.put(entry.getLabel().toLowerCase(), entry.getValue());
+            }
+        }
+        // Check if the value matches an API value
+        if (validApiValues.contains(normalized)) {
+            // Return properly cased API value
+            for (Schema.PicklistEntry entry : fieldResult.getPicklistValues()) {
+                if (entry.getValue().toLowerCase() == normalized) {
+                    return entry.getValue();
+                }
+            }
+        }
+        // Check if the value matches a label
+        if (labelToApiMap.containsKey(normalized)) {
+            return labelToApiMap.get(normalized);
+        }
+        // Invalid value - return null to prevent error
+        return null;
     }
 
     private static Map<String, String> getLeadToOpportunityFieldMappings() {

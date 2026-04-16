@@ -3,6 +3,16 @@
     <description>Grants access to the Salesforce Lead Capture application.</description>
     <fieldPermissions>
         <editable>true</editable>
+        <field>Lead.sfleadcaphfprod__ExternalRecordId__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Lead.sfleadcaphfprod__ExternalSourceId__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
         <field>Lead.sfleadcaphfprod__External_Lead_ID__c</field>
         <readable>true</readable>
     </fieldPermissions>

@@ -10,6 +10,7 @@
     <columns>LAST_UPDATE</columns>
     <columns>UPDATEDBY_USER.ALIAS</columns>
     <columns>Quantity__c</columns>
+    <columns>Sales_Order_Line_Item__c</columns>
     <filterScope>Everything</filterScope>
     <label>All</label>
 </ListView>

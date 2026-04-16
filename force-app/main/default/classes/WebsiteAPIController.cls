@@ -37,6 +37,19 @@ global without sharing class WebsiteAPIController {
             if(ldData.State != null && ldData.State.length() > 2){ 
                 stateCode = sapIntegration.getStateCode(ldData.State);
             } 
+
+            else if(ldData.State  != null && ldData.State.length() == 2){ 
+                if(ldData.State=='KA'){
+                    StateCode='KT';
+                }
+                else if(ldData.State=='DH'){
+                   stateCode='DN';
+                }
+                else{
+                    stateCode=ldData.State;
+                }
+            }
+            
             
             // Create a new Lead using the deserialized data
             Lead nld = new Lead();
@@ -78,9 +91,6 @@ global without sharing class WebsiteAPIController {
                 ];
             }
 
-        /* else if(ldData.campaignId == null && ldData.campaignName != null){
-               cmp = [select Id,Name,Project_Name__c,Source__c,Sub_Source__c from Campaign where Name = :ldData.campaignName and IsActive = true order by createddate desc limit 1];
-           } */
 
             if (cmp.size() > 0) {
                 nld.Campaign__c = cmp[0].Id;

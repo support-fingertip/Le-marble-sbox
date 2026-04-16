@@ -16,11 +16,16 @@ public class CreateBusinessPartnerQueueableTest {
     @isTest
     static void testQueueableExecution() {
 
+        String state = Opportunity.State__c.getDescribe()
+            .getPicklistValues()[0].getValue();
+
         // Create test record (change object if needed)
         Opportunity opp = new Opportunity(
             Name = 'Test Deal',
             StageName = 'Prospecting',
-            CloseDate = Date.today()
+            CloseDate = Date.today(),
+            State__c = state,
+            Pin_Code__c = 600001
         );
         insert opp;
 

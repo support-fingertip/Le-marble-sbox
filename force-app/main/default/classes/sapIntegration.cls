@@ -1,4 +1,6 @@
 public class sapIntegration {
+    //  SAP_Config__mdt md=[select id,SAP_BASE_URL__c,COMPANY_DB__c,PASSWORD__c,USERNAME__c from SAP_Config__mdt where Label='sapIntegration'];
+
     public static final String SAP_BASE_URL = 'https://lemrg.hstconnect.in:50000/b1s/v1';
     private static final String COMPANY_DB = 'MG_LIVE_WIP_1';
     private static final String USERNAME = 'manager';
@@ -6,8 +8,8 @@ public class sapIntegration {
     
     @AuraEnabled 
     public static list<account> getAccount(){
-        return [select id, name,Customer_Number__c from account];	
-        
+        return [select id, name,Customer_Number_Ext__c from account];	
+        //Customer_Number__c
     }
     public class Sap_comp{
         @auraEnabled public list<product2> items{get;set;}
@@ -17,7 +19,6 @@ public class sapIntegration {
     public static Sap_comp getitems(){
         Sap_comp wr=new Sap_comp();
         
-
         string prf= [SELECT Id, Name, Profile.Name FROM User WHERE Id = :UserInfo.getUserId()].Profile.Name;
         system.debug(prf);
         wr.items=[select id,name,Product_Code__c from product2 where isactive=true];
@@ -69,8 +70,8 @@ public class sapIntegration {
         try {
             
             
-            Account deal = [
-                SELECT Customer_Number__c, Name, Email__c, Phone, Secondary_Phone__c,Type,
+            Account deal = [//Customer_Number__c
+                SELECT Customer_Number_Ext__c, Name, Email__c, Phone, Secondary_Phone__c,Type,
                 Address_Line1__c, Address_Line2__c,Address_Line3__c,Corporation__c,Municipality__c,Panchayath__c,Village__c,State__c,Country__c,Description,District__c,GST_Number__c,Owner_Name__c,
                 ShippingState,ShippingCountry, ShippingCity,ShippingStreet,ShippingAddress,BillingAddress,ShippingPostalCode,Customer_Type__c,GST_Type__c,POC_Name__c,POC_Number__c,pin_code__c,
                 BillingState,BillingCountry, BillingCity,BillingStreet,BillingPostalCode,ownerId FROM Account
@@ -81,15 +82,15 @@ public class sapIntegration {
             String ownerSAPCode = [SELECT Id,name,SAP_Emp_Code__c FROM User WHERE id=:deal.ownerId].SAP_Emp_Code__c; 
             notification.setTitle('Account :'+deal.Name);
             String NotificationBody =  'Account Name : ' + Account.Name +'\nAccount created by : ' + deal.Owner_Name__c;
-            
-            log.Request_Type__c ='Account -'+deal.Customer_Number__c;
+            //
+            log.Request_Type__c ='Account -'+deal.Customer_Number_Ext__c;
             
             Http http = new Http();
             string sessionId= loginToSAP();
             
             // 1. Check if BP exists in SAP
             HttpRequest getRequest = new HttpRequest();
-            getRequest.setEndpoint('https://lemrg.hstconnect.in:50000/b1s/v1/BusinessPartners(\'' + deal.Customer_Number__c + '\')');
+            getRequest.setEndpoint('https://lemrg.hstconnect.in:50000/b1s/v1/BusinessPartners(\'' + deal.Customer_Number_Ext__c + '\')');
             getRequest.setMethod('GET');
             getRequest.setHeader('Cookie', 'B1SESSION=' + sessionId);
             HttpResponse getResponse = http.send(getRequest);
@@ -97,9 +98,9 @@ public class sapIntegration {
             if (getResponse.getStatusCode() == 200) {
                 log.status__c='Failed';
                 log.response__c= 'Status code : '+getResponse.getStatusCode() +' Response body: '+ getResponse.getBody();
-                log.Error_Message__c = 'Status code : '+getResponse.getStatusCode()+ 'BP already exists in SAP for Customer_ID: ' + deal.Customer_Number__c;
+                log.Error_Message__c = 'Status code : '+getResponse.getStatusCode()+ 'BP already exists in SAP for Customer_ID: ' + deal.Customer_Number_Ext__c;
                 insert  log; 
-                notification.setBody('BP already exists in SAP for Customer_ID: ' + deal.Customer_Number__c);    
+                notification.setBody('BP already exists in SAP for Customer_ID: ' + deal.Customer_Number_Ext__c);    
                 try {
                     notification.send(addressee);
                     
@@ -107,13 +108,11 @@ public class sapIntegration {
                 catch (Exception ee) {
                     System.debug('Problem sending notification: ' + ee.getMessage());
                 }
-                // BP already exists, do not create
-                System.debug(LoggingLevel.INFO, 'BP already exists in SAP for Customer_ID: ' + deal.Customer_Number__c);
+                System.debug(LoggingLevel.INFO, 'BP already exists in SAP for Customer_ID: ' + deal.Customer_Number_Ext__c);
                 return;
             }
             
-            // If not found (404), proceed to create
-            if (getResponse.getStatusCode() != 404) {
+            if (getResponse.getStatusCode() != 404) {   
                 String sapErrorMsg = '';
                 try {
                     Map<String, Object> errWrapper = (Map<String, Object>) JSON.deserializeUntyped(getResponse.getBody());
@@ -130,7 +129,6 @@ public class sapIntegration {
                 log.Error_Message__c = 'Status code : '+getResponse.getStatusCode()+ ' Error: ' + sapErrorMsg;
                 insert  log;  
                 notification.setBody('Error While sending Account to SAP: Status code: '+getResponse.getStatusCode()+ ' Error: ' + sapErrorMsg);    
-                // Some other error
                 System.debug(LoggingLevel.ERROR, 'Error checking BP in SAP: ' + getResponse.getBody());
                 try {
                     notification.send(addressee);
@@ -149,12 +147,18 @@ public class sapIntegration {
            if(deal.BillingState != null && deal.BillingState.length() > 2){ 
              bStateCode = getStateCode(deal.BillingState);
            } 
-            // Build BPAddresses[]
+           else if(deal.BillingState != null && deal.BillingState.length() == 2){ 
+                if(deal.BillingState=='KA'){
+                        bStateCode='KT';
+                }
+                else if(deal.BillingState=='DH'){
+                        bStateCode='DN';
+                }
+           }
             List<Map<String, Object>> bpAddresses = new List<Map<String, Object>>();
             String uniqueSuffix = String.valueOf(DateTime.now().getTime());
           string gstT='';    
-          if(deal.Customer_Type__c=='B2B'){
-             //   gstT= 'gstRegularTDSISD';
+          if(deal.GST_Type__c!=null){
           gstT= deal.GST_Type__c;  
           }
             String part1 = '';
@@ -182,45 +186,52 @@ public class sapIntegration {
                 }
             } 
             
-            // Ship To address from Address__ fields
+            
+              String street = '';
+                    if (deal.Corporation__c != null) street += deal.Corporation__c + ', ';
+                    if (deal.Municipality__c != null) street += deal.Municipality__c + ', ';
+            if (deal.Panchayath__c != null) street += deal.Panchayath__c;
+            String contact = '';
+            if (deal.POC_Name__c != null)   contact += deal.POC_Name__c;
+            if (deal.POC_Number__c != null) contact += (contact == '' ? '' : ' - ') + deal.POC_Number__c;
+            
+            
             Map<String, Object> shipToAddress = new Map<String, Object>{
                 'AddressName'   => deal.Address_Line1__c!=null? deal.Address_Line1__c:'',
-                    'Street'        => deal.Corporation__c!=null? deal.Corporation__c +', ':'' + deal.Municipality__c!=null? deal.Municipality__c+', ':'' + deal.Panchayath__c!=null? deal.Panchayath__c:'',
+                 //   'Street'        => deal.Corporation__c!=null? deal.Corporation__c +', ':'' + deal.Municipality__c!=null? deal.Municipality__c+', ':'' + deal.Panchayath__c!=null? deal.Panchayath__c:'',
+                    'Street'        =>street,
                     'City'          => deal.Village__c!=null? deal.Village__c:'',
                      'County'         => deal.district__c!=null? deal.district__c:'',   
                     'State'         => deal.State__c!=null? deal.State__c:'',
                     'ZipCode'       => deal.pin_code__c!=null?String.valueOf(deal.pin_code__c):'',
-                    'Country'       => deal.country__c!=null? deal.country__c:'', //IN
+                    'Country'       => deal.country__c!=null? deal.country__c:'',
                     'AddressType'   => 'bo_ShipTo',
                     'AddressName2'  => deal.Address_Line2__c!=null? deal.Address_Line2__c:'',
                     'AddressName3'  => deal.Address_Line3__c!=null? deal.Address_Line3__c:'',
                      'GstType'  =>  gstT,
                      'GSTIN'  =>  deal.GST_Number__c!=null? deal.GST_Number__c:'',
-                          'U_Contact' =>  deal.POC_Name__c!=''? deal.POC_Name__c:''+ deal.POC_Number__c!=''?  ' - '+deal.POC_Number__c:''
+                          'U_Contact' =>  contact
                     };
                         bpAddresses.add(shipToAddress);
             
-            // Bill To address from Billing_Address__ fields
             Map<String, Object> billToAddress = new Map<String, Object>{
                 'AddressName'   => deal.name,
                     'Street'        => part3,
                     'City'          => deal.BillingCity!=null? deal.BillingCity:'',
-                    'State'         => bStateCode!=null? bStateCode:'',//KL 
+                    'State'         => bStateCode!=null? bStateCode:'',
                     'ZipCode'       => deal.BillingPostalcode!=null? deal.BillingPostalcode:'',
-                    'Country'       =>  bCountryCode!=null? bCountryCode:'',//IN
+                    'Country'       =>  bCountryCode!=null? bCountryCode:'',
                     'AddressType'   => 'bo_BillTo',
                     'AddressName2'  => part1,
                     'AddressName3'  => part2,
                      'GSTIN'  =>  deal.GST_Number__c!=null? deal.GST_Number__c:'',
                            'GstType'  =>  gstT,
-                         'U_Contact' =>  deal.POC_Name__c!=null? deal.POC_Name__c:''+ deal.POC_Number__c!=null?  ' - '+deal.POC_Number__c:''
+                         'U_Contact' =>  contact
                     };
                         bpAddresses.add(billToAddress);
           
-          
-            // Create Business Partner payload
             Map<String, Object> bpPayload = new Map<String, Object>{
-                	'CardCode'       => deal.Customer_Number__c!=null? deal.Customer_Number__c:'',
+                	'CardCode'       => deal.Customer_Number_Ext__c!=null? deal.Customer_Number_Ext__c:'',
                     'CardName'       => deal.Name!=null? deal.Name:'',
                     'CardType'       => 'cCustomer',
                     'Currency'       => deal.BillingCountry=='India'? 'INR':'',
@@ -232,12 +243,9 @@ public class sapIntegration {
                     'BPAddresses'    => bpAddresses,
                     'SalesPersonCode'     =>  ownerSAPCode!=null? ownerSAPCode:'',
                     'U_BPType' 		 =>  deal.Customer_Type__c!=null? deal.Customer_Type__c:''
+                      };
                         
-                      
-               //     'U_Contact' =>  deal.POC_Name__c!=null? deal.POC_Name__c:''
-                  };
-                        
-                        HttpRequest bpRequest = new HttpRequest();
+            HttpRequest bpRequest = new HttpRequest();
             bpRequest.setEndpoint('https://lemrg.hstconnect.in:50000/b1s/v1/BusinessPartners');
             bpRequest.setMethod('POST');
             bpRequest.setHeader('Content-Type', 'application/json');
@@ -268,20 +276,14 @@ public class sapIntegration {
                 log.response__c= 'BP creation failed: ' + bpResponse.getBody();
                 insert log;
                 
-                Map<String, Object> errorWrapper = (Map<String, Object>) JSON.deserializeUntyped(getResponse.getBody());
+                Map<String, Object> errorWrapper = (Map<String, Object>) JSON.deserializeUntyped(bpResponse.getBody());
                  String errorMessage='';
                 if (errorWrapper.containsKey('error')) {
                     Map<String, Object> errorObj =(Map<String, Object>) errorWrapper.get('error');
-                    
-                    //   Integer errorCode = (Integer) errorObj.get('code');
-                    
                     Map<String, Object> messageObj =
                         (Map<String, Object>) errorObj.get('message');
-                    
                      errorMessage = (String) messageObj.get('value');
-                    
                 }
-                
                 
                 notification.setBody('BP creation failed:'+errorMessage );  
                 try {
@@ -297,7 +299,6 @@ public class sapIntegration {
             log.status__c='Failed';
             log.response__c= 'Error creating Business Partner: ' +  e.getMessage();
             insert log;
-            
             
             notification.setBody('Error creating Business Partner n SAP: ');  
             try {
@@ -319,18 +320,17 @@ public class sapIntegration {
         try {
             
             Account deal = [
-                SELECT Customer_Number__c, Name, Email__c, Phone, Secondary_Phone__c,Type,
+                SELECT Customer_Number_Ext__c, Name, Email__c, Phone, Secondary_Phone__c,Type,
                 Address_Line1__c, Address_Line2__c,Address_Line3__c,Corporation__c,Municipality__c,Panchayath__c,Village__c,State__c,Country__c,Description,District__c,GST_Number__c,POC_Number__c,
                 ShippingState,ShippingCountry, ShippingCity,ShippingStreet,ShippingAddress,BillingAddress,ShippingPostalCode,GST_Type__c,POC_Name__c,Account.OwnerId, Account.Customer_Type__c,pin_code__c,
                 BillingState,BillingCountry, BillingCity,BillingStreet,BillingPostalCode FROM Account
                 WHERE Id = :dealId
                 LIMIT 1
             ];
-            log.Request_Type__c ='Account Update -'+deal.Customer_Number__c;
+            log.Request_Type__c ='Account Update -'+deal.Customer_Number_Ext__c;
             Http http = new Http();
           String ownerSAPCode = [SELECT Id,name,SAP_Emp_Code__c FROM User WHERE id=:deal.ownerId].SAP_Emp_Code__c; 
    
-            // Login to SAP
             HttpRequest loginRequest = new HttpRequest();
             loginRequest.setEndpoint('https://lemrg.hstconnect.in:50000/b1s/v1/Login');
             loginRequest.setMethod('POST');
@@ -342,7 +342,7 @@ public class sapIntegration {
                     'Password'  => 'Mgsap12@'
                     };
                         
-                        loginRequest.setBody(JSON.serialize(loginPayload));
+            loginRequest.setBody(JSON.serialize(loginPayload));
             HttpResponse loginResponse = http.send(loginRequest);
             if (loginResponse.getStatusCode() != 200) {
                 System.debug(LoggingLevel.ERROR, 'SAP Login Failed: ' + loginResponse.getBody());
@@ -352,10 +352,9 @@ public class sapIntegration {
             Map<String, Object> loginData = (Map<String, Object>) JSON.deserializeUntyped(loginResponse.getBody());
             String sessionId = (String) loginData.get('SessionId');
             
-            // Retrieve existing BP addresses
             List<Map<String, Object>> bpAddresses = new List<Map<String, Object>>();
             HttpRequest getRequest = new HttpRequest();
-            getRequest.setEndpoint('https://lemrg.hstconnect.in:50000/b1s/v1/BusinessPartners(\'' + deal.Customer_Number__c + '\')');
+            getRequest.setEndpoint('https://lemrg.hstconnect.in:50000/b1s/v1/BusinessPartners(\'' + deal.Customer_Number_Ext__c + '\')');
             getRequest.setMethod('GET');
             getRequest.setHeader('Cookie', 'B1SESSION=' + sessionId);
             HttpResponse getResponse = http.send(getRequest);
@@ -370,29 +369,6 @@ public class sapIntegration {
                 }
             } else {
                 System.debug(LoggingLevel.ERROR, 'Failed to retrieve BP for update: ' + getResponse.getBody());
-                
-                Map<String, Object> errorWrapper = (Map<String, Object>) JSON.deserializeUntyped(getResponse.getBody());
-                
-                if (errorWrapper.containsKey('error')) {
-                    Map<String, Object> errorObj =(Map<String, Object>) errorWrapper.get('error');
-                    
-                 //   Integer errorCode = (Integer) errorObj.get('code');
-                    
-                    Map<String, Object> messageObj =
-                        (Map<String, Object>) errorObj.get('message');
-                    
-                    String errorMessage = (String) messageObj.get('value');
-                    
-                    //  EXACT MATCH CHECK
-                    if (//errorCode == -2028 &&
-                        errorMessage != null &&
-                        errorMessage.contains('No matching records found')) {
-                            System.enqueueJob(new CreateBusinessPartnerQueueable(deal.Id));
-                            return;
-                            
-                        }
-                }
-                
             }
             
             Boolean shipToAddressFoundAndUpdated = false;
@@ -406,13 +382,17 @@ public class sapIntegration {
            if(deal.BillingState != null && deal.BillingState.length() > 2){ 
              stateCode = getStateCode(deal.BillingState);
            } 
-            
+             else if(deal.BillingState != null && deal.BillingState.length() == 2){ 
+                if(deal.BillingState=='KA'){
+                        stateCode='KT';
+                }
+                else if(deal.BillingState=='DH'){
+                        stateCode='DN';
+                }
+           }
            
         string gstT='';
-            
-            
             if(deal.Customer_Type__c=='B2B' && deal.GST_Type__c!=null){
-                //gstT= 'gstRegularTDSISD';
                 gstT= deal.GST_Type__c; 
             }  	
             
@@ -462,8 +442,6 @@ public class sapIntegration {
                     shipToAddressFoundAndUpdated = true;
                 }
                 
-               
-                
                 if (deal.BillingAddress != null && addrName == 'bo_BillTo') {
                     existingAddr.put('AddressName', deal.Name);     
                     existingAddr.put('Street', part3);
@@ -481,46 +459,49 @@ public class sapIntegration {
                 }
             }
             
+            String street = '';
+                    if (deal.Corporation__c != null) street += deal.Corporation__c + ', ';
+                    if (deal.Municipality__c != null) street += deal.Municipality__c + ', ';
+            if (deal.Panchayath__c != null) street += deal.Panchayath__c;
+            String contact = '';
+            if (deal.POC_Name__c != null)   contact += deal.POC_Name__c;
+            if (deal.POC_Number__c != null) contact += (contact == '' ? '' : ' - ') + deal.POC_Number__c;
             if (!shipToAddressFoundAndUpdated ) {
                 bpAddresses.add(new Map<String, Object>{
                     'AddressName'   => deal.Address_Line1__c!=null? deal.Address_Line1__c:'',
-                    'Street'        => deal.Corporation__c!=null? deal.Corporation__c +', ':'' + deal.Municipality__c!=null? deal.Municipality__c+', ':'' + deal.Panchayath__c!=null? deal.Panchayath__c:'',
+                        'Street'    => street,
                     'City'          => deal.Village__c!=null? deal.Village__c:'',
                     'County'         => deal.district__c!=null? deal.district__c:'',   
                     'State'         => deal.State__c!=null? deal.State__c:'',
                     'ZipCode'       => deal.pin_code__c!=null?String.valueOf(deal.pin_code__c):'',
-                    'Country'       => deal.country__c!=null? deal.country__c:'', //IN
+                    'Country'       => deal.country__c!=null? deal.country__c:'',
                     'AddressType'   => 'bo_ShipTo',
                     'AddressName2'  => deal.Address_Line2__c!=null? deal.Address_Line2__c:'',
                     'AddressName3'  => deal.Address_Line3__c!=null? deal.Address_Line3__c:'',
  					'GSTIN'  =>  deal.GST_Number__c!=null? deal.GST_Number__c:'',
                  	'GstType'  =>  gstT,
-    				'U_Contact' =>  deal.POC_Name__c!=''? deal.POC_Name__c:''+ deal.POC_Number__c!=''?  ' - '+deal.POC_Number__c:''
-                        
+    				'U_Contact' =>  contact
                         });
             }				
-            
             
             if (!billToAddressFoundAndUpdated && deal.BillingAddress != null) {
                 bpAddresses.add(new Map<String, Object>{
                     'AddressName' => deal.Name,
                     'Street'        => part3,
                     'City'          => deal.BillingCity!=null? deal.BillingCity:'',
-                    'State'         => stateCode!=null? stateCode:'',//KL 
+                    'State'         => stateCode!=null? stateCode:'',
                     'ZipCode'       => deal.BillingPostalcode!=null? deal.BillingPostalcode:'',
-                    'Country'       =>  bCountryCode!=null? bCountryCode:'',//IN
+                    'Country'       =>  bCountryCode!=null? bCountryCode:'',
                     'AddressType'   => 'bo_BillTo',
                     'AddressName2'  => part1,
                     'AddressName3'  => part2,
  					'GSTIN'  =>  deal.GST_Number__c!=null? deal.GST_Number__c:'',
                   	'GstType'  =>  gstT,
-                    'U_Contact' =>  deal.POC_Name__c!=null? deal.POC_Name__c:''+ deal.POC_Number__c!=null?  ' - '+deal.POC_Number__c:''
-                        
+                    'U_Contact' =>  contact
                         });
             }
           
-                system.debug(JSON.serialize(bpAddresses));   
-            // Update BP payload with the final list of addresses
+            system.debug(JSON.serialize(bpAddresses));   
             Map<String, Object> updatePayload = new Map<String, Object>{
                 'Currency'       => deal.BillingCountry=='India'? 'INR':'',
                     'EmailAddress'   => deal.Email__c!=null? deal.Email__c:'',
@@ -531,13 +512,10 @@ public class sapIntegration {
                     'BPAddresses'    => bpAddresses,
 	                'SalesPersonCode'     =>  ownerSAPCode!=null? ownerSAPCode:'',
                     'U_BPType' 		 =>  deal.Customer_Type__c!=null? deal.Customer_Type__c:''
-                //        'GstType'  =>  gstT
-               //     
-
                     };
-        system.debug(JSON.serialize(updatePayload));                
-                        HttpRequest patchRequest = new HttpRequest();
-            patchRequest.setEndpoint('https://lemrg.hstconnect.in:50000/b1s/v1/BusinessPartners(\'' + deal.Customer_Number__c + '\')');
+            system.debug(JSON.serialize(updatePayload));                
+            HttpRequest patchRequest = new HttpRequest();
+            patchRequest.setEndpoint('https://lemrg.hstconnect.in:50000/b1s/v1/BusinessPartners(\'' + deal.Customer_Number_Ext__c + '\')');
             patchRequest.setMethod('PATCH');
             patchRequest.setHeader('Content-Type', 'application/json');
             patchRequest.setHeader('Cookie', 'B1SESSION=' + sessionId);
@@ -549,6 +527,23 @@ public class sapIntegration {
                 log.status__c='Failed';
                 log.response__c= 'BP update failed: ' + patchResponse.getBody();
                 insert log;
+                
+                Map<String, Object> errorWrapper = (Map<String, Object>) JSON.deserializeUntyped(patchResponse.getBody());
+                
+                if (errorWrapper.containsKey('error')) {
+                    Map<String, Object> errorObj =(Map<String, Object>) errorWrapper.get('error');
+                    Map<String, Object> messageObj =
+                        (Map<String, Object>) errorObj.get('message');
+                    String errorMessage = (String) messageObj.get('value');
+                    Integer errorCode = (Integer) errorObj.get('code');
+                    
+                    if (errorCode == -2028 &&
+                        errorMessage != null &&
+                        (errorMessage.contains('No matching records found') || errorMessage.contains('does not exist'))) {
+                            System.enqueueJob(new CreateBusinessPartnerQueueable(deal.Id));
+                            return;
+                        }
+                }
                 
                 System.debug(LoggingLevel.ERROR, 'BP update failed: ' + patchResponse.getBody());
             }
@@ -576,47 +571,38 @@ public class sapIntegration {
         for (Schema.PicklistEntry ple : dfr.getPicklistValues()) {
             if (ple.getLabel() != null &&
             ple.getLabel().trim().toLowerCase() == input) {
-                
-                return ple.getValue(); // API name (Country Code)
+                return ple.getValue();
             }
-            
         }
         return null;
     }
 
-      public static String getStateCode(String stateLabel) {
+    public static String getStateCode(String stateLabel) {
         if (String.isBlank(stateLabel) || stateLabel==null) {
             return null;
         }
         String input = stateLabel.trim().toLowerCase();
-        Schema.DescribeFieldResult dfr =
-            Account.State__c.getDescribe();
+        Schema.DescribeFieldResult dfr = Account.State__c.getDescribe();
         
         for (Schema.PicklistEntry ple : dfr.getPicklistValues()) {
             if (ple.getLabel() != null &&
             ple.getLabel().trim().toLowerCase() == input) {
-                
-                return ple.getValue(); // API name (Country Code)
+                return ple.getValue();
             }
-            
         }
         return null;
     }
 
-    
-  /*  public static void sendOrderToSAP(id order) {
-        Order ord = [SELECT id, name, OrderNumber, Order_Owner__c, accountId, account.name, account.Customer_Number__c, account.Customer_Type__c, Warehouse__r.Warehouse_Code__c,
-            AddressLine1__c, AddressLine2__c, AddressLine3__c, District__c, State__c, Country__c //, BranchLocation__c
-            FROM Order WHERE Id = :order LIMIT 1 ];
+    @AuraEnabled
+    public static String sendOrderToSAPFromButton(Id orderId) {
+        try {
+            System.enqueueJob(new SendOrderToSAPQueueable(orderId));
+            return 'Order has been queued for SAP submission.';
+        } catch (Exception e) {
+            throw new AuraHandledException(e.getMessage());
+        }
+    }
 
-        // Fetch Account with address fields
-      
-    //sapIntegration.updateBusinessPartner(acc.id);
-        // Now call the SAP order callout asynchronously
-        sapIntegrationAsync.sendOrderToSAPAsync(ord.Id);
-
-        
-    }*/
     @future(callout=true)
     public static void sendOrderToSAP(Id order) {
         Order ord = [
@@ -624,13 +610,15 @@ public class sapIntegration {
                 id,
                 name,
                 OrderNumber,
+                Sales_Order_Number__c,
                 Order_Owner__c,
                 accountId,
                 account.name,
-                account.Customer_Number__c,
+                account.Customer_Number_Ext__c,
                 account.Customer_Type__c,
                 Warehouse__r.Warehouse_Code__c,
-                OpportunityId,
+             Warehouse__r.BranchId__c,
+                OpportunityId,  
                 ownerid,
                 SAP_Doc_Num__c,
                 Order_status__c,
@@ -641,12 +629,17 @@ public class sapIntegration {
                 opportunity.State__c,
                 opportunity.Country__c,
                 opportunity.pin_code__c,
-                opportunity.Sale_Type__c
+                opportunity.Sale_Type__c,
+                Against_Order__c,
+                Freight_Charge__c,
+                Loading_Charges__c,
+                Unloading_Charges__c,
+                Round_Off__c
             FROM Order
             WHERE Id = :order
             LIMIT 1
         ];
-          Account acc = [SELECT Id, Address_Line1__c, Address_Line2__c, Address_Line3__c, District__c, State__c, Country__c FROM Account WHERE Id = :ord.accountId LIMIT 1];
+        Account acc = [SELECT Id, Address_Line1__c, Address_Line2__c, Address_Line3__c, District__c, State__c, Country__c FROM Account WHERE Id = :ord.accountId LIMIT 1];
 
         List<Apex_Log__c> logList = new List<Apex_Log__c>();
         Apex_Log__c log = new Apex_Log__c();
@@ -656,19 +649,17 @@ public class sapIntegration {
         notification.setTargetId(ord.id);
         String adminUserId = [SELECT Id FROM User WHERE Profile.Name = 'System Administrator' and isactive=true LIMIT 1].Id;
         Set<String> addressee = new Set<String>();
-        if(adminUserId!=null){
-            addressee.add(adminUserId); 
-        }
+       
         addressee.add(UserInfo.getUserId());
         System.debug('Order '+ord);
-        notification.setTitle('Order :'+ord.OrderNumber);
-        String NotificationBody =  'Order Id : ' + ord.OrderNumber +'\nOrder created by : ' + ord.account.name;
+        notification.setTitle('Order :'+ord.Sales_Order_Number__c);
+        String NotificationBody =  'Order Id : ' + ord.Sales_Order_Number__c +'\nOrder created by : ' + ord.account.name;
         if( ord.account.name != null ) {
             NotificationBody += '\nCustomer Name : ' + ord.account.name ;
         }
         String sessionId=loginToSAP();
         if(sessionId!=null){              
-            log.Request_Type__c ='Order -'+ord.OrderNumber;
+            log.Request_Type__c ='Order -'+ord.Sales_Order_Number__c;
             SAPOrderPayload body= buildPayload(ord);
             System.debug('Full SAP payload: ' + JSON.serialize(body));
             HttpRequest req = new HttpRequest();
@@ -702,6 +693,9 @@ public class sapIntegration {
                     // ignore JSON parse errors
                 }
                 notification.setBody( 'Failed to create SAP Order:  Statuscode: '+res.getStatusCode() + (errorMsgValue != '' ? ('\n' + errorMsgValue) : '') );
+                    if(adminUserId!=null){
+                        addressee.add(adminUserId); 
+                        }
             } else {
                 log.status__c='SUCCESS';
                 System.debug(' Order created in SAP for: ' + ord.OrderNumber);
@@ -728,7 +722,17 @@ public class sapIntegration {
                     ord.Order_status__c= 'Sent to SAP';
                     update ord;
                     notification.setTitle('Order Created in SAP');
-                    notification.setBody(NotificationBody);   
+                    notification.setBody(NotificationBody);
+                    if (ord.OpportunityId != null) {
+                        try {
+                            Opportunity opp = [SELECT Id, OwnerId FROM Opportunity WHERE Id = :ord.OpportunityId LIMIT 1];
+                            if (opp.OwnerId != null) {
+                                addressee.add(opp.OwnerId);
+                            }
+                        } catch (Exception e) {
+                            System.debug('Could not add quote owner to notification: ' + e.getMessage());
+                        }
+                    }
                     logList.add(log);
                 } catch (Exception e) {
                     log.status__c='FAILED';
@@ -736,12 +740,18 @@ public class sapIntegration {
                     log.Error_Message__c = 'Status code : '+res.getStatusCode()+ ' Error: Callout failed. Please review the response for additional details.';
                     logList.add(log);
                     notification.setBody('Error: '+e.getMessage());   
+                     if(adminUserId!=null){
+                            addressee.add(adminUserId); 
+                        }
                     System.debug('❌ Error parsing SAP response: ' + e.getMessage());
                     System.debug('Response that caused error: ' + res.getBody());
                 }
             }
         } else {
             notification.setBody('Error While sending Order:No access token generated ');   
+             if(adminUserId!=null){
+                    addressee.add(adminUserId); 
+                }
             log.status__c='FAILED';
             log.Error_Message__c = 'Token not generated';
         }
@@ -757,165 +767,277 @@ public class sapIntegration {
     
     
     public class SAPOrderPayload {
+        public String CardCode;
+        public String DocDate;
+        public String DocDueDate;
+        public String TaxDate;
+        public String DocCurrency;
+        public String BPL_IDAssignedToInvoice;
+        public String U_To_Delivery_date;
+        public String U_AgainstOrdr;
+        public String U_TYPE;
+        public String U_Approval;
+        public String U_DELIVERY_TIME;
+        public String SalesPersonCode;
+        public String DocumentsOwner;
+        public String ShipToCode;
+        public String ShipToDescription;
+        public Decimal TotalDiscount;
+        public List<DocumentLine> DocumentLines;
+        public List<DocumentAdditionalExpenses> DocumentAdditionalExpenses;
+        public List<BPAddress> BPAddresses;
+    }
 
-            public String CardCode;
-            public String DocDate;
-            public String DocDueDate;
-            public String TaxDate;
-            public String DocCurrency;
-            public String BPL_IDAssignedToInvoice;
-            
-            public String U_To_Delivery_date;
-            //  public String StartDeliveryDate;
-            //public String StartDeliveryTime;
-            //public String EndDeliveryDate;
-            
-            // public String EndDeliveryTime;
-            public String U_TYPE;
-            public String U_Approval;
-            public String U_DELIVERY_TIME;
-            
-            public String SalesPersonCode;
-            public String DocumentsOwner;
-            
-            public String ShipToCode;
-            public String ShipToDescription;
-            
-            public List<DocumentLine> DocumentLines;
-         public List<DocumentAdditionalExpenses> DocumentAdditionalExpenses;
-            public List<BPAddress> BPAddresses;
-        }
-        public class BPAddress {
-            public String AddressName;
-            public String AddressType;
-            public String Street;
-            public String Block;
-            public String City;
-            public String ZipCode;
-            public String State;
-            public String Country;
-        }  
-        public class DocumentLine {
-            public String ItemCode;
-            public Decimal Quantity;
-            public String WarehouseCode;
-            public Decimal UnitPrice;
-            public String TaxCode;
-            public Decimal Price;
-            public Decimal U_ReservedQTY;
-            public List<BatchNumber> BatchNumbers;
-        }
-        
-      public class DocumentAdditionalExpenses {
-            public String ExpenseCode;
-            public Decimal LineTotal;
-            public String TaxCode;
-        }
-        
+    public class BPAddress {
+        public String AddressName;
+        public String AddressType;
+        public String Street;
+        public String Block;
+        public String City;
+        public String ZipCode;
+        public String State;
+        public String Country;
+    }  
+
+    public class DocumentLine {
+        public String ItemCode;
+        public Decimal Quantity;
+        public String WarehouseCode;
+      //  public Decimal UnitPrice;
+     public Decimal Price;
+        public String TaxCode;
+        public Decimal U_ReservedQTY;
+        // ── NEW FIELD ──────────────────────────────────────────────────────────
+        // DiscountPercent sent to SAP for each document line.
+        // Populated from Disc_Type__c / Dis_Value__c on the OrderItem.
+        public Decimal DiscountPercent;
+        // ───────────────────────────────────────────────────────────────────────
+        public List<BatchNumber> BatchNumbers;
+    }
     
-        public class BatchNumber {
-            public String BatchNumber;
-            public Decimal Quantity;
-        }
+    public class DocumentAdditionalExpenses {
+        public Decimal ExpenseCode;
+        public Decimal LineTotal;
+        public String TaxCode;
+    }
+
+    public class BatchNumber {
+        public String BatchNumber;
+        public Decimal Quantity;
+    }
     
-    public static SAPOrderPayload buildPayload(order order) {
+    // ─────────────────────────────────────────────────────────────────────────
+    // calculateDiscountPercent
+    //
+    // Derives the SAP DiscountPercent for a single OrderItem based on the
+    // discount type stored in Disc_Type__c:
+    //
+    //   Percentage  →  use Dis_Value__c directly as the percentage.
+    //
+    //   Amount      →  the stored amount already includes tax, so:
+    //     1. Strip tax:  discExTax = Dis_Value__c / (1 + Tax__c / 100)
+    //     2. Pre-disc price = UOM_Price_without_tax_and_after_disc__c + discExTax
+    //        (adding back the stripped discount to recover the pre-discount price)
+    //     3. DiscountPercent = (discExTax / preDiscPrice) * 100
+    //
+    //   If Dis_Value__c is null / zero, or pre-discount price is zero → 0.
+    // ─────────────────────────────────────────────────────────────────────────
+    @TestVisible
+    private static Decimal calculateDiscountPercent(OrderItem oi) {
+
+        String discType = oi.Disc_Type__c;
+
+        // ── Percentage discount ──────────────────────────────────────────────
+        if (discType == 'Percentage') {
+            return (oi.Dis_Value__c != null && oi.Dis_Value__c > 0)
+                ? oi.Dis_Value__c
+                : 0;
+        }
+
+        // ── Amount discount ──────────────────────────────────────────────────
+        if (discType == 'Amount') {
+            Decimal disValue = (oi.Dis_Value__c != null) ? oi.Dis_Value__c : 0;
+
+            if (disValue <= 0) {
+                return 0;
+            }
+
+            // Tax__c is directly on OrderItem — no traversal needed
+            Decimal taxRate = (oi.Tax_Percentage__c != null) ? oi.Tax_Percentage__c : 0;
+
+            // Step 1 – remove tax from the discount amount
+            Decimal discExTax = disValue / (1 + (taxRate / 100));
+
+            // Step 2 – recover the pre-discount (ex-tax) unit price
+            Decimal afterDiscPrice = (oi.UOM_Price_without_tax_and_after_disc__c != null)
+                                     ? oi.UOM_Price_without_tax_and_after_disc__c
+                                     : 0;
+            Decimal preDiscPrice = afterDiscPrice + discExTax;
+
+            if (preDiscPrice == 0) {
+                return 0;
+            }
+
+            // Step 3 – express the ex-tax discount as a % of the pre-disc price
+            Decimal discountPercent = (discExTax / preDiscPrice) * 100;
+            return discountPercent.setScale(4, RoundingMode.HALF_UP);
+        }
+
+        // No discount type set
+        return 0;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // buildPayload  (updated – DiscountPercent added to every DocumentLine)
+    // ─────────────────────────────────────────────────────────────────────────
+    public static SAPOrderPayload buildPayload(Order order) {
+
         SAPOrderPayload payload = new SAPOrderPayload();
-        string oppowner = [select id,ownerid from opportunity where id=:order.opportunityId].ownerid;
-        string oppOwnId = [select id, SAP_Emp_Code__c from user where id=:oppowner].SAP_Emp_Code__c;
-        string ordOwnId = [select id, SAP_Emp_Code__c from user where id=:order.ownerid].SAP_Emp_Code__c;
-        Date currentDate = Date.today();
-        Date endDeliveryDate = currentDate.addDays(2);
-        // Format dates for SAP in YYYY-MM-DD format
-        String docDate = currentDate.year() + '-' + 
-            String.valueOf(currentDate.month()).leftPad(2, '0') + '-' + 
+
+        String oppowner  = [SELECT id, ownerid FROM Opportunity WHERE id = :order.opportunityId].ownerid;
+        String oppOwnId  = [SELECT id, SAP_Emp_Code__c FROM User WHERE id = :oppowner].SAP_Emp_Code__c;
+        String ordOwnId  = [SELECT id, SAP_Emp_Code__c FROM User WHERE id = :order.ownerid].SAP_Emp_Code__c;
+
+        Date   currentDate    = Date.today();
+        Date   endDeliveryDate = currentDate.addDays(2);
+
+        String docDate = currentDate.year() + '-' +
+            String.valueOf(currentDate.month()).leftPad(2, '0') + '-' +
             String.valueOf(currentDate.day()).leftPad(2, '0');
-        String dueDate = currentDate.addDays(10).year() + '-' + 
-            String.valueOf(currentDate.addDays(10).month()).leftPad(2, '0') + '-' + 
+
+        String dueDate = currentDate.addDays(10).year() + '-' +
+            String.valueOf(currentDate.addDays(10).month()).leftPad(2, '0') + '-' +
             String.valueOf(currentDate.addDays(10).day()).leftPad(2, '0');
-        String taxDate = docDate;
-        String deliveryDate = docDate;
-        String endDeliveryDateStr = endDeliveryDate.year() + '-' + 
-            String.valueOf(endDeliveryDate.month()).leftPad(2, '0') + '-' + 
+
+        String taxDate            = docDate;
+        String deliveryDate       = docDate;
+        String endDeliveryDateStr = endDeliveryDate.year() + '-' +
+            String.valueOf(endDeliveryDate.month()).leftPad(2, '0') + '-' +
             String.valueOf(endDeliveryDate.day()).leftPad(2, '0');
         String deliveryTime = '12:00:59';
-        String endDeliveryTime = '12:00:59';
-        // Get U_TYPE from Order Type__c field
+
         String uType;
-        if(order.account.Customer_Type__c == 'B2B'){
-            uType= 'PROJECT';
+        if (order.account.Customer_Type__c == 'B2B') {
+            uType = 'PROJECT';
         } else {
-            uType= 'RETAIL';
+            uType = 'RETAIL';
         }
-        if(order.opportunity.Sale_Type__c != null){
+        if (order.opportunity.Sale_Type__c != null) {
             uType = order.opportunity.Sale_Type__c;
         }
 
-        payload.CardCode = order.account.Customer_Number__c;
-        payload.DocDate = docDate;
-        payload.DocDueDate = dueDate;
-        payload.DocCurrency = 'INR';
-        payload.BPL_IDAssignedToInvoice = '3';
-        payload.U_To_Delivery_date = deliveryDate;
-        payload.U_DELIVERY_TIME = deliveryTime;
-        payload.U_TYPE = uType;
-        payload.U_Approval = 'Y';
-        payload.SalesPersonCode = oppOwnId;
-        payload.DocumentsOwner = ordOwnId;
-        // Set ShipToCode from AddressLine1__c
-   //     payload.ShipToCode = order.AddressLine1__c;
-        // Build BPAddresses for Ship To
-        BPAddress shipAddr = new BPAddress();
+        payload.CardCode                = order.account.Customer_Number_Ext__c;
+        payload.DocDate                 = docDate;
+        payload.DocDueDate              = dueDate;
+        payload.DocCurrency             = 'INR';
+        payload.BPL_IDAssignedToInvoice =  order.Warehouse__r.BranchId__c;
+        payload.U_To_Delivery_date      = deliveryDate;
+        payload.U_DELIVERY_TIME         = deliveryTime;
+        payload.U_TYPE                  = uType;
+        payload.U_Approval              = 'Y';
+        payload.SalesPersonCode         = oppOwnId;
+        payload.DocumentsOwner          = ordOwnId;
+        payload.ShipToCode              = order.opportunity.AddressLine1__c;
+        payload.U_AgainstOrdr           = order.Against_Order__c ? 'Y' : 'N';
+        payload.TotalDiscount           = order.Round_Off__c!=null ? order.Round_Off__c : 0;
+
+        BPAddress shipAddr  = new BPAddress();
         shipAddr.AddressName = order.opportunity.AddressLine1__c;
         shipAddr.AddressType = 'bo_ShipTo';
-        shipAddr.Street = order.opportunity.AddressLine2__c;
-        shipAddr.Block = order.opportunity.AddressLine3__c;
-        shipAddr.City = order.opportunity.District__c;
-        shipAddr.State = order.opportunity.State__c;
-        shipAddr.Country = order.opportunity.Country__c;
-        payload.BPAddresses = new List<BPAddress>{ shipAddr };
-             payload.DocumentAdditionalExpenses = new List<DocumentAdditionalExpenses>();
-        
+        shipAddr.Street      = order.opportunity.AddressLine2__c;
+        shipAddr.Block       = order.opportunity.AddressLine3__c;
+        shipAddr.City        = order.opportunity.District__c;
+        shipAddr.State       = order.opportunity.State__c;
+        shipAddr.Country     = order.opportunity.Country__c;
+        payload.BPAddresses  = new List<BPAddress>{ shipAddr };
+
+        // ── Additional expenses (freight / loading / unloading) ───────────────
+        payload.DocumentAdditionalExpenses = new List<DocumentAdditionalExpenses>();
+
+        String taxCode = (order.opportunity.State__c == 'KL') ? 'CG SG 18' : 'IGST 18';
+
+        DocumentAdditionalExpenses dc = new DocumentAdditionalExpenses();
+        dc.ExpenseCode = 1;
+        Decimal freightBase    = order.Freight_Charge__c    != null ? order.Freight_Charge__c    : 0;
+        dc.LineTotal  = (freightBase != 0) ? (freightBase / 1.18).setScale(2) : 0;
+        dc.TaxCode    = taxCode;
+        payload.DocumentAdditionalExpenses.add(dc);
+
+        DocumentAdditionalExpenses dc1 = new DocumentAdditionalExpenses();
+        dc1.ExpenseCode = 2;
+        Decimal lBase    = order.Loading_Charges__c   != null ? order.Loading_Charges__c   : 0;
+        dc1.LineTotal = (lBase != 0) ? (lBase / 1.18).setScale(2) : 0;
+        dc1.TaxCode   = taxCode;
+        payload.DocumentAdditionalExpenses.add(dc1);
+
+        DocumentAdditionalExpenses dc2 = new DocumentAdditionalExpenses();
+        dc2.ExpenseCode = 3;
+        Decimal uBase    = order.Unloading_Charges__c != null ? order.Unloading_Charges__c : 0;
+        dc2.LineTotal = (uBase != 0) ? (uBase / 1.18).setScale(2) : 0;
+        dc2.TaxCode   = taxCode;
+        payload.DocumentAdditionalExpenses.add(dc2);
+
+        // ── Order items ───────────────────────────────────────────────────────
         payload.DocumentLines = new List<DocumentLine>();
-        List<OrderItem> orderItems = [ SELECT Id,Quantity,Block_Quantity__c,PricebookEntry.Product2.Product_Code__c,Warehouse__r.Warehouse_Code__c,After_Disc_Price_Sqft__c,ListPrice,UnitPrice FROM OrderItem WHERE OrderId = :order.Id ]; //,Tax_Code__c
+
+        // ── UPDATED QUERY: added Disc_Type__c, Dis_Value__c, and Tax__c ──────
+        List<OrderItem> orderItems = [
+            SELECT Id,
+                   Quantity,
+                   Block_Quantity__c,
+                   UOM_Price_without_tax_and_after_disc__c,
+                   Product2.Product_Category__c,
+                   PricebookEntry.Product2.Product_Code__c,
+                   Tax_Percentage__c,                           // ← directly on OrderItem
+                   Warehouse__r.Warehouse_Code__c,
+                   ListPrice,
+                   UnitPrice,
+                   Disc_Type__c,                     // ← discount type (Amount / Percentage)
+                   Dis_Value__c                      // ← discount value
+            FROM OrderItem
+            WHERE OrderId = :order.Id
+        ];
+
         Map<Id, List<Order_Batch_Item__c>> batchByItem = new Map<Id, List<Order_Batch_Item__c>>();
-        for (Order_Batch_Item__c b : [SELECT Order_Product__c, Batch__c,Quantity__c,Block_Quantity__c, Warehouse_Code__c FROM Order_Batch_Item__c  WHERE Order_Product__c IN :orderItems ]) {
+        for (Order_Batch_Item__c b : [
+            SELECT Order_Product__c, Batch__c, Quantity__c, Block_Quantity__c, Warehouse_Code__c
+            FROM Order_Batch_Item__c
+            WHERE Order_Product__c IN :orderItems
+        ]) {
             if (!batchByItem.containsKey(b.Order_Product__c)) {
                 batchByItem.put(b.Order_Product__c, new List<Order_Batch_Item__c>());
             }
             batchByItem.get(b.Order_Product__c).add(b);
         }
-        //️⃣ Build DocumentLines (GROUP BY WAREHOUSE)
+
         for (OrderItem oi : orderItems) {
 
-            if (!batchByItem.containsKey(oi.Id)) {
-                
-                Decimal unitPriceAfterTax = oi.UnitPrice != null ? oi.UnitPrice : 0;
-                Decimal unitPriceBeforeTax =oi.ListPrice != null ? oi.ListPrice : 0;
-                Decimal priceFieldValue = unitPriceBeforeTax;
-                priceFieldValue= oi.After_Disc_Price_Sqft__c;
-                
-                DocumentLine dl = new DocumentLine();
-                dl.ItemCode = oi.PricebookEntry.Product2.Product_Code__c;
-                dl.WarehouseCode = oi.Warehouse__r.Warehouse_Code__c;
-                dl.UnitPrice = unitPriceBeforeTax.setScale(2);
-                //   dl.Quantity = oi.Quantity;
-                dl.Price = priceFieldValue;
-                //     dl.TaxCode = oi.Tax_Code__c;
-                dl.BatchNumbers = new List<BatchNumber>();
-                dl.U_ReservedQTY = oi.Block_Quantity__c;
-                dl.Quantity = oi.Quantity;
-                
+            // ── Calculate DiscountPercent for this line item ─────────────────
+            Decimal discPct = calculateDiscountPercent(oi);
 
+            if (!batchByItem.containsKey(oi.Id)) {
+                // No batch info – single line
+                DocumentLine dl   = new DocumentLine();
+                dl.ItemCode       = oi.PricebookEntry.Product2.Product_Code__c;
+                dl.WarehouseCode  = oi.Warehouse__r.Warehouse_Code__c != null
+                                    ? oi.Warehouse__r.Warehouse_Code__c
+                                    : order.Warehouse__r.Warehouse_Code__c;
+           //     dl.UnitPrice      = oi.UOM_Price_without_tax_and_after_disc__c;
+               dl.Price      = oi.UOM_Price_without_tax_and_after_disc__c;
+                dl.BatchNumbers   = new List<BatchNumber>();
+                dl.U_ReservedQTY  = oi.Block_Quantity__c;
+               /* if(oi.Product2.Product_Category__c=='TILE'){
+                      dl.Quantity       = oi.Quantity;
+                }*/
+                dl.Quantity       = oi.Quantity;
                 
-                
-                payload.documentLines.add(dl);
+                dl.DiscountPercent = discPct;   // ← NEW
+                payload.DocumentLines.add(dl);
                 continue;
-                
             }
 
-            // warehouse → batches
+            // Group batches by warehouse
             Map<String, List<Order_Batch_Item__c>> warehouseMap = new Map<String, List<Order_Batch_Item__c>>();
-
             for (Order_Batch_Item__c b : batchByItem.get(oi.Id)) {
                 if (!warehouseMap.containsKey(b.Warehouse_Code__c)) {
                     warehouseMap.put(b.Warehouse_Code__c, new List<Order_Batch_Item__c>());
@@ -923,55 +1045,39 @@ public class sapIntegration {
                 warehouseMap.get(b.Warehouse_Code__c).add(b);
             }
 
-            // Create one DocumentLine per warehouse
+            // One DocumentLine per warehouse
             for (String wh : warehouseMap.keySet()) {
-                
-                Decimal unitPriceAfterTax = oi.UnitPrice != null ? oi.UnitPrice : 0;
-                Decimal unitPriceBeforeTax =oi.ListPrice != null ? oi.ListPrice : 0;
-                Decimal priceFieldValue = unitPriceBeforeTax;
-                priceFieldValue= oi.After_Disc_Price_Sqft__c;
-                
-                DocumentLine dl = new DocumentLine();
-                dl.ItemCode = oi.PricebookEntry.Product2.Product_Code__c;
-                dl.WarehouseCode = wh;
-                dl.UnitPrice = unitPriceBeforeTax.setScale(2);
-             //   dl.Quantity = oi.Quantity;
-                dl.Price = priceFieldValue;
-                //     dl.TaxCode = oi.Tax_Code__c;
-                dl.BatchNumbers = new List<BatchNumber>();
-                
-                
-          //      docLines.add(docLine);
-                             
-                Decimal totalQty = 0;
-                Decimal bloQty = 0;
+                DocumentLine dl   = new DocumentLine();
+                dl.ItemCode       = oi.PricebookEntry.Product2.Product_Code__c;
+                dl.WarehouseCode  = wh;
+               // dl.UnitPrice      = oi.UOM_Price_without_tax_and_after_disc__c;
+                dl.Price      = oi.UOM_Price_without_tax_and_after_disc__c;
+                dl.BatchNumbers   = new List<BatchNumber>();
+                dl.DiscountPercent = discPct;   // ← NEW
 
+                Decimal totalQty = 0;
+                Decimal bloQty   = 0;
                 for (Order_Batch_Item__c b : warehouseMap.get(wh)) {
                     BatchNumber bn = new BatchNumber();
                     bn.BatchNumber = b.Batch__c;
-                    bn.Quantity = b.Quantity__c;
-
+                    bn.Quantity    = b.Quantity__c;
                     dl.BatchNumbers.add(bn);
                     totalQty += b.Quantity__c;
-                    bloQty += b.Block_Quantity__c;
+                    bloQty   += b.Block_Quantity__c;
                 }
 
                 dl.U_ReservedQTY = bloQty;
-                dl.Quantity = totalQty;
+                dl.Quantity      = totalQty;
                 payload.DocumentLines.add(dl);
             }
- 
-            
-            
-        } 
-        system.debug('payload>>'+JSON.serialize(payload));
- //       }
-            return payload;
+        }
+
+        System.debug('payload>>' + JSON.serialize(payload));
+        return payload;
     }
 
-    
-    
-    public static void getInvoiceMaster() {
+    @AuraEnabled
+    public static void getInvoiceMaster(String formattedDate) {
         
         String sessionId=loginToSAP();
         if(sessionId!=null){  
@@ -980,9 +1086,10 @@ public class sapIntegration {
             Apex_Log__c log = new Apex_Log__c();
             log.Request_Type__c ='Invoice';
             
-            Date today = Date.today();
-            String formattedDate = String.valueOf(today);
-            
+            if(formattedDate == null || formattedDate == ''){
+                Date today = Date.today();
+                formattedDate = String.valueOf(today);
+            }
             
             String fullUrl = SAP_BASE_URL + '/Invoices?$filter=(' + 
                 EncodingUtil.urlEncode('UpdateDate eq ' + '\'' + formattedDate + '\' or CreationDate  eq \'' + formattedDate + '\'', 'UTF-8')+')';
@@ -998,7 +1105,6 @@ public class sapIntegration {
                 log.Error_Message__c = 'Maximum number of callouts has been reached.';
             }
             else {
-                
                 HttpRequest itemReq = new HttpRequest();
                 itemReq.setEndpoint(fullUrl);
                 itemReq.setMethod('GET');
@@ -1010,32 +1116,25 @@ public class sapIntegration {
                 Http http = new Http();
                 HttpResponse itemRes = http.send(itemReq);
                 
-                
                 log.response__c= string.valueof(itemRes.getStatusCode());
                 log.Request__c =fullUrl;     
                 
-                
                 system.debug(itemRes);
-                
                 
                 if ((itemRes.getStatusCode() == 200 || itemRes.getStatusCode() == 201) && itemRes.getBody() != null ) {
                     log.status__c='SUCCESS';
                     
-                    if(itemRes.getBody().length()<100000){
-                        //    log.response__c= res.getStatusCode();
-                    } 
                     list<invoice__c> invList= new list<invoice__c>();
-                    
                     List<Invoice_Item__c> invItemList = new List<Invoice_Item__c>();
 					Set<String> docEntrySet = new Set<String>();
                     
                     Map<String, Object> json = (Map<String, Object>) JSON.deserializeUntyped(itemRes.getBody());
                     List<Object> items = (List<Object>) json.get('value');
 
-                    // Collect all lookup codes first
                     Set<String> accountCodes = new Set<String>();
                     Set<String> salesPersonCodes = new Set<String>();
                     Set<String> saleOrderNumbers = new Set<String>();
+                    
                     for (Object o : items) {
                         Map<String, Object> it = (Map<String, Object>) o;
                         String cc = String.valueOf(it.get('CardCode'));
@@ -1046,10 +1145,9 @@ public class sapIntegration {
                         if (so != null && so != '') saleOrderNumbers.add(so);
                     }
 
-                    // Build lookup maps
                     Map<String, Id> accountMap = new Map<String, Id>();
-                    for (Account a : [SELECT Id, Customer_Number__c FROM Account WHERE Customer_Number__c IN :accountCodes]) {
-                        accountMap.put(a.Customer_Number__c, a.Id);
+                    for (Account a : [SELECT Id, Customer_Number_Ext__c FROM Account WHERE Customer_Number_Ext__c IN :accountCodes]) {
+                        accountMap.put(a.Customer_Number_Ext__c, a.Id);
                     }
                     Map<String, Id> userMap = new Map<String, Id>();
                     for (User u : [SELECT Id, SAP_Emp_Code__c FROM User WHERE SAP_Emp_Code__c IN :salesPersonCodes]) {
@@ -1065,19 +1163,17 @@ public class sapIntegration {
                         Invoice__c inv = new Invoice__c();
                         
                         inv.Doc_Entry__c = String.valueOf(item.get('DocEntry'));
-                         docEntrySet.add(inv.Doc_Entry__c);
+                        docEntrySet.add(inv.Doc_Entry__c);
                         inv.Doc_Num__c = String.valueOf(item.get('DocNum'));
-                        if(item.get('DocDate') != null){
-                            inv.Invoice_Date__c = 
-                                Date.valueOf(String.valueOf(item.get('DocDate')));
+                        if(item.get('DocDate') != null){    
+                            inv.Invoice_Date__c = Date.valueOf(String.valueOf(item.get('DocDate')));
                         }
-
                         inv.Invoice_Amount__c = Decimal.valueOf(String.valueOf(item.get('DocTotal')));
                         inv.Comments__c= String.valueOf(item.get('Comments'));
                         inv.Account_Code__c= String.valueOf(item.get('CardCode'));
                         inv.SalesPersonCode__c= String.valueOf(item.get('SalesPersonCode'));
                         inv.Cancel_Status__c= String.valueOf(item.get('Cancelled'));
-                        inv.Total_Discount__c =     Decimal.valueOf(String.valueOf(item.get('TotalDiscount')));
+                        inv.Total_Discount__c = Decimal.valueOf(String.valueOf(item.get('TotalDiscount')));
 						inv.SaleOrder_Number__c = String.valueOf(item.get('U_Saleorder'));
                         inv.Payment_Mode__c = String.valueOf(item.get('U_Payment_method'));
                         inv.Branch_Name__c = String.valueOf(item.get('BPLName'));
@@ -1090,16 +1186,19 @@ public class sapIntegration {
                         if (inv.SaleOrder_Number__c != null && inv.SaleOrder_Number__c != '' && orderMap.containsKey(inv.SaleOrder_Number__c)) {
                             inv.Sales_Order__c = orderMap.get(inv.SaleOrder_Number__c);
                         }
-
                         inv.Vehicle_No__c = String.valueOf(item.get('VehicleNo'));
                         inv.VehicleType__c = String.valueOf(item.get('VehicleType'));
                         inv.TransportationMode__c = String.valueOf(item.get('TransportationMode'));
                         inv.Driver__c = String.valueOf(item.get('U_DRIVER'));
-                invList.add(inv);    
-                    List<Object> documentLines =
-                        (List<Object>) item.get('DocumentLines');
-                    
-                    if (documentLines != null) {  
+                        inv.Total_KM__c =String.valueOf(item.get('U_TOTALKM'))!=null? Decimal.valueOf(String.valueOf(item.get('U_TOTALKM'))):0;
+                        inv.Card_Name__c = String.valueOf(item.get('CardName'));
+                        inv.Address__c = String.valueOf(item.get('Address'));
+                        invList.add(inv);    
+
+                        List<Object> documentLines = (List<Object>) item.get('DocumentLines');
+                        List<Object> DocumentAdditionalExpenses = (List<Object>) item.get('DocumentAdditionalExpenses');
+
+                        if (documentLines != null) {  
                             for (Object lineObj : documentLines) {
                                 Map<String, Object> line = (Map<String, Object>) lineObj;
                                 Invoice_Item__c invItem = new Invoice_Item__c(); 
@@ -1109,13 +1208,16 @@ public class sapIntegration {
                                 invItem.Line_Total__c = (decimal) line.get('LineTotal');
                                 invItem.Price__c = (decimal) line.get('Price');
                                 invItem.Price_After_VAT__c= (decimal) line.get('PriceAfterVAT');
-                            //    invItem.Product__c= String.valueOf(line.get('CancelStatus'));
+                                invItem.Sqm__c = (decimal) line.get('U_SQMT');
+                                invItem.Sqft__c = (decimal) line.get('U_SQFT');
                                 invItem.Quantity__c= (decimal) line.get('Quantity');
                                 if(item.get('ShipDate') != null){
                                     invItem.Ship_Date__c = Date.valueOf(String.valueOf(item.get('ShipDate')));
                                 }
-                               if( invItem.Item_Code__c!= null &&  invItem.Item_Code__c != '')  invItem.Product__r = new Product2(Product_Code__c = invItem.Item_Code__c);
-
+                                if(invItem.Item_Code__c != null && invItem.Item_Code__c != '') {
+                                    invItem.Product__r = new Product2(Product_Code__c = invItem.Item_Code__c);
+                                }
+                                invItem.ItemDescription__c = String.valueOf(line.get('ItemDescription'));
                                 invItem.Tax_Amount__c= (decimal) line.get('TaxTotal');
                                 invItem.Unit_Price__c= (decimal) line.get('UnitPrice');
                                 invItem.Warehouse_Code__c= String.valueOf(line.get('WarehouseCode'));
@@ -1123,20 +1225,32 @@ public class sapIntegration {
                                 invItemList.add(invItem);
                             }
                         }
-                    }
                     
+                        if (DocumentAdditionalExpenses != null) {  
+                            for (Object lineObj : DocumentAdditionalExpenses) {
+                                Map<String, Object> line = (Map<String, Object>) lineObj;
+                                Integer lineNum = (Integer) line.get('ExpenseCode');
+                                if(lineNum == 1){
+                                    inv.Freight_Charge__c  = (decimal) line.get('LineTotal');
+                                }
+                                else if(lineNum == 2){
+                                    inv.Loading_Charge__c  = (decimal) line.get('LineTotal');
+                                }
+                                else if(lineNum == 3){
+                                    inv.Unloading_Charge__c  = (decimal) line.get('LineTotal');
+                                }
+                            }
+                        }
+                    }
                     Database.upsert(invList, Invoice__c.Doc_Entry__c, false);
                     
-                   // Query to get Ids for relationship
                     Map<String, Id> invoiceMap = new Map<String, Id>();
-                    for (Invoice__c i : [ SELECT Id, Doc_Entry__c  FROM Invoice__c WHERE Doc_Entry__c IN :docEntrySet ]) {
+                    for (Invoice__c i : [SELECT Id, Doc_Entry__c FROM Invoice__c WHERE Doc_Entry__c IN :docEntrySet]) {
                         invoiceMap.put(i.Doc_Entry__c, i.Id);
                     }
                     
                     for (Invoice_Item__c itemRec : invItemList) {
-                        
-                        String parentKey =  itemRec.Invoice_No__c;
-                        
+                        String parentKey = itemRec.Invoice_No__c;
                         if(invoiceMap.containsKey(parentKey)){
                             itemRec.Invoice__c = invoiceMap.get(parentKey);
                         }
@@ -1144,18 +1258,13 @@ public class sapIntegration {
                     Database.upsert(invItemList, Invoice_Item__c.Line_No__c, false);
                 } 
             }
-            
-            
         }  
-        
     }
-    
     
     @AuraEnabled(cacheable=false)  
     public static decimal getCustOutstanding(string accountId) {
         
-        string bpCode=[select id,Customer_Number__c from account where id=:accountId].Customer_Number__c;
-        //    bpCode='CU0000270';
+        string bpCode=[select id,Customer_Number_Ext__c from account where id=:accountId].Customer_Number_Ext__c;
         decimal CurrentAccountBalance;
         String sessionId=loginToSAP();
         if(sessionId!=null){  
@@ -1166,7 +1275,6 @@ public class sapIntegration {
             
             Date today = Date.today();
             String formattedDate = String.valueOf(today);
-            
             
             String fullUrl = SAP_BASE_URL + '/BusinessPartners('+'\''+bpCode+ '\')';
             
@@ -1181,7 +1289,6 @@ public class sapIntegration {
                 log.Error_Message__c = 'Maximum number of callouts has been reached.';
             }
             else {
-                
                 HttpRequest itemReq = new HttpRequest();
                 itemReq.setEndpoint(fullUrl);
                 itemReq.setMethod('GET');
@@ -1193,23 +1300,15 @@ public class sapIntegration {
                 Http http = new Http();
                 HttpResponse itemRes = http.send(itemReq);
                 
-                
                 log.response__c= string.valueof(itemRes.getStatusCode());
                 log.Request__c =fullUrl;     
                 
-                
                 system.debug(itemRes);
-                
                 
                 if ((itemRes.getStatusCode() == 200 || itemRes.getStatusCode() == 201) && itemRes.getBody() != null ) {
                     String responseBody = itemRes.getBody();
-                    
-                    //CurrentAccountBalance
-                    Map<String, Object> result =
-                        (Map<String, Object>) JSON.deserializeUntyped(responseBody);
+                    Map<String, Object> result = (Map<String, Object>) JSON.deserializeUntyped(responseBody);
                     CurrentAccountBalance = (decimal) result.get('CurrentAccountBalance');
-                    
-                    
                 }
                 else{
                     System.debug(' Failed to fetch outstanding: ' + itemRes.getBody());
@@ -1220,7 +1319,6 @@ public class sapIntegration {
                         insert log;
                     }
                 }
-                
             }
         }
         
@@ -1228,8 +1326,7 @@ public class sapIntegration {
         return CurrentAccountBalance;  
     }
 
-
-   @AuraEnabled(cacheable=false)   
+    @AuraEnabled  @future(callout=true) 
     public static void getPayments() {
         String sessionId = loginToSAP();
         if (sessionId != null) {
@@ -1250,7 +1347,6 @@ public class sapIntegration {
                 log.Status__c = 'FAILED';
                 log.Error_Message__c = outcomeMsg;
             } else {
-                
                 HttpRequest itemReq = new HttpRequest();
                 itemReq.setEndpoint(fullUrl);
                 itemReq.setMethod('GET');
@@ -1258,10 +1354,10 @@ public class sapIntegration {
                 itemReq.setHeader('Accept', 'application/json');
                 itemReq.setHeader('Cookie', 'B1SESSION=' + sessionId);
                 itemReq.setTimeout(120000);
-           system.debug(' fullUrl>>'+fullUrl);          
+                system.debug(' fullUrl>>'+fullUrl);          
                 Http http = new Http();
                 HttpResponse itemRes = http.send(itemReq);
-           system.debug(' itemRes>>'+itemRes);
+                system.debug(' itemRes>>'+itemRes);
                 log.response__c = String.valueOf(itemRes.getStatusCode());
                 log.Request__c = fullUrl;
                 
@@ -1272,46 +1368,62 @@ public class sapIntegration {
                     
                     Map<String, Object> json = (Map<String, Object>) JSON.deserializeUntyped(itemRes.getBody());
                     List<Object> items = (List<Object>) json.get('value');
-                  system.debug(' items>>'+items);     
-                    // Collect CardCodes to build Account lookup map
+                     
                     Set<String> cardCodes = new Set<String>();
+                    Set<String> invCodes = new Set<String>();
                     for (Object o : items) {
                         Map<String, Object> it = (Map<String, Object>) o;
                         String cc = String.valueOf(it.get('CardCode'));
                         if (cc != null && cc != '') cardCodes.add(cc);
+                        String inv = String.valueOf(it.get('DocEntry'));
+                        if (inv != null && inv != '') invCodes.add(inv);
                     }
                     Map<String, Id> accountMap = new Map<String, Id>();
-                    for (Account a : [SELECT Id, Customer_Number__c FROM Account WHERE Customer_Number__c IN :cardCodes]) {
-                        accountMap.put(a.Customer_Number__c, a.Id);
+                    for (Account a : [SELECT Id, Customer_Number_Ext__c FROM Account WHERE Customer_Number_Ext__c IN :cardCodes]) {
+                        accountMap.put(a.Customer_Number_Ext__c, a.Id);
+                    }
+                    Map<String, Id> invMap = new Map<String, Id>();
+                    for (Invoice__c a : [SELECT Id, Doc_Entry__c FROM Invoice__c WHERE Doc_Entry__c IN :invCodes]) {
+                        invMap.put(a.Doc_Entry__c, a.Id);
                     }
                     
+                    system.debug(' items>>'+items);   
                     for (Object obj : items) {
                         Map<String, Object> item = (Map<String, Object>) obj;
                         Payment__c pmt = new Payment__c();
                         
-                        pmt.Doc_Entry__c = String.valueOf(item.get('DocEntry'));
+                        pmt.Doc_Entry__c = String.valueOf(item.get('DocNum'));
                         pmt.Doc_Num__c = String.valueOf(item.get('DocNum'));
                         pmt.Name = String.valueOf(item.get('DocNum'));
                         if (item.get('DocDate') != null) {
                             pmt.Payment_Date__c = Date.valueOf(String.valueOf(item.get('DocDate')));
                         }
                         if (item.get('TransferSum') != null) {
-                            pmt.Amount__c = Decimal.valueOf(String.valueOf(item.get('TransferSum')));
+                            pmt.TransferSum__c = Decimal.valueOf(String.valueOf(item.get('TransferSum')));
                         }
+                        if (item.get('CashSum') != null) {
+                            pmt.CashSum__c = Decimal.valueOf(String.valueOf(item.get('CashSum')));
+                        }
+                        pmt.Invoice_Entry__c= String.valueOf(item.get('DocEntry'));
+                        String invCode = String.valueOf(item.get('DocEntry'));
+                        if (invCode != null && invCode != '' && invMap.containsKey(invCode)) {
+                            pmt.Invoice__c = invMap.get(invCode);
+                        }
+                        pmt.Branch_Name__c = String.valueOf(item.get('BPLName'));
+                        pmt.JournalRemarks__c = String.valueOf(item.get('JournalRemarks'));
                         pmt.Payment_Type__c = String.valueOf(item.get('PaymentType'));
-                        
+                        pmt.Card_Name__c = String.valueOf(item.get('CardName'));
+
                         String cardCode = String.valueOf(item.get('CardCode'));
                         if (cardCode != null && cardCode != '' && accountMap.containsKey(cardCode)) {
                             pmt.Account__c = accountMap.get(cardCode);
                         }
-                        
                         paymentList.add(pmt);
                     }
-                    
+                    system.debug(' paymentList>>'+paymentList);   
                     if (!paymentList.isEmpty()) {
                         Database.upsert(paymentList, Payment__c.Doc_Entry__c, false);
                     }
-                    
                     insert log;
                 } else {
                     log.Status__c = 'FAILED';
@@ -1321,4 +1433,155 @@ public class sapIntegration {
             }
         }
     }
+
+    @AuraEnabled
+    public static String addShipToAddressToSAP(Id opportunityId) {
+        Opportunity opp = [
+            SELECT Id, AccountId, Account.Customer_Number_Ext__c,
+                   AddressLine1__c, AddressLine2__c, AddressLine3__c,
+                   Corporation__c, Municipality__c, Panchayath__c,
+                   Village__c, District__c, State__c, Country__c, Pin_Code__c,
+                   GST_Number__c, Account.Customer_Type__c, Account.GST_Type__c
+            FROM Opportunity
+            WHERE Id = :opportunityId
+            LIMIT 1
+        ];
+
+        if (opp.Account.Customer_Number_Ext__c == null) {
+            throw new AuraHandledException('Account does not have a Customer Number.');
+        }
+
+        String sessionId = loginToSAP();
+        if (sessionId == null) {
+            throw new AuraHandledException('Failed to login to SAP.');
+        }
+
+        Http http = new Http();
+
+        String street = '';
+        if (opp.Corporation__c != null) street += opp.Corporation__c;
+        if (opp.Municipality__c != null) street += (street != '' ? ', ' : '') + opp.Municipality__c;
+        if (opp.Panchayath__c != null) street += (street != '' ? ', ' : '') + opp.Panchayath__c;
+
+        String stateCode = opp.State__c;
+        if (opp.State__c != null && opp.State__c.length() > 2) {
+            stateCode = getStateCode(opp.State__c);
+        }
+        String countryCode = opp.Country__c;
+        if (opp.Country__c != null && opp.Country__c.length() > 2) {
+            countryCode = getCountryCode(opp.Country__c);
+        }
+
+        Map<String, Object> shipToAddress = new Map<String, Object>{
+            'AddressName'  => opp.AddressLine1__c != null ? opp.AddressLine1__c : '',
+            'AddressType'  => 'bo_ShipTo',
+            'Street'       => street,
+            'City'         => opp.Village__c != null ? opp.Village__c : '',
+            'County'       => opp.District__c != null ? opp.District__c : '',
+            'ZipCode'      => opp.Pin_Code__c != null ? String.valueOf(opp.Pin_Code__c) : '',
+            'State'        => stateCode != null ? stateCode : '',
+            'Country'      => countryCode != null ? countryCode : '',
+            'AddressName2' => opp.AddressLine2__c != null ? opp.AddressLine2__c : '',
+            'AddressName3' => opp.AddressLine3__c != null ? opp.AddressLine3__c : '',
+            'GSTIN'        => opp.GST_Number__c != null ? opp.GST_Number__c : ''
+        };
+
+        String gstT = '';
+        if (opp.Account.Customer_Type__c == 'B2B' && opp.Account.GST_Type__c != null) {
+            gstT = opp.Account.GST_Type__c;
+        }
+        if (String.isNotBlank(gstT)) {
+            shipToAddress.put('GstType', gstT);
+        }
+
+        HttpRequest getReq = new HttpRequest();
+        getReq.setEndpoint(SAP_BASE_URL + '/BusinessPartners(\'' + opp.Account.Customer_Number_Ext__c + '\')');
+        getReq.setMethod('GET');
+        getReq.setHeader('Cookie', 'B1SESSION=' + sessionId);
+        HttpResponse getRes = http.send(getReq);
+
+        List<Map<String, Object>> bpAddresses = new List<Map<String, Object>>();
+        if (getRes.getStatusCode() == 200) {
+            Map<String, Object> bpData = (Map<String, Object>) JSON.deserializeUntyped(getRes.getBody());
+            if (bpData.containsKey('BPAddresses') && bpData.get('BPAddresses') != null) {
+                for (Object addr : (List<Object>) bpData.get('BPAddresses')) {
+                    bpAddresses.add((Map<String, Object>) addr);
+                }
+            }
+        } else {
+            throw new AuraHandledException('Business Partner not found in SAP: ' + opp.Account.Customer_Number_Ext__c);
+        }
+
+        bpAddresses.add(shipToAddress);
+
+        Map<String, Object> updatePayload = new Map<String, Object>{
+            'BPAddresses' => bpAddresses
+        };
+
+        HttpRequest patchReq = new HttpRequest();
+        patchReq.setEndpoint(SAP_BASE_URL + '/BusinessPartners(\'' + opp.Account.Customer_Number_Ext__c + '\')');
+        patchReq.setMethod('PATCH');
+        patchReq.setHeader('Content-Type', 'application/json');
+        patchReq.setHeader('Cookie', 'B1SESSION=' + sessionId);
+        patchReq.setBody(JSON.serialize(updatePayload));
+
+        HttpResponse patchRes = http.send(patchReq);
+
+        if (patchRes.getStatusCode() == 204) {
+            return 'Address added successfully to SAP.';
+        } else {
+            String errorMsg = patchRes.getBody();
+            Integer errorCode = 0;
+            try {
+                Map<String, Object> errWrapper = (Map<String, Object>) JSON.deserializeUntyped(patchRes.getBody());
+                if (errWrapper.containsKey('error')) {
+                    Map<String, Object> errObj = (Map<String, Object>) errWrapper.get('error');
+                    Map<String, Object> msgObj = (Map<String, Object>) errObj.get('message');
+                    errorMsg = (String) msgObj.get('value');
+                    errorCode = (Integer) errObj.get('code');
+                }
+            } catch (Exception ex) {
+                // keep raw body as errorMsg
+            }
+            if (errorCode == -2035) {
+                throw new AuraHandledException('This address already exists in SAP.');
+            }
+            throw new AuraHandledException('Failed to add address: ' + errorMsg);
+        }
+    }
+  // ─────────────────────────────────────────────────────────────────────────
+    // getProductMaster
+    //
+    // Called from the SAP_Component Aura component (sendRequestProd action).
+    // Accepts the date string selected by the user (YYYY-MM-DD format from the
+    // Aura date input) and delegates the SAP callout to SAPProductIntegration.
+    //
+    // The @future annotation is required because the Aura controller is invoked
+    // from a synchronous Apex context that cannot make callouts directly.
+    // ─────────────────────────────────────────────────────────────────────────
+    @AuraEnabled
+    public static void getProductMaster(String selectedDate) {
+        try {
+            Date parsedDate = null;
+
+            if (String.isNotBlank(selectedDate)) {
+                // selectedDate arrives as 'YYYY-MM-DD' from the Aura date input
+                parsedDate = Date.valueOf(selectedDate);
+            }
+
+            // Delegate to the product integration class, passing the parsed date.
+            // runSync(Date) uses the date to build the SAP filter:
+            //   UpdateDate >= selectedDate OR CreateDate >= selectedDate
+            SAPProductIntegration.runSync(parsedDate);
+
+        } catch (Exception e) {
+            System.debug('❌ getProductMaster error: ' + e.getMessage());
+            throw new AuraHandledException(
+                'Product Master sync failed: ' + e.getMessage()
+            );
+        }
+    }
+
+
+
 }

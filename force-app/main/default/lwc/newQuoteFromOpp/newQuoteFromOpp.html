@@ -55,7 +55,7 @@
             <!-- Right -->
             <div class="header-right slds-col slds-size_1-of-1 slds-large-size_1-of-3">
             <div class="slds-grid slds-gutters">
-                <!-- Price Book -->
+                <!-- Price Book 
                 <div class="slds-col slds-size_1-of-2">
                     <label class="slds-form-element__label">Price Book</label>
                     <div class="slds-form-element__control">
@@ -74,8 +74,19 @@
                             </select>
                         </div>
                     </div>
-                </div>
+                </div>-->
 
+                <div class="slds-col slds-size_1-of-2">
+                  <div class="slds-col slds-small-size_1-of-1 slds-medium-size_6-of-12">
+                            <lightning-combobox
+                                label="Price Book"
+                                value={selectedPB}
+                                options={priceNames}
+                                onchange={handlePBSelect}
+                                required>
+                            </lightning-combobox>
+                        </div>
+                    </div>
                 <!-- Category -->
               
 
@@ -234,7 +245,9 @@
                                                         <td>{stk.warehouseCode}</td>
                                                         <td>{stk.Batch}</td>
                                                         <td>{stk.inStock}</td>
-                                                        <td>
+                                                        <td>{stk.reserved}</td>
+                                                        <td>{stk.billable}</td>
+                                                    <!--    <td>
                                                             <lightning-formatted-number
                                                                 value={stk.reserved}
                                                                 minimum-fraction-digits="2"
@@ -247,7 +260,7 @@
                                                                 minimum-fraction-digits="2"
                                                                 maximum-fraction-digits="2">
                                                             </lightning-formatted-number>
-                                                            </td>
+                                                            </td>-->
 
                                                     </tr>
                                                 </template>
@@ -396,7 +409,7 @@
                                                             onchange={handleAreaDesChange}>
                                         </lightning-input>
                                 </div>
-                            <!--   <template if:true={showDiscountSection}> -->     
+                            <!--   <template if:true={showDiscountSection}>   
                                 <div class="slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
                                     <div class="slds-form-element">
                                         <label class="slds-form-element__label">Disc Type</label>
@@ -417,15 +430,31 @@
                                             </div>
                                         </div>
                                     </div>
+                                </div>-->   
+                               
+                                 <div class="slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
+                                    <lightning-combobox
+                                        label="Disc Type"
+                                        value={item.discType}
+                                        options={discountTypeOptions}
+                                        data-index={index}
+                                        onchange={handleDiscTypeChange}
+                                        >
+                                    </lightning-combobox>
                                 </div>
+
+
                                 <div class="slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
                                     <lightning-input type="number" label="Disc Value"
                                                         value={item.discValue}
                                                         data-index={index}
                                                         data-product-id={item.id}
-                                                        onchange={handleDiscValueChange}>
+                                                        onchange={handleDiscValueChange}
+                                                        >
                                     </lightning-input>
+                                    
                                 </div>
+
                                     <div class="slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
                                     <lightning-input type="number" label="After Disc (₹)"
                                                         value={item.afterDiscPrice}
@@ -485,7 +514,7 @@
                                                         data-index={index}
                                                         data-product-id={item.id}
                                                         onchange={handleSqftChange}
-                                                        step="0.01">
+                                                        step="any">
                                                         
                                     </lightning-input>
 
@@ -571,7 +600,8 @@
                                                             value={item.discValue}
                                                             data-index={index}
                                                             data-product-id={item.id}
-                                                            onchange={handleDiscValueChange}>
+                                                            onchange={handleDiscValueChange}
+                                                            step="any">
                                         </lightning-input>
                                     </div>
                             <!-- </template>-->
@@ -677,7 +707,10 @@
                         data-index={index}
                         ondragstart={handleDragStart}
                         ondragover={handleDragOver}
-                        ondrop={handleDrop}>
+                        ondrop={handleDrop}
+                        ontouchstart={handleRowTouchStart}
+                        ontouchmove={handleRowTouchMove}
+                        ontouchend={handleRowTouchEnd}>
                     <td class="product-info">
                         <img src={item.imageUrl} alt={item.name} />
                         <div>
@@ -762,9 +795,11 @@
             <span>Quote Total</span>
             <span>₹{orderTotal}</span>
             </div>
-            <button class="checkout-button" onclick={handleConfirm}>
-            Confirm Quote
-            </button>
+             <template if:false={isConfirmed}>
+                <button class="checkout-button" onclick={handleConfirm}>
+                Confirm Quote
+                </button>
+            </template>
         </div>
         </div>
         <template if:true={selectedProducts}>

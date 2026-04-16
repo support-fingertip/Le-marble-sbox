@@ -12,7 +12,15 @@ public class DeliveryLineItemTriggerTest {
     private static TestDataWrapper createTestData() {
         TestDataWrapper data = new TestDataWrapper();
 
-        Account acc = new Account(Name = 'Test Account');
+        Account acc = new Account(
+            Name              = 'Test Account',
+            BillingCountry    = 'India',
+            BillingState      = 'Maharashtra',
+            BillingPostalCode = '400001',
+            BillingStreet     = '123 Test Street',
+            District__c       = 'Ernakulam',
+            Pin_Code__c       = 400001
+        );
         insert acc;
 
         Id stdPricebookId = Test.getStandardPricebookId();
@@ -48,7 +56,6 @@ public class DeliveryLineItemTriggerTest {
 
         Delivery_Group__c dg = new Delivery_Group__c(
             Sales_Order__c     = ord.Id,
-            Quantity__c        = 10,
             Delivery_Status__c = 'Draft',
             Approval_Status__c = 'Draft'
         );

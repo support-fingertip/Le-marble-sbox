@@ -36,9 +36,9 @@ public with sharing class QuotePdfController {
 
         System.debug('Quote ID in constructor: ' + this.cart.Id);
 
-        // Fetch the complete Quote record with all related fields you might need
+        // Fetch the complete Quote record with all related fields you might need   account.Customer_Number__c,
         List<Quote> qList = [
-        SELECT Id, Name, AccountId, OpportunityId,
+        SELECT Id, Name,Quote_Number__c, AccountId, OpportunityId,account.Customer_Number_Ext__c,
          Freight_Charge__c, Loading_Charge__c, Unloading_Charge__c,Round_Off__c,
         Total_Amount1__c, Subtotal, TotalPrice, GrandTotal, Discount,
         Email, Phone, Fax,
@@ -281,8 +281,12 @@ this.mrpTotal += item.Without_Discount_Total_Price__c;
                 this.mrpTotal += item.UnitPrice*item.Quantity;
             }
             String descriptionField = null;
+               String displayName = item.Product2.Name;
             if (item.Product_Category__c == 'N.STONE') {
                 descriptionField = item.Description;
+                     if (String.isNotBlank(item.Description)) {
+                    displayName = item.Product2.Name + ': ' + item.Description;
+                }
             }
             
             System.debug('Processing item: ' + item.Product2.Name);
@@ -295,20 +299,25 @@ this.mrpTotal += item.Without_Discount_Total_Price__c;
                 
                     Decimal originalTotal = item.UnitPrice * item.Quantity;
                     discountAmount = (originalTotal * item.Dis_Value__c) / 100;
-                }
+                    }
+            else if (item.Disc_Type__c == 'Amount' && 
+                     item.Dis_Value__c != null) {
+                         discountAmount = item.Dis_Value__c;
+                     }
             String imageUrl = null;
             if (item.Product2Id != null && productImageUrls.containsKey(item.Product2Id)) {
                 imageUrl = productImageUrls.get(item.Product2Id);
             }
             products.add(new QuotationLineItem(
-                item.Product2.Name,
+             displayName,
+                //  item.Product2.Name,
                 item.Product_Category__c,
-                item.Quantity,
+ 				 (item.Product_Category__c == 'N.STONE' ? null : item.Quantity),                
                 item.Sqft__c,
-                item.UnitPrice,
-                null,
+                (item.Product_Category__c == 'TILE'? item.Price_Sqft__c : (item.Product_Category__c == 'N.STONE'? item.After_Disc_Price_Sqft__c + discountAmount: item.After_Disc_Price_Piece__c + discountAmount)),
+                // Set beforeDiscPrice: if tile, use After_Disc_Price_Sqft__c, else After_Disc_Price_Piece__c
+                (item.Product_Category__c == 'TILE' || item.Product_Category__c == 'N.STONE'? item.After_Disc_Price_Sqft__c : item.After_Disc_Price_Piece__c),
                 item.Dis_Value__c,
-                // item.After_Disc_Price_Piece__c,
                 item.Calculated_Total_Price__c,   // ✔ FIXED HERE
                 item.UOM__c,
                 imageUrl, // imageUrl for product
@@ -401,11 +410,11 @@ System.debug('Final products list size: ' + this.products.size());
         // Link the file to the Opportunity (if present) otherwise to the Quote
         ContentDocumentLink cdl = new ContentDocumentLink();
         cdl.ContentDocumentId = contentDocumentId;
-        if (quoteRecord.OpportunityId != null) {
-            cdl.LinkedEntityId = quoteRecord.OpportunityId;
-        } else {
-            cdl.LinkedEntityId = quoteRecord.Id;
-        }
+       // if (quoteRecord.OpportunityId != null) {
+         //   cdl.LinkedEntityId = quoteRecord.OpportunityId;
+        //} else {
+            cdl.LinkedEntityId = cartId;
+        //}
         cdl.ShareType = 'V'; // Viewer permission
         cdl.Visibility = 'AllUsers';
         insert cdl;
@@ -550,8 +559,8 @@ email.setToAddresses(new List<String>{ finalEmail });
         public Decimal quantity { get; set; }
         public Decimal sqft { get; set; }
         public Decimal unitPrice { get; set; }
-        public Decimal afterDiscPrice { get; set; }
-        public Decimal total { get; set; }
+        public Decimal beforeDiscPrice { get; set; }
+       public Decimal total { get { return total != null ? total.setScale(2, RoundingMode.HALF_UP) : null; } set; }
         public String uom { get; set; }
         public String imageUrl { get; set; }
         public String roomType { get; set; }
@@ -587,8 +596,8 @@ email.setToAddresses(new List<String>{ finalEmail });
             Decimal quantity,
             Decimal sqft,
             Decimal unitPrice,
+            Decimal beforeDiscPrice,
             Decimal discount,
-            Decimal afterDiscPrice,
             Decimal total,
             String uom,
             String imageUrl,
@@ -606,7 +615,7 @@ email.setToAddresses(new List<String>{ finalEmail });
             this.quantity = quantity;
             this.sqft = sqft;
             this.unitPrice = unitPrice;
-            this.afterDiscPrice = afterDiscPrice;
+            this.beforeDiscPrice = beforeDiscPrice;
             this.total = total;
             this.uom = uom;
 

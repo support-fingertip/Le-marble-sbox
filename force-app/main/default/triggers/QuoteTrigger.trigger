@@ -48,5 +48,11 @@ trigger QuoteTrigger on Quote (
             Trigger.new,
             Trigger.oldMap
         );
+   
+        // Auto-sync Quote to Opportunity when status becomes Accepted
+        QuoteTriggerHandler.syncQuoteToOpportunity(
+            Trigger.new,
+            Trigger.oldMap
+        );
     }
 }

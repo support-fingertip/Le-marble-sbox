@@ -5,7 +5,7 @@ public with sharing class DeliveryLineItemHelper {
         if (orderItemIds == null || orderItemIds.isEmpty()) {
             return;
         }
-        
+            
         
         //* 1. Aggregate Delivered Quantity from Delivery Line Items
         
@@ -106,5 +106,6 @@ public with sharing class DeliveryLineItemHelper {
                 System.debug('DeliveryLineItemHelper update error: ' + e.getMessage());
             }
         }
+
     }
 }

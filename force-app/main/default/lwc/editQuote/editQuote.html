@@ -2,46 +2,6 @@
     <div class="page-wrapper">
 
         <template if:false={openPreview}>
-            <!-- HEADER
-        <div class="header-card">
-            <div class="header-left">
-                <h1 class="header-title">Add Quote Line Items</h1>
-                <p class="header-sub">Select a Price Book and start adding products</p>
-            </div>
-
-            <div class="header-right">
-                <div class="slds-form-element">
-                    <label class="slds-form-element__label">Price Book</label>
-                    <div class="slds-form-element__control">
-                        <div class="slds-select_container">
-                            <select class="slds-select" onchange={handlePBSelect} value={selectedPB}>
-                            <template if:true={selectedPB}>
-                                <option value={selectedPB}>{selectedPB}</option>
-                            </template> 
-                                <template for:each={priceNames} for:item="pb">
-                                    <option key={pb.value} value={pb.value}>{pb.label}</option>
-                                </template>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="slds-form-element category-select">
-                <label class="slds-form-element__label">Category</label>
-                <div class="slds-form-element__control">
-                    <div class="slds-select_container">
-                        <select class="slds-select" value={selectedCategory} onchange={handleCategoryChange} disabled={isCategoryDisabled}>
-                            <template if:true={selectedCategory}>
-                                    <option value={selectedCategory}>{selectedCategory}</option>
-                            </template>
-                            <template for:each={categories} for:item="cat">
-                                <option key={cat.value} value={cat.value}>{cat.label}</option>
-                            </template>
-                        </select>
-                    </div>
-                </div>
-            </div>
-        </div>-->
 
         <template if:false={isQuoteRecordId}>
             <div class="header-card slds-grid slds-wrap slds-grid_vertical-align-center">
@@ -50,43 +10,12 @@
                     <template if:true={isEditMode}>
                         <h1 class="header-title">Edit Quote</h1>
                         <p class="header-sub">Modify quote items</p>
-                    </template>
-                    <template if:false={isEditMode}>
-                        <h1 class="header-title">Add Quote Line Items.</h1>
-                        <p class="header-sub">
-                        <!--    Select a Price Book and start adding products-->    
-                        </p>
+                         <p class="header-sub">Price Book : {selectedPBLabel}</p>
                     </template>
                 </div>
 
                 <!-- Right -->
-                <template if:false={isEditMode}>
-                    <div class="header-right slds-col slds-size_1-of-1 slds-large-size_1-of-3">
-                        <div class="slds-grid slds-gutters">
-                            <!-- Price Book -->
-                            <div class="slds-col slds-size_1-of-2">
-                                <label class="slds-form-element__label">Price Book</label>
-                                <div class="slds-form-element__control">
-                                    <div class="slds-select_container">
-                                        <select class="slds-select"
-                                                onchange={handlePBSelect}
-                                                value={selectedPB}>
-                                            <template if:true={selectedPB}>
-                                                <option value={selectedPB}>{selectedPBLabel}</option>
-                                            </template>
-                                            <template for:each={priceNames} for:item="pb">
-                                                <option key={pb.value} value={pb.value}>
-                                                    {pb.label}
-                                                </option>
-                                            </template>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Category -->
-                        </div>
-                    </div>
-                </template>
+            
             </div>
         </template>
 
@@ -134,31 +63,6 @@
             <template if:true={item.isActive}>
                 <div class="product-details slds-p-around_medium">
                     <div class="slds-grid slds-wrap slds-gutters">
-
-
-                        <!--    <div class="slds-col slds-small-size_1-of-1 slds-medium-size_5-of-12 input-box">
-
-                        <div class="slds-col slds-size_1-of-2">
-                            <label class="slds-form-element__label">Category</label>
-                            <div class="slds-form-element__control">
-                                <div class="slds-select_container">
-                                    <select class="slds-select"
-                                            value={selectedCategory}
-                                            onchange={handleCategoryChange}
-                                            disabled={isCategoryDisabled}>
-                                                <template if:true={selectedCategory}>
-                                                        <option value={selectedCategory}>{selectedCategory}</option>
-                                                    </template>
-                                        <template for:each={categories} for:item="cat">
-                                            <option key={cat.value} value={cat.value}>
-                                                {cat.label}
-                                            </option>
-                                        </template>
-                                    </select>
-                                </div>
-                            </div>
-                    </div>
-                -->
                     
                         <!-- ROW CATEGORY -->
                         <div class="slds-col slds-small-size_1-of-1 slds-medium-size_3-of-12">
@@ -356,7 +260,8 @@
                                                     data-product-id={item.id}
                                                     data-index={index}
                                                     required="true"
-                                                    onchange={handleNaturalStoneRequiredSqftChange}>
+                                                    onchange={handleNaturalStoneRequiredSqftChange}
+                                                      step="any">
                                 </lightning-input>
                             </div>
 
@@ -430,7 +335,8 @@
                                                         value={item.discValue}
                                                         data-index={index}
                                                         data-product-id={item.id}
-                                                        onchange={handleDiscValueChange}>
+                                                        onchange={handleDiscValueChange}
+                                                         step="any">
                                     </lightning-input>
                                 </div>
                                     <div class="slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8">
@@ -769,9 +675,11 @@
             <span>Quote Total</span>
             <span>₹{orderTotal}</span>
             </div>
-            <button class="checkout-button" onclick={handleConfirm}>
-            Confirm Quote
-            </button>
+              <template if:false={isConfirmed}>
+                <button class="checkout-button" onclick={handleConfirm}>
+                Confirm Quote
+                </button>
+            </template>
         </div>
         </div>
         <template if:true={selectedProducts}>

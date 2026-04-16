@@ -1,6 +1,8 @@
 import { LightningElement, wire, api, track } from 'lwc';
+import { CurrentPageReference } from 'lightning/navigation';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import searchSalesConfirmations from '@salesforce/apex/NewDeliveryPlanController.searchSalesOrders';
+import getOrderById from '@salesforce/apex/NewDeliveryPlanController.getOrderById';
 import getAvailableProducts from '@salesforce/apex/NewDeliveryPlanController.getAvailableProducts';
 import createDeliveryGroup from '@salesforce/apex/NewDeliveryPlanController.createDeliveryGroup';
 import getVehicleTypeOptions from '@salesforce/apex/NewDeliveryPlanController.getVehicleTypeOptions';
@@ -45,6 +47,63 @@ export default class NewDeliveryPlan extends LightningElement {
     @track vehicleNumberOptions = [];
     @api recordId;
 today;
+
+  @wire(CurrentPageReference)
+    handlePageReference(pageRef) {
+        if (pageRef && pageRef.state && pageRef.state.c__orderId) {
+            const orderId = pageRef.state.c__orderId;
+            if (orderId !== this.selectedSalesConfirmationId) {
+                this.loadOrderById(orderId);
+            }
+        }
+    }
+
+    async loadOrderById(orderId) {
+        try {
+            const sc = await getOrderById({ orderId: orderId });
+            if (sc) {
+                this.selectedSalesConfirmationId = sc.Id;
+                this.selectedQuoteId = sc.QuoteId;
+                this.searchTerm = sc.OrderNumber + (sc.Product_Category__c ? ` (${sc.Product_Category__c})` : '');
+                this.selectedSalesConfirmation = {
+                    name: sc.OrderNumber,
+                    quoteName: sc.Quote_Name__c,
+                    company: sc.Account ? sc.Account.Name : '',
+                    orderOwner: sc.Order_Owner__c,
+                    phone: sc.Phone__c,
+                    address: {
+                        street: sc.BillingStreet,
+                        city: sc.BillingCity,
+                        state: sc.BillingState,
+                        postalCode: sc.BillingPostalCode,
+                        country: sc.BillingCountry
+                    },
+                    preferredDeliveryDate: sc.Delivery_Committed_Date__c,
+                    totalAmount: sc.TotalAmount,
+                    warehouse: sc.Warehouse__c,
+                    productCategory: sc.Product_Category__c,
+                    QuoteId: sc.QuoteId,
+                    cartLineItems: sc.OrderItems || []
+                };
+                this.salesConfirmations = [];
+                this.freightTouched = false;
+                this.loadingTouched = false;
+                this.unloadingTouched = false;
+                this.freightAmount = null;
+                this.unloadingAmount = null;
+                this.loadingAmount = null;
+                this.loadInitialData();
+                this.deliverySummaryNote = '';
+                this.loadFreightFromSalesOrder();
+                this.loadRemarksFromSalesOrder();
+                this.loadLoadingFromSalesOrder();
+                this.loadUnloadingFromSalesOrder();
+            }
+        } catch (error) {
+            this.showToast('Error', error.body?.message || 'Failed to load order', 'error');
+        }
+    }
+
   connectedCallback() {
         // YYYY-MM-DD (required by lightning-input type="date")
         this.today = new Date().toISOString().split('T')[0];
@@ -130,7 +189,7 @@ today;
                     productCategory: sc.Product_Category__c,
                     QuoteId: sc.QuoteId,
                     cartLineItems: sc.OrderItems || [],
-                //    preferredDeliveryDate: sc.Preferred_Delivery_Date__c
+                    preferredDeliveryDate: sc.Delivery_Committed_Date__c
                 }
             }));
         } catch (error) {
@@ -177,8 +236,9 @@ today;
             this.availableProducts = availableProductsResult.map(product => ({
                 ...product,
                 selected: false,
-                deliveryQuantity: product.Quantity,
-                displayName: `${product.Product2.Name} - Available: ${product.Quantity}`
+                pendingQty: product.Pending_Quantity1__c,
+                deliveryQuantity: product.Pending_Quantity1__c,
+                displayName: `${product.Product2.Name} - Available: ${product.Pending_Quantity1__c}`
             }));
             // Load driver picklist
             const driverPicklist = await getDriverPicklistOptions();
@@ -233,7 +293,7 @@ async loadRemarksFromSalesOrder() {
         if (product) {
             product.selected = event.target.checked;
             if (product.selected) {
-                product.deliveryQuantity = product.Quantity;
+                product.deliveryQuantity = product.pendingQty;
             }
             this.validateForm();
         }
@@ -255,8 +315,8 @@ async loadRemarksFromSalesOrder() {
             const newQuantity = parseFloat(product.deliveryQuantity);
             if (!newQuantity || newQuantity < 1) {
                 product.deliveryQuantity = 1;
-            } else if (newQuantity > product.Quantity) {
-                product.deliveryQuantity = product.Quantity;
+            } else if (newQuantity > product.pendingQty) {
+                product.deliveryQuantity = product.pendingQty;
                 this.showToast('Warning', 'Quantity cannot exceed available amount', 'warning');
             } else {
                 product.deliveryQuantity = newQuantity;
@@ -330,9 +390,10 @@ handleUnloadingChargeAmountChange(event) {
     validateForm() {    
         const hasSelectedProducts = this.availableProducts.some(product => product.selected);
         const hasValidQuantities = this.availableProducts.every(product => 
-            !product.selected || (product.deliveryQuantity > 0 && product.deliveryQuantity <= product.Quantity)
+            !product.selected || (product.deliveryQuantity > 0 && product.deliveryQuantity <= product.pendingQty)
         );
-      const hasRequiredFields = this.deliveryDate && this.selectedDriver && this.selectedVehicle && this.deliveryPriority;
+      const hasRequiredFields = this.deliveryDate && this.deliveryPriority;
+      //this.selectedDriver && this.selectedVehicle && 
         
         this.isCreateButtonDisabled = !(hasSelectedProducts && hasValidQuantities && hasRequiredFields);
     }

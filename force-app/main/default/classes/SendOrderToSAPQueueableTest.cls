@@ -5,7 +5,15 @@ public class SendOrderToSAPQueueableTest {
         // Set mock for callouts
         Test.setMock(HttpCalloutMock.class, new MockSAPCallout());
         // Create a test Account
-        Account acc = new Account(Name = 'Test Account For Order');
+        Account acc = new Account(
+            Name = 'Test Account For Order',
+            BillingCountry = 'India',
+            BillingState = 'Maharashtra',
+            BillingPostalCode = '400001',
+            BillingStreet = '123 Test Street',
+            District__c = 'Ernakulam',
+            Pin_Code__c = 400001
+        );
         insert acc;
         // Create a test Order with Status 'Draft' to pass validation
         Order ord = new Order(

@@ -19,7 +19,7 @@
      position: running(pageHeaderText);
     text-align: center;
     font-size: 26px;
-    letter-spacing: 6px;
+    letter-spacing: 6px;    
     font-family: "Times New Roman", serif;
 }
                 body {
@@ -397,14 +397,12 @@ L E &nbsp; M A R B L E &nbsp; G A L L E R Y &nbsp; P V T. &nbsp; L T D.
                                     Opposite Civil Station, Calicut
                                 </td>
                             </tr>
-                            <tr>
-                                <td colspan="2" style="height:20px;"></td>
-                            </tr>
+
                             <tr>
                                 <td style="font-weight:bold;">Prepared By</td>
                                 <td>{!cart.Owner.Name}</td>
                             </tr>
-                            
+                           
                             <tr>
                                 <td style="font-weight:bold;">Phone</td>
                                 <td>{!cart.Owner.Phone}</td>
@@ -414,12 +412,18 @@ L E &nbsp; M A R B L E &nbsp; G A L L E R Y &nbsp; P V T. &nbsp; L T D.
                                 <td style="font-weight:bold;">Email</td>
                                 <td>{!cart.Owner.Email}</td>
                             </tr>
-                            
+                             <tr>
+                                <td colspan="2" style="height:20px;"></td>
+                            </tr>
                             <tr>
                                 <td style="font-weight:bold;">Bill To Name</td>
                                 <td>{!Quote.Account.Name}</td>
                             </tr>
-                            
+                              <tr>
+                                <td style="font-weight:bold;">Customer Number</td>
+                                <td>{!cart.Account.Customer_Number_Ext__c}</td>
+                            </tr>
+                           
                             <tr>
                                 <td style="font-weight:bold;">Bill To</td>
                                 <td><apex:outputText value="{!Quote.Opportunity.Account.BillingStreet}" rendered="{!NOT(ISBLANK(Quote.Opportunity.Account.BillingStreet))}"/><br/>
@@ -447,7 +451,7 @@ L E &nbsp; M A R B L E &nbsp; G A L L E R Y &nbsp; P V T. &nbsp; L T D.
                             
                             <tr>
                                 <td style="font-weight:bold;">Expiration Date</td>
-                                <td>
+                                <td>    
                                     
                                     {!LPAD(TEXT(DAY(cart.ExpirationDate)), 2, '0')}-
                                     {!LPAD(TEXT(MONTH(Quote.ExpirationDate)), 2, '0')}-
@@ -456,16 +460,16 @@ L E &nbsp; M A R B L E &nbsp; G A L L E R Y &nbsp; P V T. &nbsp; L T D.
                             
                             <tr>
                                 <td style="font-weight:bold;">Quote Number</td>
-                                <td>{!cart.Name}</td>
+                                <td>{!cart.Quote_Number__c}</td>
                             </tr>
                             
                             <tr>
                                 <td style="font-weight:bold;">Contact Name</td>
                                 <td>{!cart.Contact_Person_Name__c}</td>
                             </tr>
-                            
+            
                             <tr>
-                                <td style="font-weight:bold;">Phone</td>
+                                <td style="font-weight:bold;">Contact Number</td>
                                 <td>{!cart.Contact_Person_Number__c}</td>
                             </tr>
                             
@@ -481,9 +485,8 @@ L E &nbsp; M A R B L E &nbsp; G A L L E R Y &nbsp; P V T. &nbsp; L T D.
                             
                             <tr>
                                 <td style="font-weight:bold;">Ship To</td>
-                                <td><apex:outputText value="{!Quote.AddressLine1__c}" rendered="{!NOT(ISBLANK(Quote.AddressLine1__c ))}"/><br/>
+                               <td><apex:outputText value="{!Quote.AddressLine1__c}" rendered="{!NOT(ISBLANK(Quote.AddressLine1__c ))}"/><br/>
                                     <apex:outputText value="{!Quote.AddressLine2__c}" rendered="{!NOT(ISBLANK(Quote.AddressLine2__c))}"/>
-                                    <!--    <apex:outputText value=", {!Quote.AddressLine3__c}" rendered="{!NOT(ISBLANK(Quote.AddressLine3__c))}"/> -->
                                     <apex:outputPanel rendered="{!NOT(ISBLANK(Quote.AddressLine3__c))}">
                                         <br/>
                                         <apex:outputText value="{!Quote.AddressLine3__c}"/>
@@ -492,7 +495,7 @@ L E &nbsp; M A R B L E &nbsp; G A L L E R Y &nbsp; P V T. &nbsp; L T D.
                                     <apex:outputText value=", {!Quote.District__c}" rendered="{!NOT(ISBLANK(Quote.District__c))}"/>
                                     <apex:outputText value=", {!Quote.State__c}" rendered="{!NOT(ISBLANK(Quote.State__c))}"/>
                                     <apex:outputText value=", {!Quote.Country__c}" rendered="{!NOT(ISBLANK(Quote.Country__c))}"/>
-                                </td>
+                                </td> 
                             </tr>
                         </table>
                         
@@ -604,21 +607,22 @@ item.afterDiscPrice
                                     <td style="border:1px solid #cfcfcf; text-align:center; font-weight:normal;"><apex:outputText value="{0, number, ##,##0.00}">
                                         <apex:param value="{!item.unitPrice}" />
                                     </apex:outputText></td>
-                                    <td style="border:1px solid #cfcfcf; text-align:center; font-weight:normal;">
+                                   <td style="border:1px solid #cfcfcf; text-align:center; font-weight:normal;"><apex:outputText value="{0, number, ##,##0.00}">
+                                        <apex:param value="{!item.beforeDiscPrice}" />
+                                    </apex:outputText></td>
+                              <!--      <td style="border:1px solid #cfcfcf; text-align:center; font-weight:normal;">
 
-                                        <!-- If Percentage -->
                                         <apex:outputText rendered="{!item.discountType == 'Percentage'}"
                                                          value="{0, number, ##,##0.00}">
                                             <apex:param value="{!item.discountAmountInRupees}" />
                                         </apex:outputText>
                                     
-                                        <!-- If Amount -->
                                         <apex:outputText rendered="{!item.discountType == 'Amount'}"
                                                          value="{0, number, ##,##0.00}">
-                                            <apex:param value="{!item.discountValue}" />
+                                            <apex:param value="{!item.unitPrice}" />
                                         </apex:outputText>
                                     
-                                    </td>
+                                    </td> -->
                                     <td style="border:1px solid #cfcfcf; text-align:center; font-weight:normal;">{!item.total}</td>
                                     <td style="border:1px solid #cfcfcf; text-align:center;">
                                         <apex:outputPanel rendered="{!NOT(ISBLANK(item.imageUrl))}">

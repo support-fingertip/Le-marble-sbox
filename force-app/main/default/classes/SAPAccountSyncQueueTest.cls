@@ -28,7 +28,10 @@ public class SAPAccountSyncQueueTest {
     static void setupTestData() {
         Account acc = new Account(
             Name = 'Test Account SAPQueue',
-            Phone = '9876543210'
+            Phone = '9876543210',
+            BillingCountry = 'India', BillingState = 'Maharashtra',
+            BillingPostalCode = '400001', BillingStreet = '123 Test Street',
+            District__c = 'Ernakulam', Pin_Code__c = 400001
         );
         insert acc;
     }

@@ -4,7 +4,15 @@ public class NewDeliveryPlanControllerTest {
     @TestSetup
     static void setupData() {
 
-        Account acc = new Account(Name = 'Test Account');
+        Account acc = new Account(
+            Name              = 'Test Account',
+            BillingCountry    = 'India',
+            BillingState      = 'Maharashtra',
+            BillingPostalCode = '400001',
+            BillingStreet     = '123 Test Street',
+            District__c       = 'Ernakulam',
+            Pin_Code__c       = 400001
+        );
         insert acc;
 
         Warehouse__c wh = new Warehouse__c(
@@ -29,14 +37,6 @@ public class NewDeliveryPlanControllerTest {
         );
         insert pbe;
 
-        String district =
-            Order.District__c.getDescribe()
-            .getPicklistValues()[0].getValue();
-
-        String state =
-            Order.State__c.getDescribe()
-            .getPicklistValues()[0].getValue();
-
         // 1️⃣ Insert Draft
         Order ord = new Order(
             AccountId = acc.Id,
@@ -45,9 +45,6 @@ public class NewDeliveryPlanControllerTest {
             Pricebook2Id = stdPricebookId,
             Warehouse__c = wh.Id,
             Contact_Person_Name__c = 'Test Contact',
-            AddressLine1__c = 'Address',
-            District__c = district,
-            State__c = state,
             Freight_Charge__c = 50,
             Loading_Charges__c = 20,
             Unloading_Charges__c = 10,
@@ -166,4 +163,39 @@ public class NewDeliveryPlanControllerTest {
         NewDeliveryPlanController.getVehicleNumberOptions();
         Test.stopTest();
     }
+    @IsTest
+static void testGetDrivers() {
+
+    Profile p = [SELECT Id FROM Profile WHERE Name = 'Standard User' LIMIT 1];
+
+    User u = new User(
+        Alias = 'drv',
+        Email='driver@test.com',
+        EmailEncodingKey='UTF-8',
+        LastName='Driver',
+        LanguageLocaleKey='en_US',
+        LocaleSidKey='en_US',
+        ProfileId=p.Id,
+        TimeZoneSidKey='Asia/Kolkata',
+        Username='driver'+System.currentTimeMillis()+'@test.com'
+    );
+    insert u;
+
+    Test.startTest();
+    List<User> drivers = NewDeliveryPlanController.getDrivers();
+    Test.stopTest();
+
+    System.assertNotEquals(null, drivers);
+}
+@IsTest
+static void testGetOrderById() {
+
+    Order ord = [SELECT Id FROM Order LIMIT 1];
+
+    Test.startTest();
+    Order result = NewDeliveryPlanController.getOrderById(ord.Id);
+    Test.stopTest();
+
+    System.assertEquals(ord.Id, result.Id);
+}
 }

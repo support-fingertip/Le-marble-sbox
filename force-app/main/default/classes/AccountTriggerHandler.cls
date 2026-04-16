@@ -1,11 +1,34 @@
 public class AccountTriggerHandler {
 
     public static void beforeInsert(List<Account> accList) {
+        validateBillingAddress(accList);
         checkDuplicateAccount(accList, null);
     }
 
     public static void beforeUpdate(List<Account> accList, Map<Id, Account> oldMap) {
+        validateBillingAddress(accList);
         checkDuplicateAccount(accList, oldMap);
+    }
+
+    // BILLING ADDRESS MANDATORY VALIDATION
+    private static void validateBillingAddress(List<Account> accList) {
+        for (Account a : accList) {
+            if (String.isBlank(a.BillingStreet)) {
+                a.addError('Full Address is required.');
+            }
+            if (String.isBlank(a.District__c)) {
+                a.addError('District is required.');
+            }
+            if (String.isBlank(a.BillingPostalCode)) {
+                a.addError('Billing Zip/Postal Code is required.');
+            }
+            if (String.isBlank(a.BillingState)) {
+                a.addError('Billing State/Province is required.');
+            }
+            if (String.isBlank(a.BillingCountry)) {
+                a.addError('Billing Country is required.');
+            }
+        }
     }
 
     // DUPLICATION CHECK 

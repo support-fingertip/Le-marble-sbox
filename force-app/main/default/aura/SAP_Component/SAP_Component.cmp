@@ -37,6 +37,9 @@
              <aura:if isTrue="{!(v.userProfile=='System Administrator')}">
             <option value="InvoiceData">Invoice Data</option>
             </aura:if>
+               <aura:if isTrue="{!(v.userProfile=='System Administrator')}">
+                <option value="ProductData">Product Data</option>
+            </aura:if>
             
         </lightning:select>
   <!--       Outstanding Data
@@ -151,6 +154,15 @@
                 <lightning:button variant="brand" label="Get Invoice Data" title="Pull data" onclick="{!c.sendRequest}" />
             </center>
         </aura:if> 
+
+         <aura:if isTrue="{!(v.selectedType=='ProductData')}">
+          <lightning:input type="date" name="SelectDate" label="Select Date" value="{!v.fromDate}"/>
+           
+            <center>
+                <lightning:button variant="brand" label="Get Product Data" title="Pull data" onclick="{!c.sendRequestProd}" />
+            </center>
+        </aura:if> 
+
          <aura:if isTrue="{!(v.selectedType=='Receipt')}">
              <lightning:input type="date" name="SelectDate" label="Select Date" value="{!v.fromDate}"/>
             <center>
@@ -176,7 +188,7 @@
             <!-- Table -->
              <aura:if isTrue="{!NOT(empty(v.stockList))}">
 
-            <div class="stock-table-wrapper slds-m-top_small">
+            <div class="stock-table-scroll-wrapper slds-m-top_small" style="overflow-x: auto; max-width: 100%;">
                 <table class="slds-table slds-table_bordered slds-table_cell-buffer">
                     <thead>
                         <tr>

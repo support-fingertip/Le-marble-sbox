@@ -5,7 +5,7 @@ import getPendingQuotes from '@salesforce/apex/NewQuoteController.getPendingQuot
 import getPriceBookName from '@salesforce/apex/NewQuoteController.getPriceNames';
 import getOpportunityItems from '@salesforce/apex/NewQuoteController.getOpportunityItems';
 import getProductCategories from '@salesforce/apex/NewQuoteController.getProductCategories';
-import getPBEntries from '@salesforce/apex/NewQuoteController.getPBEntries';
+//import getPBEntries from '@salesforce/apex/NewQuoteController.getPBEntries';
 import createCart from '@salesforce/apex/NewQuoteController.createCart';
 import checkLiveStock from '@salesforce/apex/NewQuoteController.checkLiveStock';
 import getAreaPicklistValues from '@salesforce/apex/NewQuoteController.getAreaPicklistValues';
@@ -26,6 +26,7 @@ export default class NewQuoteFromOpp extends NavigationMixin(LightningElement) {
     @track isDropdownOpen = false;
     @track isLoading = false;
     @track searchQuery = '';
+     @track isConfirmed = false;
     @track products = []; // Initialize products array
     @track selectedProducts = []; // Initialize selectedProducts array
     @track showCartModal = false; // Initialize showCartModal
@@ -206,7 +207,7 @@ wiredAreaPicklist({ data, error }) {
             if (data) {
                 console.log('Pricebook Names fetched:', data);
                 this.priceNames = [
-                    { label: 'Select Pricebook', value: 'select' },
+                   // { label: 'Select Pricebook', value: 'select' },
                     ...data.map(priceName => ({
                         
                          label:
@@ -243,7 +244,7 @@ wiredAreaPicklist({ data, error }) {
 
             console.log('Loading default pricebook data for:', this.selectedPB);
             this.loadOLIFromOpportunity();
-            getPBEntries({ pbName: this.selectedPB })
+          /*  getPBEntries({ pbName: this.selectedPB })
                 .then(result => {
                     console.log('Default Pricebook Entries:', result);
                     this.pbEntryMap = new Map();
@@ -255,7 +256,7 @@ wiredAreaPicklist({ data, error }) {
                 })
                 .catch(error => {
                     console.error('Error loading default PB entries:', error);
-                });
+                });*/
         }
 
       @wire(getProductCategories)
@@ -327,7 +328,7 @@ wiredAreaPicklist({ data, error }) {
             // Clear search results when category changes
             this.searchResults = [];
             this.showSearchDropdown = false;
-            getPBEntries({ pbName: this.selectedPB })
+          /*  getPBEntries({ pbName: this.selectedPB })
             .then(result => {
                 console.log('Pricebook Entries:', result);
                     this.pbEntryMap = new Map();
@@ -342,7 +343,7 @@ wiredAreaPicklist({ data, error }) {
             })
             .catch(error => {
                 console.error(error);
-            });
+            });*/
             
             // If there's an active search, refilter the results
             if (this.searchQuery) {
@@ -395,6 +396,10 @@ wiredAreaPicklist({ data, error }) {
                 quantity: 0,
                 unitPrice:0,
                 afterDiscPricePiece:  0,
+                afterDiscPricePieceWithoutTax:  0,
+                 afterDiscPriceSqftWithoutTax:  0,
+                  afterDiscPrice: 0,
+                afterDiscPriceWithoutTax: 0,
                 totalPrice: 0,
                 description: '',
                 discType: 'Amount',
@@ -436,6 +441,10 @@ var i=0;
                     unitPrice: item.UnitPrice,
                     msp: item.msp,
                     afterDiscPricePiece: item.UnitPrice,
+                    afterDiscPricePieceWithoutTax:  0,
+                 afterDiscPriceSqftWithoutTax:  0,
+                    afterDiscPrice: 0,
+                    afterDiscPriceWithoutTax: 0,
                     totalPrice: item.TotalPrice,
                     description: item.Description? item.Description: '',
                     discType: item.Disc_Type__c,
@@ -716,8 +725,9 @@ var i=0;
             console.log(product.isNaturalStone);
      //    alert(JSON.stringify(product));   
             if (product.isNaturalStone) {
-                // Natural Stone calculation
+                // Natural Stone calculation (no tax logic needed)
                 const unitPrice = parseFloat(product.unitPrice) || 0;
+                                const taxPercent = parseFloat(product.Tax) || 0;
                 const requiredSqft = parseFloat(product.requiredSqft) || 0;
                 const discType = product.discType || 'Percentage';
                 const discValue = parseFloat(product.discValue) || 0;
@@ -731,7 +741,12 @@ var i=0;
                     afterDiscPrice = Math.max(unitPrice - discValue, 0);
                     totalPrice = afterDiscPrice * requiredSqft;
                 }
+                    const afterDiscPriceWithoutTax = taxPercent > 0
+                    ? parseFloat((afterDiscPrice / (1 + taxPercent / 100)).toFixed(6))
+                    : afterDiscPrice;
+
                 product.afterDiscPrice = afterDiscPrice.toFixed(6);
+                  product.afterDiscPriceWithoutTax = afterDiscPriceWithoutTax.toFixed(6);
                 product.totalPrice = totalPrice.toFixed(2);
                 this.selectedProducts  = [...this.selectedProducts];
                 return;
@@ -749,32 +764,46 @@ var i=0;
 
                 // 1. Unit Price After Tax
                 const unitPriceAfterTax = unitPrice * (1 + taxPercent / 100);
+                // 1a. Unit Price Without Tax
+                const unitPriceWithoutTax = unitPrice;
 
-                // 2. Price per Sqft (rounded for both UI and calculation)
+                // 2. Price per Sqft (with and without tax)
                 let pricePerSqft = 0;
+                let pricePerSqftWithoutTax = 0;
                 if (sqftPerPiece > 0) {
                     pricePerSqft = parseFloat((unitPriceAfterTax / sqftPerPiece).toFixed(6));
+                    pricePerSqftWithoutTax = parseFloat((unitPriceWithoutTax / sqftPerPiece).toFixed(6));
                 }
 
+                // 3. Discounted price per sqft and per piece (with and without tax)
                 let afterDiscPriceSqft = pricePerSqft;
-                let afterDiscPriceUnit= unitPriceAfterTax;
+                let afterDiscPriceUnit = unitPriceAfterTax;
+                let afterDiscPriceSqftWithoutTax = pricePerSqftWithoutTax;
+                let afterDiscPriceUnitWithoutTax = unitPriceWithoutTax;
+
                 if (discType === 'Percentage' && discValue > 0) {
                     afterDiscPriceSqft = parseFloat((pricePerSqft * (1 - discValue / 100)).toFixed(6));
-                    afterDiscPriceUnit= afterDiscPriceSqft * sqftPerPiece;
+                    afterDiscPriceUnit = afterDiscPriceSqft * sqftPerPiece;
+                    afterDiscPriceSqftWithoutTax = parseFloat((pricePerSqftWithoutTax * (1 - discValue / 100)).toFixed(6));
+                    afterDiscPriceUnitWithoutTax = afterDiscPriceSqftWithoutTax * sqftPerPiece;
                 } else if (discType === 'Amount' && discValue > 0) {
-                    // Amount discount directly reduces price per sqft
                     afterDiscPriceSqft = parseFloat((pricePerSqft - discValue).toFixed(6));
-                    afterDiscPriceUnit= afterDiscPriceSqft * sqftPerPiece;
+                    afterDiscPriceUnit = afterDiscPriceSqft * sqftPerPiece;
+                    afterDiscPriceSqftWithoutTax = parseFloat((pricePerSqftWithoutTax - discValue).toFixed(6));
+                    afterDiscPriceUnitWithoutTax = afterDiscPriceSqftWithoutTax * sqftPerPiece;
                 }
 
-                // 3. Total Amount (use the after discount price per sqft)
+                // 4. Total Amount (use the after discount price per sqft)
                 const totalPrice = parseFloat((afterDiscPriceSqft * finalSqft).toFixed(6));
                 product.unitPriceAfterTax = unitPriceAfterTax.toFixed(6);
                 product.pricePerSqft = pricePerSqft.toFixed(6); // always show original after-tax per sqft
                 product.afterDiscPriceSqft = afterDiscPriceSqft.toFixed(6); // always from original
                 product.totalPrice = totalPrice.toFixed(2);
                 product.afterDiscPriceUnit = afterDiscPriceUnit.toFixed(6);
-
+                // New: set without tax fields
+            //    product.pricePerSqftWithoutTax = pricePerSqftWithoutTax.toFixed(6);
+                product.afterDiscPriceSqftWithoutTax = afterDiscPriceSqftWithoutTax.toFixed(6);
+                product.afterDiscPriceUnitWithoutTax = afterDiscPriceUnitWithoutTax.toFixed(6);
                 this.selectedProducts  = [...this.selectedProducts];
                 return;
             }
@@ -787,17 +816,23 @@ var i=0;
             const discValue = parseFloat(product.discValue) || 0;
             // 1. Unit Price After Tax
             const unitPriceAfterTax = unitPrice * (1 + taxPercent / 100);
-            // 2. Discounted price per piece
+            // 1a. Unit Price Without Tax
+            const unitPriceWithoutTax = unitPrice;
+            // 2. Discounted price per piece (with and without tax)
             let afterDiscPricePiece = unitPriceAfterTax;
+            let afterDiscPricePieceWithoutTax = unitPriceWithoutTax;
             if (discType === 'Percentage' && discValue > 0) {
                 afterDiscPricePiece = unitPriceAfterTax * (1 - discValue / 100);
+                afterDiscPricePieceWithoutTax = unitPriceWithoutTax * (1 - discValue / 100);
             } else if (discType === 'Amount' && discValue > 0) {
                 afterDiscPricePiece = Math.max(unitPriceAfterTax - discValue, 0);
+                afterDiscPricePieceWithoutTax = Math.max(unitPriceWithoutTax - discValue, 0);
             }
             // 3. Total
             const totalPrice = afterDiscPricePiece * quantity;
             product.unitPriceAfterTax = unitPriceAfterTax.toFixed(2);
             product.afterDiscPricePiece = afterDiscPricePiece.toFixed(6);
+            product.afterDiscPricePieceWithoutTax = afterDiscPricePieceWithoutTax.toFixed(6);
             product.totalPrice = totalPrice.toFixed(2);
             this.selectedProducts  = [...this.selectedProducts];
         }
@@ -858,9 +893,9 @@ var i=0;
             this.showError('No products added to preview');
         return;
     }
-
-//duplicate
-   const validRows = this.selectedProducts
+console.log('Selected products for preview:', JSON.stringify(this.selectedProducts));
+//duplicate removed as client req: 2/4/26
+ /*  const validRows = this.selectedProducts
     .map((item, index) => ({ item, index }))
     .filter(({ item }) =>
         item.quantity > 0 ||
@@ -886,10 +921,10 @@ var i=0;
         return;
     }
 } 
-    
+    */
     // VALIDATION LOOP
     for (let item of this.selectedProducts) {
-        if (!item.roomType || item.roomType.trim() === '') {
+        if ((!item.roomType || item.roomType.trim() === '') && item.category!='ADHESIVE') {
             this.showError(`Please enter Area/Room Type for product: ${item.name}`);
             return;
         }
@@ -1068,7 +1103,7 @@ this.recalculateOrderTotal();
                 );
                 return;
             }
-
+            this.isConfirmed = true;
             // Show loading toast
  /*           this.dispatchEvent(
                 new ShowToastEvent({
@@ -1098,8 +1133,13 @@ this.recalculateOrderTotal();
                     uom: item.uom,
                     sqft: item.sqft || 0,
                     sqm: item.sqm || 0,
+                 afterDiscPrice: item.afterDiscPrice,
+                    afterDiscPriceWithoutTax: item.afterDiscPriceWithoutTax,
                     afterDiscPricePiece: item.afterDiscPricePiece,
                     afterDiscPriceSqft: item.afterDiscPriceSqft,
+                    afterDiscPricePieceWithoutTax: item.afterDiscPricePieceWithoutTax,
+                    afterDiscPriceSqftWithoutTax: item.afterDiscPriceSqftWithoutTax,
+                       afterDiscPriceUnitWithoutTax: item.afterDiscPriceUnitWithoutTax,
                     price: item.unitPrice,
                     discount: item.discValue,
                     totalPrice: item.totalPrice,
@@ -1109,6 +1149,7 @@ this.recalculateOrderTotal();
                     requiredSqft: item.requiredSqft,
                     pricebookEntryId: item.pricebookEntryId,
                      showDropdown: false,
+                     isTile: item.isTile,
                  isActive: false,
                 rowClass: 'item-card'
                 };
@@ -1164,6 +1205,7 @@ this.recalculateOrderTotal();
                     variant: 'error'
                 })
             );
+              this.isConfirmed = false;
             this.openPreview=false;
         }
     }
@@ -1307,6 +1349,8 @@ alert('hi');
                 afterDiscPricePiece: 0,
                 afterDiscPriceSqft: 0,
                 afterDiscPriceUnit: 0,
+                                afterDiscPrice: 0,
+                afterDiscPriceWithoutTax: 0,
                 pricePerSqft: 0,
                 totalPrice: 0,
                 description: '',
@@ -1431,8 +1475,11 @@ console.log(el);
       return;
     }
 
-    const unitPrice = this.pbEntryMap?.get(selectedProduct.Id) || 0;
-    const pricebookEntryId = this.pbEntryIdMap?.get(selectedProduct.Id) || '';
+   // const unitPrice = this.pbEntryMap?.get(selectedProduct.Id) || 0;
+    //const pricebookEntryId = this.pbEntryIdMap?.get(selectedProduct.Id) || '';
+
+        const unitPrice =selectedProduct.unitPrice;
+    const pricebookEntryId = selectedProduct.pricebookEntryId;
 
  //alert(JSON.stringify(pricebookEntryId));
     // Ensure we have a valid activeRowIndex
@@ -1612,10 +1659,12 @@ handleAreaDesChange(event) {
         try {
             const product = this.selectedProducts[idx];
             if (!product || !product.isNaturalStone) return;    
+            const taxPercent = parseFloat(product.Tax) || 0;
 
             const unitPrice = parseFloat(product.unitPrice) || 0;
             const requiredSqft = parseFloat(product.requiredSqft) || 0;
             const discType = product.discType || 'Percentage';
+
             const discValue = parseFloat(product.discValue) || 0;
             
             let afterDiscPrice = unitPrice;
@@ -1632,10 +1681,17 @@ handleAreaDesChange(event) {
                 totalPrice = afterDiscPrice * requiredSqft;
             }
             
+            const afterDiscPriceWithoutTax = taxPercent > 0
+                ? parseFloat((afterDiscPrice / (1 + taxPercent / 100)).toFixed(6))
+                : afterDiscPrice;
+
+
             // Update only if values have changed
             if (product.afterDiscPrice !== Number(afterDiscPrice).toFixed(2)) {
                 this.updateProduct(productId, 'afterDiscPrice', Number(afterDiscPrice).toFixed(2),idx);
             }
+                        this.updateProduct(productId, 'afterDiscPriceWithoutTax', Number(afterDiscPriceWithoutTax).toFixed(6),idx);
+
             if (product.totalPrice !== Number(totalPrice).toFixed(2)) {
                 this.updateProduct(productId, 'totalPrice', Number(totalPrice).toFixed(2),idx);
             }
@@ -1714,6 +1770,8 @@ handleAreaDesChange(event) {
                     unitPrice:0,
                     msp:0,
                     afterDiscPricePiece:  0,
+                                        afterDiscPrice: 0,
+                    afterDiscPriceWithoutTax: 0,
                     totalPrice: 0,
                     description: '',
                     discType: 'Amount',
@@ -1842,6 +1900,99 @@ handleAreaDesChange(event) {
             this.updateLineNumbers();
             this.draggedIndex = null;
         }
-        
-        
+
+        // ── Touch-based drag-and-drop for mobile ──
+        _touchDragIndex = null;
+        _touchStartY = 0;
+        _touchDragMoved = false;
+        _lastTouchOverIndex = null;
+
+        handleRowTouchStart(event) {
+            const row = event.currentTarget;
+            this._touchDragIndex = Number(row.dataset.index);
+            this._touchStartY = event.touches[0].clientY;
+            this._touchDragMoved = false;
+            this._lastTouchOverIndex = null;
+
+            // Long-press delay — start drag after 200ms hold
+            // eslint-disable-next-line @lwc/lwc/no-async-operation
+            this._touchDragTimer = setTimeout(() => {
+                this._touchDragMoved = true;
+                row.classList.add('dragging');
+            }, 200);
+        }
+
+        handleRowTouchMove(event) {
+            if (!this._touchDragMoved) {
+                // If finger moved before long-press fired, cancel drag
+                const dy = Math.abs(event.touches[0].clientY - this._touchStartY);
+                if (dy > 10 && this._touchDragTimer) {
+                    clearTimeout(this._touchDragTimer);
+                    this._touchDragTimer = null;
+                }
+                return;
+            }
+
+            event.preventDefault(); // prevent page scroll while dragging
+
+            const touch = event.touches[0];
+            const targetEl = this.template.elementFromPoint
+                ? this.template.elementFromPoint(touch.clientX, touch.clientY)
+                : document.elementFromPoint(touch.clientX, touch.clientY);
+
+            if (!targetEl) return;
+
+            const tr = targetEl.closest('tr.cart-item');
+            if (!tr) return;
+
+            const overIndex = Number(tr.dataset.index);
+
+            // Remove previous drag-over highlight
+            if (this._lastTouchOverIndex !== null && this._lastTouchOverIndex !== overIndex) {
+                const rows = this.template.querySelectorAll('tr.cart-item');
+                rows.forEach(r => r.classList.remove('drag-over'));
+            }
+
+            if (overIndex !== this._touchDragIndex) {
+                tr.classList.add('drag-over');
+                this._lastTouchOverIndex = overIndex;
+            }
+        }
+
+        handleRowTouchEnd() {
+            // Clear long-press timer
+            if (this._touchDragTimer) {
+                clearTimeout(this._touchDragTimer);
+                this._touchDragTimer = null;
+            }
+
+            // Clean up CSS classes
+            const rows = this.template.querySelectorAll('tr.cart-item');
+            rows.forEach(r => {
+                r.classList.remove('dragging');
+                r.classList.remove('drag-over');
+            });
+
+            if (!this._touchDragMoved || this._lastTouchOverIndex === null) {
+                this._touchDragIndex = null;
+                return;
+            }
+
+            const fromIndex = this._touchDragIndex;
+            const toIndex = this._lastTouchOverIndex;
+
+            if (fromIndex !== toIndex) {
+                const items = [...this.selectedProducts];
+                const draggedItem = items.splice(fromIndex, 1)[0];
+                items.splice(toIndex, 0, draggedItem);
+                this.selectedProducts = items;
+                this.updateLineNumbers();
+            }
+
+            this._touchDragIndex = null;
+            this._lastTouchOverIndex = null;
+            this._touchDragMoved = false;
+        }
+
+
     }

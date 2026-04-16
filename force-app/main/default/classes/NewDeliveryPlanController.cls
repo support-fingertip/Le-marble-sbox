@@ -7,15 +7,15 @@ public with sharing class NewDeliveryPlanController {
             return [
                 SELECT Id, Name, account.name, orderNumber,
                        Phone__c, QuoteId,Quote_Name__c,Order_Owner__c,
-                       BillingStreet, BillingCity, Product_Category__c,
+                       BillingStreet, BillingCity, Product_Category__c,Sales_Order_Number__c,
                         BillingPostalCode, TotalAmount, BillingState,BillingCountry,Warehouse__c,
                        (SELECT Id, Product2.Name, Quantity, UnitPrice
                         FROM OrderItems)
                 FROM Order
-                WHERE Status='Approved' and orderNumber LIKE :searchKey
+                WHERE Status='Approved' and (orderNumber LIKE :searchKey or Sales_Order_Number__c LIKE :searchKey)
                 LIMIT 10
-            ];
-        } catch (Exception e) {
+            ];  
+        } catch (Exception e) { 
             throw new AuraHandledException(e.getMessage());
         }
     }
@@ -26,7 +26,7 @@ public with sharing class NewDeliveryPlanController {
         try {
             // Get all cart line items for this sales confirmation
             List<OrderItem> cartItems = [
-                SELECT Id, Product2.Name, Quantity, UnitPrice,
+                SELECT Id, Product2.Name, Quantity, UnitPrice,Pending_Quantity1__c,
                        order.Name, orderId,//, Moved_to_Delivery__c
                    //    (SELECT Id, Status__c FROM Pending_Purchase_Line_Items__r),
                        (SELECT Id, Quantity__c FROM Delivery_Line_Items__r)
@@ -118,15 +118,18 @@ public with sharing class NewDeliveryPlanController {
                 AccountId,
                 Warehouse__c,
                 Warehouse_Manager__c,
-                Contact_Person_Name__c,	AddressLine1__c,AddressLine2__c,AddressLine3__c,District__c,State__c,
-                Freight_Charge__c,
+                Contact_Person_Name__c,                Freight_Charge__c,
                 Loading_Charges__c,
-                Unloading_Charges__c
+                Unloading_Charges__c,
+                OpportunityId
             FROM Order
             WHERE Id = :salesOrderId
             LIMIT 1
         ];
-
+        opportunity opp= new opportunity();
+        if(so.OpportunityId!=null){
+             opp=[select id,AddressLine1__c,AddressLine2__c,Contact_Number__c,Contact_Person_Name__c,AddressLine3__c,District__c,State__c,country__c from opportunity where id=:so.OpportunityId];
+        }
            
             
             Decimal finalFreight;
@@ -184,7 +187,8 @@ public with sharing class NewDeliveryPlanController {
                 Account__c  = so.AccountId,
                 Warehouse__c   = so.Warehouse__c,
                 Warehouse_Manager__c = so.Warehouse_Manager__c,
-                Contact_Person__c = so.Contact_Person_Name__c,
+                Contact_Person__c = opp.Contact_Person_Name__c,
+                Contact_Number__c = opp.Contact_Number__c,
                 Delivery_Date_Time__c = deliveryDateTime,
                 Driver_Assigned__c = (String)data.get('driverId'),
                 Choose_Vehicle__c = (String)data.get('vehicleId'),
@@ -200,8 +204,8 @@ public with sharing class NewDeliveryPlanController {
                 Loading_Charges__c = finalLoading,
                 Unloading_Charges__c = finalUnloading,
                 
-                Delivery_Address__c=so.AddressLine1__c!=null? so.AddressLine1__c+' ':''+ so.AddressLine2__c!=null? so.AddressLine2__c+' ':''+so.AddressLine3__c!=null? so.AddressLine3__c+' ':''+ 
-                so.District__c!=null? so.District__c+' ':''+ so.State__c!=null? so.State__c+' ':''
+                Delivery_Address__c=opp.AddressLine1__c!=null? opp.AddressLine1__c+' ':''+ opp.AddressLine2__c!=null? opp.AddressLine2__c+' ':''+opp.AddressLine3__c!=null? opp.AddressLine3__c+' ':''+ 
+                opp.District__c!=null? opp.District__c+' ':''+ opp.State__c!=null? opp.State__c+' ':''
             );
             
  
@@ -352,5 +356,24 @@ public static Decimal getSalesOrderUnloading(Id salesOrderId) {
         LIMIT 1
     ];
     return so.Unloading_Charges__c;
+}
+
+@AuraEnabled
+public static Order getOrderById(Id orderId) {
+    try {
+        return [
+            SELECT Id, Name, Account.Name, OrderNumber,
+                   Phone__c, QuoteId, Quote_Name__c, Order_Owner__c,
+                   BillingStreet, BillingCity, Product_Category__c, Sales_Order_Number__c,
+                   BillingPostalCode, TotalAmount, BillingState, BillingCountry, Warehouse__c,Delivery_Committed_Date__c,
+                   (SELECT Id, Product2.Name, Quantity, UnitPrice
+                    FROM OrderItems)
+            FROM Order
+            WHERE Id = :orderId
+            LIMIT 1
+        ];
+    } catch (Exception e) {
+        throw new AuraHandledException(e.getMessage());
+    }
 }
 }
