@@ -20,13 +20,17 @@ public class InvoiceMasterSchedulerTest {
             // produce data-dependent issues when stopTest fires it; coverage
             // for InvoiceMasterScheduler.execute() is recorded regardless.
         }
-        Test.stopTest();
 
+        // Query *inside* the start/stopTest block. Test.stopTest() fires any
+        // Schedulable jobs registered during the test, and our execute() aborts
+        // its own trigger on re-fire — so the row would be gone after stopTest.
         Integer scheduled = [
             SELECT COUNT()
             FROM CronTrigger
             WHERE CronJobDetail.Name LIKE 'InvoiceMasterScheduler-%'
         ];
+        Test.stopTest();
+
         System.assert(
             scheduled >= 1,
             'execute() should have scheduled the next 55-minute run'
@@ -36,6 +40,8 @@ public class InvoiceMasterSchedulerTest {
     /**
      * Verifies the class can be registered as a Schedulable through
      * System.schedule (the public entry point used by Setup / dev console).
+     * Also exercises the (sc != null) + System.abortJob branch, because
+     * Test.stopTest() fires the scheduler synchronously with a real context.
      */
     @IsTest
     static void testSchedulerRegistration() {
@@ -47,13 +53,19 @@ public class InvoiceMasterSchedulerTest {
             '0 0 2 * * ?',
             new InvoiceMasterScheduler()
         );
-        Test.stopTest();
 
+        // Query *before* stopTest: when stopTest fires the Schedulable, its
+        // execute() calls System.abortJob(sc.getTriggerId()), which deletes
+        // the CronTrigger row identified by jobId.
         CronTrigger ct = [
             SELECT Id, CronExpression
             FROM CronTrigger
             WHERE Id = :jobId
         ];
+        Test.stopTest();
+
+        System.assertNotEquals(null, jobId,
+            'System.schedule should return a non-null cron trigger Id');
         System.assertEquals(
             '0 0 2 * * ?',
             ct.CronExpression,
