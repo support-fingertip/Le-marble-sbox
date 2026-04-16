@@ -186,9 +186,20 @@ public class sapIntegration {
                 }
             } 
             
+            
+              String street = '';
+                    if (deal.Corporation__c != null) street += deal.Corporation__c + ', ';
+                    if (deal.Municipality__c != null) street += deal.Municipality__c + ', ';
+            if (deal.Panchayath__c != null) street += deal.Panchayath__c;
+            String contact = '';
+            if (deal.POC_Name__c != null)   contact += deal.POC_Name__c;
+            if (deal.POC_Number__c != null) contact += (contact == '' ? '' : ' - ') + deal.POC_Number__c;
+            
+            
             Map<String, Object> shipToAddress = new Map<String, Object>{
                 'AddressName'   => deal.Address_Line1__c!=null? deal.Address_Line1__c:'',
-                    'Street'        => deal.Corporation__c!=null? deal.Corporation__c +', ':'' + deal.Municipality__c!=null? deal.Municipality__c+', ':'' + deal.Panchayath__c!=null? deal.Panchayath__c:'',
+                 //   'Street'        => deal.Corporation__c!=null? deal.Corporation__c +', ':'' + deal.Municipality__c!=null? deal.Municipality__c+', ':'' + deal.Panchayath__c!=null? deal.Panchayath__c:'',
+                    'Street'        =>street,
                     'City'          => deal.Village__c!=null? deal.Village__c:'',
                      'County'         => deal.district__c!=null? deal.district__c:'',   
                     'State'         => deal.State__c!=null? deal.State__c:'',
@@ -199,7 +210,7 @@ public class sapIntegration {
                     'AddressName3'  => deal.Address_Line3__c!=null? deal.Address_Line3__c:'',
                      'GstType'  =>  gstT,
                      'GSTIN'  =>  deal.GST_Number__c!=null? deal.GST_Number__c:'',
-                          'U_Contact' =>  deal.POC_Name__c!=''? deal.POC_Name__c:''+ deal.POC_Number__c!=''?  ' - '+deal.POC_Number__c:''
+                          'U_Contact' =>  contact
                     };
                         bpAddresses.add(shipToAddress);
             
@@ -215,7 +226,7 @@ public class sapIntegration {
                     'AddressName3'  => part2,
                      'GSTIN'  =>  deal.GST_Number__c!=null? deal.GST_Number__c:'',
                            'GstType'  =>  gstT,
-                         'U_Contact' =>  deal.POC_Name__c!=null? deal.POC_Name__c:''+ deal.POC_Number__c!=null?  ' - '+deal.POC_Number__c:''
+                         'U_Contact' =>  contact
                     };
                         bpAddresses.add(billToAddress);
           
@@ -448,10 +459,17 @@ public class sapIntegration {
                 }
             }
             
+            String street = '';
+                    if (deal.Corporation__c != null) street += deal.Corporation__c + ', ';
+                    if (deal.Municipality__c != null) street += deal.Municipality__c + ', ';
+            if (deal.Panchayath__c != null) street += deal.Panchayath__c;
+            String contact = '';
+            if (deal.POC_Name__c != null)   contact += deal.POC_Name__c;
+            if (deal.POC_Number__c != null) contact += (contact == '' ? '' : ' - ') + deal.POC_Number__c;
             if (!shipToAddressFoundAndUpdated ) {
                 bpAddresses.add(new Map<String, Object>{
                     'AddressName'   => deal.Address_Line1__c!=null? deal.Address_Line1__c:'',
-                    'Street'        => deal.Corporation__c!=null? deal.Corporation__c +', ':'' + deal.Municipality__c!=null? deal.Municipality__c+', ':'' + deal.Panchayath__c!=null? deal.Panchayath__c:'',
+                        'Street'    => street,
                     'City'          => deal.Village__c!=null? deal.Village__c:'',
                     'County'         => deal.district__c!=null? deal.district__c:'',   
                     'State'         => deal.State__c!=null? deal.State__c:'',
@@ -462,7 +480,7 @@ public class sapIntegration {
                     'AddressName3'  => deal.Address_Line3__c!=null? deal.Address_Line3__c:'',
  					'GSTIN'  =>  deal.GST_Number__c!=null? deal.GST_Number__c:'',
                  	'GstType'  =>  gstT,
-    				'U_Contact' =>  deal.POC_Name__c!=''? deal.POC_Name__c:''+ deal.POC_Number__c!=''?  ' - '+deal.POC_Number__c:''
+    				'U_Contact' =>  contact
                         });
             }				
             
@@ -479,7 +497,7 @@ public class sapIntegration {
                     'AddressName3'  => part2,
  					'GSTIN'  =>  deal.GST_Number__c!=null? deal.GST_Number__c:'',
                   	'GstType'  =>  gstT,
-                    'U_Contact' =>  deal.POC_Name__c!=null? deal.POC_Name__c:''+ deal.POC_Number__c!=null?  ' - '+deal.POC_Number__c:''
+                    'U_Contact' =>  contact
                         });
             }
           
