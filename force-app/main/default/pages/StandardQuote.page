@@ -4,581 +4,353 @@
         <head>
             <style type="text/css">
                 @page:first {
-    size: A3;
-    margin: 0cm;
-}
+                    size: A3;
+                    margin: 0cm;
+                }
                 @page {
-                size: A3;
-                margin: 2cm 0cm 2cm 0cm;
-                 @top-center {
-        content: element(pageHeaderText);
-    }
+                    size: A3;
+                    margin: 2cm 0cm 2cm 0cm;
+                    @top-center {
+                        content: element(pageHeaderText);
+                    }
                 }
                 .runningHeader {
-                
-     position: running(pageHeaderText);
-    text-align: center;
-    font-size: 26px;
-    letter-spacing: 6px;    
-    font-family: "Times New Roman", serif;
-}
+                    position: running(pageHeaderText);
+                    text-align: center;
+                    font-size: 26px;
+                    letter-spacing: 6px;
+                    font-family: "Times New Roman", serif;
+                }
                 body {
-                font-family: Arial, sans-serif;
-                font-size: 14px;
-                line-height: 1.4;
-                color: #333333;
-                font-weight: bold;
-                margin: 0;
-                padding: 0;
+                    font-family: Arial, sans-serif;
+                    font-size: 14px;
+                    line-height: 1.4;
+                    color: #333333;
+                    font-weight: bold;
+                    margin: 0;
+                    padding: 0;
                 }
-                .header {
-                margin-bottom: 30px;
-                }
+                * { box-sizing: border-box; }
+
+                .header { margin-bottom: 30px; }
                 .company-title {
-                text-align: center;
-                color: #000000;
-                letter-spacing: 5px;
-                font-size: 20px;
-                margin-bottom: 15px;
-                font-weight: 500;
+                    text-align: center;
+                    color: #000000;
+                    letter-spacing: 5px;
+                    font-size: 20px;
+                    margin-bottom: 15px;
+                    font-weight: 500;
                 }
                 .main-header {
-                display: grid;
-                grid-template-columns: 200px auto 200px;
-                align-items: start;
-                margin-bottom: 40px;
+                    display: grid;
+                    grid-template-columns: 200px auto 200px;
+                    align-items: start;
+                    margin-bottom: 40px;
                 }
-                .logo-section {
-                grid-column: 1;
-                }
-                .logo {
-                width: 180px;
-                height: auto;
-                }
-                .company-tagline {
-                font-size: 11px;
-                color: #333;
-                margin-top: 2px;
-                }
-                .estimate-title {
-                font-size: 40px;
-                font-weight: bold;
-                color: #000000;
-                text-align: center;
-                }
+                .logo-section { grid-column: 1; }
+                .logo { width: 180px; height: auto; }
+                .company-tagline { font-size: 11px; color: #333; margin-top: 2px; }
+                .estimate-title { font-size: 40px; font-weight: bold; color: #000000; text-align: center; }
+
                 .estimate-details-container {
-                border: 1px solid #000000;
-                border-radius: 4px;
-                padding: 15px;
-                margin: 20px 0;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                    border: 1px solid #000000;
+                    border-radius: 4px;
+                    padding: 15px;
+                    margin: 20px 0;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
                 }
                 .estimate-header {
-                display: flex;
-                justify-content: space-between;
-                font-size: 18px;
-                font-weight: bold;
-                margin-bottom: 5px;
+                    display: flex;
+                    justify-content: space-between;
+                    font-size: 18px;
+                    font-weight: bold;
+                    margin-bottom: 5px;
                 }
                 .quotation-validity {
-                text-align: right;
-                font-size: 18px;
-                font-weight: bold;
+                    text-align: right;
+                    font-size: 18px;
+                    font-weight: bold;
                 }
                 .estimate-header strong, .quotation-validity strong {
-                font-weight: bold;
-                margin-right: 5px;
+                    font-weight: bold;
+                    margin-right: 5px;
                 }
                 .customer-section {
-                display: flex;
-                justify-content: space-between;
-                margin: 20px 0;
+                    display: flex;
+                    justify-content: space-between;
+                    margin: 20px 0;
                 }
                 .customer-details, .executive-details {
-                width: 48%;
-                border: 1px solid #ddd;
-                padding: 15px;
+                    width: 48%;
+                    border: 1px solid #ddd;
+                    padding: 15px;
                 }
                 .section-title {
-                background-color: #000000;
-                color: white;
-                padding: 8px;
-                margin: -15px -15px 15px -15px;
-                border-radius: 4px 4px 0 0;
+                    background-color: #000000;
+                    color: white;
+                    padding: 8px;
+                    margin: -15px -15px 15px -15px;
+                    border-radius: 4px 4px 0 0;
                 }
+
+                /* ---------- ITEMS TABLE ---------- */
                 .items-table {
-                width: 100%;
-                border-collapse: collapse;
+                    width: 100%;
+                    border-collapse: collapse;
+                    table-layout: fixed;
+                    /* Flying Saucer directive: paginate large tables and
+                       honor page-break-inside on rows with wrapped content. */
+                    -fs-table-paginate: paginate;
+                    page-break-inside: auto;
                 }
-                .items-table th, .items-table td {
-                border: 1px solid #dee2e6;
-                padding: 10px 3px;
-                text-align: left;
-                font-size: 15px;
-                page-break-inside: avoid;
-                white-space: nowrap;
-                min-height: 32px;
+                .items-table th,
+                .items-table td {
+                    border: 1px solid #dee2e6;
+                    padding: 10px 3px;
+                    text-align: left;
+                    font-size: 15px;
+                    min-height: 32px;
+                    word-break: break-word;
+                    white-space: normal;
+                    page-break-inside: avoid;
+                    break-inside: avoid;
                 }
                 .items-table th {
-                font-size: 15px;
-                white-space: normal;
-                word-break: break-word;
-                max-width: 70px;
+                    font-size: 15px;
+                    max-width: 70px;
                 }
-                .items-table th.image-col, .items-table td.image-col {
-                padding-left: 12px;
-                }
-                .totals-section {
-                width: 350px;
-                margin-left: auto;
-                page-break-inside: avoid;
-                margin-bottom: 30px;
-                }
-                .totals-row {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 5px 0;
-                border-bottom: 1px solid #e0e0e0;
-                }
-                .totals-row span:first-child {
-                color: #000000;
-                font-weight: 500;
-                padding-right: 20px;
-                }
-                .totals-row span:last-child {
-                text-align: right;
-                min-width: 120px;
-                }
-                .grand-total {
-                background-color: #000000;
-                color: white;
-                padding: 10px 15px;
-                margin-top: 10px;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                }
-                .terms {
-                background-color: #f8f9fa;
-                padding: 20px;
-                border-radius: 4px;
-                margin-top: 30px;
-                }
-                .terms-title {
-                color: #000000;
-                border-bottom: 2px solid #000000;
-                padding-bottom: 5px;
-                }
-                .terms-list {
-                padding-left: 20px;
-                }
-                .terms-points {
-                padding-left: 20px;
-                }
-                .signature-section {
-                margin-top: 30px;
-                margin-bottom: 20px;
-                display: flex;
-                justify-content: flex-end;
-                }
-                .signature-box {
-                width: 300px;
-                border: 2px solid #000000;
-                padding: 15px;
-                text-align: center;
-                }
-                .signature-box p {
-                color: #000000;
-                font-size: 16px;
-                margin: 0 0 25px 0;
-                }
-                .signature-line {
-                border-bottom: 1px solid #000000;
-                margin-bottom: 8px;
-                }
-                .company-name {
-                color: #666;
-                font-size: 14px;
-                text-align: center;
-                }
-                .footer {
-                color: #000000;
-                font-size: 13px;
-                border-top: 2px solid #000000;
-                padding-top: 15px;
-                }
-                .deal-info {
-                margin: 20px 0;
-                padding: 10px;
-                background-color: #f8f8f8;
-                }
-                
-                .customer-info {
-                width: 100%;
-                }
-                .details-table {
-                border-collapse: collapse;
-                margin: 20px 0;
-                }
-                
-                .details-cell {
-                padding: 0 10px;
-                vertical-align: top;
-                }
-                
-                .details-box {
-                border: 1px solid #000000;
-                border-radius: 4px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                padding: 15px;
-                height: 100%;
-                }
-                
-                .info-table {
-                width: 100%;
-                margin-top: 10px;
-                }
-                
-                .info-table td {
-                padding: 3px 0;
-                }
-                
-                .info-table .label {
-                font-weight: bold;
-                width: 130px;
-                }
-                
-                .estimate-info {
-                display: flex;
-                justify-content: space-between;
-                align-items: flex-start;
-                }
-                
-                .left-info {
-                text-align: left;
-                }
-                
-                .right-info {
-                text-align: right;
-                }
-                
-                .info-text {
-                font-size: 16px;
-                line-height: 1.5;
-                }
-                
-                .info-text strong {
-                font-weight: bold;
-                margin-right: 5px;
-                }
-                /* Table Styles */
-                .items-table tr:nth-child(even) {
-                background-color: #f8f9fa;
-                }
-                /* Dear Content */
-                .dear-content {
-                background-color: #f8f9fa;
-                padding: 15px;
-                border-left: 4px solid #000000;
-                margin-bottom: 20px;
-                }
-                @media (max-width: 1000px) {
-                .items-table {
-                font-size: 14px;
-                min-width: 700px;
-                }
-                }
+                .items-table th.image-col,
+                .items-table td.image-col { padding-left: 12px; }
+
+                /* Header repeats on each page, body flows, rows stay together */
                 .items-table thead {
-                display: table-header-group;
+                    display: table-header-group;
+                    page-break-inside: avoid;
+                    break-inside: avoid;
                 }
                 .items-table tfoot {
-                display: table-footer-group;
+                    display: table-footer-group;
                 }
-                .items-table tr {
-                page-break-inside: auto;
-                }
-                
-                /* Table page break handling */
-                .items-table {
-                page-break-inside: auto;
-                border-collapse: collapse;
-                }
-                
-                /* Table headers repeat on each page */
-                .items-table thead {
-                display: table-header-group;
-                page-break-inside: avoid;
-                }
-                
-                /* Table body can break across pages */
                 .items-table tbody {
-                display: table-row-group;
-                page-break-inside: auto;
+                    display: table-row-group;
                 }
-                
-                /* Individual rows can break if needed */
+                /* KEY RULE: never split a row across pages */
                 .items-table tr {
-                page-break-inside: auto;
-                page-break-after: auto;
+                    page-break-inside: avoid !important;
+                    break-inside: avoid !important;
+                    page-break-after: auto;
                 }
-                
-                /* Keep totals section together */
+                .items-table tr:nth-child(even) { background-color: #f8f9fa; }
+
+                /* ---------- TOTALS / TERMS / SIGNATURE ---------- */
                 .totals-section {
-                page-break-inside: avoid;
-                page-break-before: auto;
-                margin-top: 20px;
+                    width: 350px;
+                    margin-left: auto;
+                    margin-bottom: 30px;
+                    margin-top: 20px;
+                    page-break-inside: avoid;
+                    break-inside: avoid;
                 }
-                
-                /* Keep terms section together */
+                .totals-row {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 5px 0;
+                    border-bottom: 1px solid #e0e0e0;
+                }
+                .totals-row span:first-child { color: #000000; font-weight: 500; padding-right: 20px; }
+                .totals-row span:last-child { text-align: right; min-width: 120px; }
+                .grand-total {
+                    background-color: #000000;
+                    color: white;
+                    padding: 10px 15px;
+                    margin-top: 10px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
                 .terms {
-                page-break-inside: avoid;
-                page-break-before: auto;
-                margin-top: 40px;
+                    background-color: #f8f9fa;
+                    padding: 20px;
+                    border-radius: 4px;
+                    margin-top: 40px;
+                    page-break-inside: avoid;
+                    break-inside: avoid;
                 }
-                
-                /* Keep signature section together */
+                .terms-title { color: #000000; border-bottom: 2px solid #000000; padding-bottom: 5px; }
+                .terms-list { padding-left: 20px; }
+                .terms-points { padding-left: 20px; }
                 .signature-section {
-                page-break-inside: avoid;
-                page-break-before: auto;
-                margin-top: 30px;
+                    margin-top: 30px;
+                    margin-bottom: 20px;
+                    display: flex;
+                    justify-content: flex-end;
+                    page-break-inside: avoid;
+                    break-inside: avoid;
                 }
-                
-                /* Ensure clean page breaks */
-                .page-break {
-                page-break-before: always;
+                .signature-box {
+                    width: 300px;
+                    border: 2px solid #000000;
+                    padding: 15px;
+                    text-align: center;
                 }
-                
-                /* Remove any unwanted borders or separators */
-                .items-table td, .items-table th {
-                border: 1px solid #000;
-                page-break-inside: avoid;
+                .signature-box p { color: #000000; font-size: 16px; margin: 0 0 25px 0; }
+                .signature-line { border-bottom: 1px solid #000000; margin-bottom: 8px; }
+                .company-name { color: #666; font-size: 14px; text-align: center; }
+                .footer {
+                    color: #000000;
+                    font-size: 13px;
+                    border-top: 2px solid #000000;
+                    padding-top: 15px;
                 }
-                
-                /* Ensure table flows naturally across pages */
-                .items-table {
-                break-inside: auto;
+                .deal-info { margin: 20px 0; padding: 10px; background-color: #f8f8f8; }
+                .customer-info { width: 100%; }
+                .details-table { border-collapse: collapse; margin: 20px 0; }
+                .details-cell { padding: 0 10px; vertical-align: top; }
+                .details-box {
+                    border: 1px solid #000000;
+                    border-radius: 4px;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                    padding: 15px;
+                    height: 100%;
                 }
-                
-                /* Remove any default page break styling */
-                * {
-                box-sizing: border-box;
+                .info-table { width: 100%; margin-top: 10px; }
+                .info-table td { padding: 3px 0; }
+                .info-table .label { font-weight: bold; width: 130px; }
+                .estimate-info { display: flex; justify-content: space-between; align-items: flex-start; }
+                .left-info { text-align: left; }
+                .right-info { text-align: right; }
+                .info-text { font-size: 16px; line-height: 1.5; }
+                .info-text strong { font-weight: bold; margin-right: 5px; }
+                .dear-content {
+                    background-color: #f8f9fa;
+                    padding: 15px;
+                    border-left: 4px solid #000000;
+                    margin-bottom: 20px;
                 }
-                
-                /* Ensure clean table rendering */
-                .items-table tr {
-                break-inside: avoid;
-                page-break-inside: avoid;
-                }
+                .page-break { page-break-before: always; }
             </style>
         </head>
         <body>
-            <!--  <div style="display: flex; flex-direction: column; align-items: stretch; margin-bottom: 20px;">
-<div style="text-align: center; color: #bbb; letter-spacing: 0.4em; font-size: 24px; font-weight: normal; font-family: Arial, Helvetica, sans-serif; margin-bottom: 2px;">
-L E &nbsp; M A R B L E &nbsp; G A L L E R Y &nbsp; P V T. &nbsp; L T D.
-</div>   </div> -->
             <div style="width:100%; margin:0; padding:0;">
                 <apex:image url="{!URLFOR($Resource.componyLogo1)}"
                             style="display:block; width:100%; height:auto; margin:0; padding:0;"
                             alt="Company Logo"/>
             </div>
             <div style="width:100%; border-top:1px solid #cfcfcf; margin:10px 0;"></div>
-            <table style="width:100%; border-collapse:collapse; margin-top:10px; font-size:15px; margin-left:1cm;  margin-right:1cm;">
-                
+
+            <table style="width:100%; border-collapse:collapse; margin-top:10px; font-size:15px; margin-left:1cm; margin-right:1cm;">
                 <tr>
-                    
                     <!-- LEFT SIDE -->
                     <td style="width:50%; vertical-align:top; padding:10px;">
-                        
                         <table style="width:100%; border-collapse:collapse;">
                             <tr>
                                 <td style="font-weight:bold;">Company <br/>Address</td>
-                                <td>Le Marble Gallery<br/>
-                                    Opposite Civil Station, Calicut
-                                </td>
+                                <td>Le Marble Gallery<br/>Opposite Civil Station, Calicut</td>
                             </tr>
-
                             <tr>
                                 <td style="font-weight:bold;">Prepared By</td>
                                 <td>{!cart.Owner.Name}</td>
                             </tr>
-                           
                             <tr>
                                 <td style="font-weight:bold;">Phone</td>
                                 <td>{!cart.Owner.Phone}</td>
                             </tr>
-                            
                             <tr>
                                 <td style="font-weight:bold;">Email</td>
                                 <td>{!cart.Owner.Email}</td>
                             </tr>
-                             <tr>
+                            <tr>
                                 <td colspan="2" style="height:20px;"></td>
                             </tr>
                             <tr>
                                 <td style="font-weight:bold;">Bill To Name</td>
                                 <td>{!Quote.Account.Name}</td>
                             </tr>
-                              <tr>
+                            <tr>
                                 <td style="font-weight:bold;">Customer Number</td>
                                 <td>{!cart.Account.Customer_Number_Ext__c}</td>
                             </tr>
-                           
                             <tr>
                                 <td style="font-weight:bold;">Bill To</td>
-                                <td><apex:outputText value="{!Quote.Opportunity.Account.BillingStreet}" rendered="{!NOT(ISBLANK(Quote.Opportunity.Account.BillingStreet))}"/><br/>
+                                <td>
+                                    <apex:outputText value="{!Quote.Opportunity.Account.BillingStreet}" rendered="{!NOT(ISBLANK(Quote.Opportunity.Account.BillingStreet))}"/><br/>
                                     <apex:outputText value="{!Quote.Opportunity.Account.BillingCity}" rendered="{!NOT(ISBLANK(Quote.Opportunity.Account.BillingCity))}"/>
                                     <apex:outputText value=", {!Quote.Opportunity.Account.BillingState}" rendered="{!NOT(ISBLANK(Quote.Opportunity.Account.BillingState))}"/>
                                     <apex:outputText value=", {!Quote.Opportunity.Account.BillingCountry}" rendered="{!NOT(ISBLANK(Quote.Opportunity.Account.BillingCountry))}"/>
                                 </td>
                             </tr>
                         </table>
-                        
                     </td>
-                    
-                    
+
                     <!-- RIGHT SIDE -->
                     <td style="width:50%; vertical-align:top; padding:8px;">
-                        
                         <table style="width:100%; border-collapse:collapse;">
                             <tr>
                                 <td style="font-weight:bold;">Created Date</td>
                                 <td>
                                     {!LPAD(TEXT(DAY(DATEVALUE(cart.CreatedDate))), 2, '0')}-
                                     {!LPAD(TEXT(MONTH(DATEVALUE(cart.CreatedDate))), 2, '0')}-
-                                    {!TEXT(YEAR(DATEVALUE(cart.CreatedDate)))}</td>
+                                    {!TEXT(YEAR(DATEVALUE(cart.CreatedDate)))}
+                                </td>
                             </tr>
-                            
                             <tr>
                                 <td style="font-weight:bold;">Expiration Date</td>
-                                <td>    
-                                    
+                                <td>
                                     {!LPAD(TEXT(DAY(cart.ExpirationDate)), 2, '0')}-
                                     {!LPAD(TEXT(MONTH(Quote.ExpirationDate)), 2, '0')}-
-                                    {!TEXT(YEAR(Quote.ExpirationDate))}</td>
+                                    {!TEXT(YEAR(Quote.ExpirationDate))}
+                                </td>
                             </tr>
-                            
                             <tr>
                                 <td style="font-weight:bold;">Quote Number</td>
                                 <td>{!cart.Quote_Number__c}</td>
                             </tr>
-                            
                             <tr>
                                 <td style="font-weight:bold;">Contact Name</td>
                                 <td>{!cart.Contact_Person_Name__c}</td>
                             </tr>
-            
                             <tr>
                                 <td style="font-weight:bold;">Contact Number</td>
                                 <td>{!cart.Contact_Person_Number__c}</td>
                             </tr>
-                            
                             <tr>
                                 <td style="font-weight:bold;">Email</td>
                                 <td>{!cart.Email}</td>
                             </tr>
-                            
                             <tr>
                                 <td style="font-weight:bold;">Ship To Name</td>
                                 <td>{!cart.QuoteToName}</td>
                             </tr>
-                            
                             <tr>
                                 <td style="font-weight:bold;">Ship To</td>
-                               <td><apex:outputText value="{!Quote.AddressLine1__c}" rendered="{!NOT(ISBLANK(Quote.AddressLine1__c ))}"/><br/>
+                                <td>
+                                    <apex:outputText value="{!Quote.AddressLine1__c}" rendered="{!NOT(ISBLANK(Quote.AddressLine1__c))}"/><br/>
                                     <apex:outputText value="{!Quote.AddressLine2__c}" rendered="{!NOT(ISBLANK(Quote.AddressLine2__c))}"/>
                                     <apex:outputPanel rendered="{!NOT(ISBLANK(Quote.AddressLine3__c))}">
                                         <br/>
                                         <apex:outputText value="{!Quote.AddressLine3__c}"/>
                                     </apex:outputPanel>
-                                    
                                     <apex:outputText value=", {!Quote.District__c}" rendered="{!NOT(ISBLANK(Quote.District__c))}"/>
                                     <apex:outputText value=", {!Quote.State__c}" rendered="{!NOT(ISBLANK(Quote.State__c))}"/>
                                     <apex:outputText value=", {!Quote.Country__c}" rendered="{!NOT(ISBLANK(Quote.Country__c))}"/>
-                                </td> 
+                                </td>
                             </tr>
                         </table>
-                        
                     </td>
-                    
                 </tr>
-                
             </table>
-            
-            
-            
-            
-            
-            <div style="margin-bottom: 15px; font-size: 18px; margin-left:1cm;  margin-right:1cm;" class="dear-content">
+
+            <div style="margin-bottom: 15px; font-size: 18px; margin-left:1cm; margin-right:1cm;" class="dear-content">
                 <p style="margin: 0;">Dear Sir/Madam,</p>
                 <p style="margin: 10px 0 0 0;">Thank you for choosing Le Marble Gallery. In response to your enquiry, we take pleasure in furnishing our lowest rate for your kind consideration.</p>
             </div>
-            
+
             <div style="overflow-x:auto; width:100%;">
-                <!--       <table class="items-table" style="width:100%; border-collapse:collapse;">
-<thead>
-<tr>
-<th style="border: 1px solid #000; padding: 8px; text-align: center; color: #000; font-size: 15px; font-weight: bold; width: 5%; max-width: 50px;">NO.</th>
-<th style="border: 1px solid #000; padding: 8px; text-align: center; color: #000; font-size: 15px; font-weight: bold; width: 25%; max-width: 350px; word-break: break-word; white-space: normal;">DESCRIPTION</th>
-<th style="border: 1px solid #000; padding: 8px; text-align: center; color: #000; font-size: 15px; font-weight: bold; width: 10%; max-width: 100px;">AREAS</th>
-<th style="border: 1px solid #000; padding: 8px; text-align: center; color: #000; font-size: 15px; font-weight: bold; width: 10%; max-width: 100px;">QNTY / SQFT</th>
-<th style="border: 1px solid #000; padding: 8px; text-align: center; color: #000; font-size: 15px; font-weight: bold; width: 10%; max-width: 100px;">QNTY / NO</th>
-<th style="border: 1px solid #000; padding: 8px; text-align: center; color: #000; font-size: 15px; font-weight: bold; width: 10%; max-width: 100px;">MRP / (SQFT/NO)</th>
-<th style="border: 1px solid #000; padding: 8px; text-align: center; color: #000; font-size: 15px; font-weight: bold; width: 10%; max-width: 100px;">DISC / (SQFT/NO)</th>
-<th style="border: 1px solid #000; padding: 8px; text-align: center; color: #000; font-size: 15px; font-weight: bold; width: 8%; max-width: 80px;">TOTAL</th>
-<th class="image-col" style="border: 1px solid #000; padding: 8px; text-align: center; color: #000; font-size: 15px; font-weight: bold; width: 12%; max-width: 120px;">IMAGE</th>
-</tr>
-</thead>
-<tbody>
-<apex:variable var="counter" value="{!1}"/>
-<apex:repeat value="{!products}" var="item">
-<tr>
-<td style="border: 1px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 15px;">{!counter}</td>
-<td style="border: 1px solid #000; padding: 8px; text-align: left; font-weight: bold; font-size: 15px; word-break: break-word; white-space: normal;">
-{!item.description}
-<apex:outputText rendered="{!item.category = 'NATURAL STONE' && NOT(ISBLANK(item.descriptionField))}" 
-value=" - {!item.descriptionField}"/>
-</td>
-                                        <td style="border: 1px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 15px;">{!item.areaDisplay}</td>
-<td style="border: 1px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 15px;">{!item.sqft}</td>
-<td style="border: 1px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 15px;">{!item.quantity}</td>
-<td style="border: 1px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 15px;">
-<apex:outputText value="{!IF(NOT(ISBLANK(item.unitPrice)), item.unitPrice, item.priceSqft)}"/>
-
-
-</td> 
-<td style="border: 1px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 15px;">
-<apex:outputText value="{!
-IF(
-item.discountType = 'Percentage',
-TEXT(item.afterDiscPrice) & '%',
-item.afterDiscPrice
-)
-}"
-/>
-</td>
-<td style="border: 1px solid #000; padding: 8px; text-align: center; font-weight: bold; font-size: 15px;">{!item.total}</td>
-<td class="image-col" style="border: 1px solid #000; padding: 8px; text-align: center;">
-<apex:outputPanel rendered="{!NOT(ISBLANK(item.imageUrl))}">
-<apex:image url="{!item.imageUrl}" style="width: 60px; height: 60px; object-fit: contain;"/>
-</apex:outputPanel>
-<apex:outputPanel rendered="{!ISBLANK(item.imageUrl)}">
-<div style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background-color: #f5f5f5;">
-<span style="font-size: 15px; color: #999;">No Image</span>
-</div>
-</apex:outputPanel>
-</td>
-</tr>
-<apex:variable var="counter" value="{!counter + 1}"/>
-</apex:repeat>
-</tbody>
-</table>
--->
-                <table style="width:auto; border-collapse:collapse; table-layout:fixed; margin-left:1cm; margin-right:1cm; margin-top:1cm; font-weight:normal;">
-                    
+                <table class="items-table" style="width:auto; margin-left:1cm; margin-right:1cm; margin-top:1cm; font-weight:normal;">
                     <thead>
-                        <tr>
-                            <th style="width:5%; border:1px solid #cfcfcf; text-align:center; font-weight:bold;">NO.</th>
+                        <tr style="page-break-inside:avoid; break-inside:avoid;">
+                            <th style="width:5%;  border:1px solid #cfcfcf; text-align:center; font-weight:bold;">NO.</th>
                             <th style="width:18%; border:1px solid #cfcfcf; text-align:center; font-weight:bold;">DESCRIPTION</th>
                             <th style="width:10%; border:1px solid #cfcfcf; text-align:center; font-weight:bold;">AREAS</th>
                             <th style="width:10%; border:1px solid #cfcfcf; text-align:center; font-weight:bold;">QNTY / SQFT</th>
@@ -586,45 +358,33 @@ item.afterDiscPrice
                             <th style="width:15%; border:1px solid #cfcfcf; text-align:center; font-weight:bold;">MRP (SQFT/NO)</th>
                             <th style="width:15%; border:1px solid #cfcfcf; text-align:center; font-weight:bold;">DISC (SQFT/NO)</th>
                             <th style="width:10%; border:1px solid #cfcfcf; text-align:center; font-weight:bold;">TOTAL</th>
-                            <th style="width:7%; border:1px solid #cfcfcf; text-align:center; font-weight:bold;">IMAGE</th>
+                            <th style="width:7%;  border:1px solid #cfcfcf; text-align:center; font-weight:bold;">IMAGE</th>
                         </tr>
                     </thead>
-                    
-                    <tbody style="font-weight:normal;">
-                        
-                        <apex:repeat value="{!areaGroups}" var="grp">
-                            
-                            <apex:variable var="counter" value="{!1}"/>
-                            
-                            <apex:repeat value="{!grp.items}" var="item">
-                                
-                                <tr style="font-size:16px; font-weight:normal;">
-                                    <td style="border:1px solid #cfcfcf; text-align:center; font-weight:normal;">{!counter}</td>
-                                    <td style="border:1px solid #cfcfcf; font-weight:normal; padding:4px 10px;">{!item.description}</td>
-                                    <td style="border:1px solid #cfcfcf; text-align:center; font-weight:normal;">{!item.areaDisplay}</td>
-                                    <td style="border:1px solid #cfcfcf; text-align:center; font-weight:normal;">{!item.sqft}</td>
-                                    <td style="border:1px solid #cfcfcf; text-align:center; font-weight:normal;">{!item.quantity}</td>
-                                    <td style="border:1px solid #cfcfcf; text-align:center; font-weight:normal;"><apex:outputText value="{0, number, ##,##0.00}">
-                                        <apex:param value="{!item.unitPrice}" />
-                                    </apex:outputText></td>
-                                   <td style="border:1px solid #cfcfcf; text-align:center; font-weight:normal;"><apex:outputText value="{0, number, ##,##0.00}">
-                                        <apex:param value="{!item.beforeDiscPrice}" />
-                                    </apex:outputText></td>
-                              <!--      <td style="border:1px solid #cfcfcf; text-align:center; font-weight:normal;">
 
-                                        <apex:outputText rendered="{!item.discountType == 'Percentage'}"
-                                                         value="{0, number, ##,##0.00}">
-                                            <apex:param value="{!item.discountAmountInRupees}" />
+                    <tbody style="font-weight:normal;">
+                        <apex:repeat value="{!areaGroups}" var="grp">
+                            <apex:variable var="counter" value="{!1}"/>
+
+                            <apex:repeat value="{!grp.items}" var="item">
+                                <tr style="font-size:16px; font-weight:normal; page-break-inside:avoid; break-inside:avoid;">
+                                    <td style="border:1px solid #cfcfcf; text-align:center; font-weight:normal; page-break-inside:avoid; break-inside:avoid;">{!counter}</td>
+                                    <td style="border:1px solid #cfcfcf; font-weight:normal; padding:4px 10px; word-break:break-word; white-space:normal; page-break-inside:avoid; break-inside:avoid;">{!item.description}</td>
+                                    <td style="border:1px solid #cfcfcf; text-align:center; font-weight:normal; page-break-inside:avoid; break-inside:avoid;">{!item.areaDisplay}</td>
+                                    <td style="border:1px solid #cfcfcf; text-align:center; font-weight:normal; page-break-inside:avoid; break-inside:avoid;">{!item.sqft}</td>
+                                    <td style="border:1px solid #cfcfcf; text-align:center; font-weight:normal; page-break-inside:avoid; break-inside:avoid;">{!item.quantity}</td>
+                                    <td style="border:1px solid #cfcfcf; text-align:center; font-weight:normal; page-break-inside:avoid; break-inside:avoid;">
+                                        <apex:outputText value="{0, number, ##,##0.00}">
+                                            <apex:param value="{!item.unitPrice}"/>
                                         </apex:outputText>
-                                    
-                                        <apex:outputText rendered="{!item.discountType == 'Amount'}"
-                                                         value="{0, number, ##,##0.00}">
-                                            <apex:param value="{!item.unitPrice}" />
+                                    </td>
+                                    <td style="border:1px solid #cfcfcf; text-align:center; font-weight:normal; page-break-inside:avoid; break-inside:avoid;">
+                                        <apex:outputText value="{0, number, ##,##0.00}">
+                                            <apex:param value="{!item.beforeDiscPrice}"/>
                                         </apex:outputText>
-                                    
-                                    </td> -->
-                                    <td style="border:1px solid #cfcfcf; text-align:center; font-weight:normal;">{!item.total}</td>
-                                    <td style="border:1px solid #cfcfcf; text-align:center;">
+                                    </td>
+                                    <td style="border:1px solid #cfcfcf; text-align:center; font-weight:normal; page-break-inside:avoid; break-inside:avoid;">{!item.total}</td>
+                                    <td style="border:1px solid #cfcfcf; text-align:center; page-break-inside:avoid; break-inside:avoid;">
                                         <apex:outputPanel rendered="{!NOT(ISBLANK(item.imageUrl))}">
                                             <apex:image url="{!item.imageUrl}" style="width: 60px; height: 60px; object-fit: contain;"/>
                                         </apex:outputPanel>
@@ -635,45 +395,25 @@ item.afterDiscPrice
                                         </apex:outputPanel>
                                     </td>
                                 </tr>
-                                
                                 <apex:variable var="counter" value="{!counter+1}"/>
-                                
                             </apex:repeat>
-                            
-                            <tr>
-                                <td colspan="7" style="border:1px solid #cfcfcf; text-align:right; font-weight:normal;">
+
+                            <tr style="page-break-inside:avoid; break-inside:avoid;">
+                                <td colspan="7" style="border:1px solid #cfcfcf; text-align:right; font-weight:normal; page-break-inside:avoid; break-inside:avoid;">
                                     SET TOTAL
                                 </td>
-                                <td style="border:1px solid #cfcfcf; text-align:center; font-weight:normal;">
+                                <td style="border:1px solid #cfcfcf; text-align:center; font-weight:normal; page-break-inside:avoid; break-inside:avoid;">
                                     {!grp.areaTotal}
                                 </td>
-                                <td style="border:1px solid #cfcfcf;"></td>
+                                <td style="border:1px solid #cfcfcf; page-break-inside:avoid; break-inside:avoid;"></td>
                             </tr>
-                            
                         </apex:repeat>
-                        
                     </tbody>
                 </table>
-                
-                
-                
-                
-                
-                
             </div>
-            
-            <div class="totals-section" style="margin-top:0; width: auto; margin-left:1cm;  margin-right:1cm;">
+
+            <div class="totals-section" style="margin-top:0; width: auto; margin-left:1cm; margin-right:1cm;">
                 <table width="100%" cellspacing="0" cellpadding="0" style="border-collapse: collapse; margin-top: 0;">
-                <!--    <tr>
-                        <td style="border: 1px solid #cfcfcf; padding: 4px 10px; width: 59%;"></td>
-                        <td style="border: 1px solid #cfcfcf; padding: 4px 10px; font-size: 15px; font-weight:normal; width: 16%;">MRP Total</td>
-                        <td style="border: 1px solid #cfcfcf; padding: 4px 10px; text-align: right; font-size: 15px; font-weight:normal; width: 20%;">
-                            <apex:outputText value="{0, number, ###,##0.00}">
-                                <apex:param value="{!mrpTotal}"/>
-                            </apex:outputText>
-                        </td>
-                    </tr>-->
-                    
                     <tr>
                         <td style="border: 1px solid #cfcfcf; padding: 4px 10px;"></td>
                         <td style="border: 1px solid #cfcfcf; padding: 4px 10px; font-size: 15px; font-weight:normal;">Sub Total</td>
@@ -712,89 +452,63 @@ item.afterDiscPrice
                     </tr>
                     <tr>
                         <td style="border: 1px solid #cfcfcf; padding: 4px 10px;"></td>
-                        <td style="border: 1px solid #cfcfcf; padding: 4px 10px; font-size: 15px; font-weight:normal;">
-                            Round-off
-                        </td>
+                        <td style="border: 1px solid #cfcfcf; padding: 4px 10px; font-size: 15px; font-weight:normal;">Round-off</td>
                         <td style="border: 1px solid #cfcfcf; padding: 4px 10px; text-align: right; font-size: 15px; font-weight:normal;">
-                            <!--     <apex:outputText value="{0, number, ###,##0.00}">
-<apex:param value="{!ABS(totalDiscount)}"/> -->
-                            
                             <apex:outputText value="{0, number, ###,##0.00}">
                                 <apex:param value="{!IF(ISNULL(Quote.Round_Off__c), 0, Quote.Round_Off__c)}"/>
-                                
                             </apex:outputText>
                         </td>
                     </tr>
-                    
                     <tr>
                         <td style="border: 1px solid #cfcfcf; padding: 4px 10px;"></td>
                         <td style="border: 1px solid #cfcfcf; padding: 4px 10px; font-size: 18px; font-weight: bold; width: 20%;">Grand Total</td>
                         <td style="border: 1px solid #cfcfcf; padding: 4px 10px; text-align: right; font-size: 18px; font-weight: bold;">
                             <apex:outputText value="{0, number, ###,##0.00}">
                                 <apex:param value="{!
-                                                   selectedTotalAmount
-                                                   + IF(ISNULL(Quote.Freight_Charge__c), 0, Quote.Freight_Charge__c)
-                                                   + IF(ISNULL(Quote.Loading_Charge__c), 0, Quote.Loading_Charge__c)
-                                                   + IF(ISNULL(Quote.Unloading_Charge__c), 0, Quote.Unloading_Charge__c) - 
-                                                   IF(ISNULL(Quote.Round_Off__c), 0, Quote.Round_Off__c)
-                                                   }"/>
+                                    selectedTotalAmount
+                                    + IF(ISNULL(Quote.Freight_Charge__c), 0, Quote.Freight_Charge__c)
+                                    + IF(ISNULL(Quote.Loading_Charge__c), 0, Quote.Loading_Charge__c)
+                                    + IF(ISNULL(Quote.Unloading_Charge__c), 0, Quote.Unloading_Charge__c)
+                                    - IF(ISNULL(Quote.Round_Off__c), 0, Quote.Round_Off__c)
+                                }"/>
                             </apex:outputText>
                         </td>
                     </tr>
                 </table>
             </div>
+
             <div class="runningHeader">
                 LE MARBLE GALLERY PVT. LTD.
             </div>
-            
+
             <!-- FORCE NEW PAGE FOR IMAGE -->
             <div class="page-break"></div>
-            
+
             <!-- PROMOTIONAL IMAGE (TOP OF PAGE) -->
-         <div style="page-break-before:always; page-break-inside:avoid; text-align:center;">
-    <apex:image url="{!URLFOR($Resource.QuoteTemplate)}"
-                style="width:950px; max-width:100%; height:auto; display:block; margin:0 auto;"
-                alt="Quote Promotional Image"/>
-</div>
+            <div style="page-break-before:always; page-break-inside:avoid; text-align:center;">
+                <apex:image url="{!URLFOR($Resource.QuoteTemplate)}"
+                            style="width:950px; max-width:100%; height:auto; display:block; margin:0 auto;"
+                            alt="Quote Promotional Image"/>
+            </div>
+
             <!-- ================= TERMS & CONDITIONS ================= -->
             <div class="terms" style="margin-top:40px; font-family:Arial, Helvetica, sans-serif; margin-left:1cm; margin-right:1cm;">
-                
-                <div style="font-size:20px; font-weight:bold; margin-bottom:12px;">
-                    Terms &amp; Conditions
-                </div>
-                
-                <!-- ================= COMMON ================= -->
-                <div style="font-size:16px; font-weight:bold; margin-bottom:6px;">
-                    COMMON TERMS &amp; CONDITIONS
-                </div>
-                
-                
+                <div style="font-size:20px; font-weight:bold; margin-bottom:12px;">Terms &amp; Conditions</div>
+
+                <div style="font-size:16px; font-weight:bold; margin-bottom:6px;">COMMON TERMS &amp; CONDITIONS</div>
                 <ol style="margin-left:22px; font-size:15px;">
                     <li>Orders will be processed only against advance payment.</li>
                     <li>No credit facility is available under any circumstances.</li>
                     <li>Materials supplied against confirmed orders cannot be taken back or returned.</li>
                     <li>Freight and unloading charges shall be borne by the customer.</li>
-                    <li>
-                        All materials must be cross-verified with the invoice at the time of delivery
-                        before the driver leaves. The invoice must be signed by the authorised person
-                        receiving the consignment.
-                    </li>
-                    <li>
-                        Materials must be inspected by the customer or their representative at the time
-                        of delivery. No complaints will be accepted after delivery.
-                    </li>
+                    <li>All materials must be cross-verified with the invoice at the time of delivery before the driver leaves. The invoice must be signed by the authorised person receiving the consignment.</li>
+                    <li>Materials must be inspected by the customer or their representative at the time of delivery. No complaints will be accepted after delivery.</li>
                     <li>Up to 2–3% transit damage shall be borne by the customer.</li>
-                    <li>
-                        Any additional terms mentioned in the Quotation or Proforma Invoice (PI)
-                        shall be applicable and binding.
-                    </li>
+                    <li>Any additional terms mentioned in the Quotation or Proforma Invoice (PI) shall be applicable and binding.</li>
                 </ol>
-                
-                <!-- ================= SANITARY ================= -->
+
                 <apex:outputPanel rendered="{!hasSanitary}">
-                    <div style="font-size:16px; font-weight:bold; margin-top:16px;">
-                        SANITARY WARE – SPECIFIC TERMS
-                    </div>
+                    <div style="font-size:16px; font-weight:bold; margin-top:16px;">SANITARY WARE – SPECIFIC TERMS</div>
                     <ul style="margin-left:20px; font-size:15px;">
                         <li>Sanitary ware must be accepted on open delivery.</li>
                         <li>Any damage or discrepancy related to sanitary ware must be reported at the time of delivery.</li>
@@ -802,12 +516,9 @@ item.afterDiscPrice
                         <li>All approved return or replacement materials must be in immaculate, saleable condition with original packaging.</li>
                     </ul>
                 </apex:outputPanel>
-                
-                <!-- ================= HEAD OFFICE DIVISION ================= -->
+
                 <apex:outputPanel rendered="{!hasHeadOfficeDivision}">
-                    <div style="font-size:16px; font-weight:bold; margin-top:16px;">
-                        HEAD OFFICE DIVISION – SPECIFIC TERMS
-                    </div>
+                    <div style="font-size:16px; font-weight:bold; margin-top:16px;">HEAD OFFICE DIVISION – SPECIFIC TERMS</div>
                     <ol style="margin-left:22px; font-size:15px;">
                         <li>100% advance payment is mandatory.</li>
                         <li>Delivery will be made within 15 days from the date of confirmation, except for order-based items.</li>
@@ -817,14 +528,9 @@ item.afterDiscPrice
                         <li>Items supplied against order cannot be taken back.</li>
                     </ol>
                 </apex:outputPanel>
-                
-                
-                <!-- ================= TILES ================= -->
+
                 <apex:outputPanel rendered="{!hasTile}">
-                    <div style="font-size:16px; font-weight:bold; margin-top:16px;">
-                        TILES – SPECIFIC TERMS
-                    </div>
-                    
+                    <div style="font-size:16px; font-weight:bold; margin-top:16px;">TILES – SPECIFIC TERMS</div>
                     <ol style="margin-left:22px; font-size:15px;">
                         <li>Tiles may exhibit batch-wise variations in shade, calibre, thickness, texture, and finish, which are industry-accepted norms.</li>
                         <li>Customers must ensure uniformity of batch, shade, and size prior to installation.</li>
@@ -837,13 +543,9 @@ item.afterDiscPrice
                         <li>The company shall not be responsible for installation-related issues, adhesive compatibility, or workmanship defects.</li>
                     </ol>
                 </apex:outputPanel>
-                
-                
-                <!-- ================= FITTINGS ================= -->
+
                 <apex:outputPanel rendered="{!hasFittings}">
-                    <div style="font-size:16px; font-weight:bold; margin-top:16px;">
-                        FITTINGS – SPECIFIC TERMS
-                    </div>
+                    <div style="font-size:16px; font-weight:bold; margin-top:16px;">FITTINGS – SPECIFIC TERMS</div>
                     <ul style="margin-left:20px; font-size:15px;">
                         <li>Fittings must be accepted on open delivery.</li>
                         <li>Any damage or discrepancy related to fittings must be reported at the time of delivery.</li>
@@ -852,12 +554,9 @@ item.afterDiscPrice
                         <li>All approved return or replacement materials must be in immaculate, saleable condition with original packaging.</li>
                     </ul>
                 </apex:outputPanel>
-                
-                <!-- ================= VENGERI DIVISION ================= -->
+
                 <apex:outputPanel rendered="{!hasNaturalStone}">
-                    <div style="font-size:16px; font-weight:bold; margin-top:16px;">
-                        VENGERI DIVISION – SPECIFIC TERMS
-                    </div>
+                    <div style="font-size:16px; font-weight:bold; margin-top:16px;">VENGERI DIVISION – SPECIFIC TERMS</div>
                     <ul style="margin-left:20px; font-size:15px;">
                         <li>Quotation validity is 5 days from the date of issue.</li>
                         <li>Prices quoted are applicable for single purchase only.</li>
@@ -865,18 +564,12 @@ item.afterDiscPrice
                         <li>Delivery will be made within 20 working days from order confirmation, except for order-based items.</li>
                         <li>Billing and delivery addresses must be confirmed at the time of placing the order.</li>
                         <li>Customers must verify quantities before order confirmation.</li>
-                        <li>
-                            Stone being a natural material, variations in colour, design, shade, veins,
-                            patches, and size may occur. Thickness / size tolerance of ±1–2 mm is acceptable.
-                        </li>
+                        <li>Stone being a natural material, variations in colour, design, shade, veins, patches, and size may occur. Thickness / size tolerance of ±1–2 mm is acceptable.</li>
                     </ul>
                 </apex:outputPanel>
-                
-                <!-- ================= BATHING SOLUTIONS ================= -->
+
                 <apex:outputPanel rendered="{!hasBathingSolutions}">
-                    <div style="font-size:16px; font-weight:bold; margin-top:16px;">
-                        BATHING SOLUTIONS – SPECIFIC TERMS
-                    </div>
+                    <div style="font-size:16px; font-weight:bold; margin-top:16px;">BATHING SOLUTIONS – SPECIFIC TERMS</div>
                     <ul style="margin-left:20px; font-size:15px;">
                         <li>Colour items once ordered cannot be returned or exchanged under any circumstances.</li>
                         <li>80% advance payment is required for order confirmation.</li>
@@ -884,13 +577,9 @@ item.afterDiscPrice
                         <li>Order processing will commence only after receipt of the advance payment.</li>
                     </ul>
                 </apex:outputPanel>
-                
-                <!-- ================= CONSTRUCTION CHEMICALS & ADHESIVES ================= -->
+
                 <apex:outputPanel rendered="{!hasConstChemAdh}">
-                    <div style="font-size:16px; font-weight:bold; margin-top:16px;">
-                        CONSTRUCTION CHEMICALS &amp; ADHESIVES (CONST. CHEM &amp; ADH) – SPECIFIC TERMS
-                    </div>
-                    
+                    <div style="font-size:16px; font-weight:bold; margin-top:16px;">CONSTRUCTION CHEMICALS &amp; ADHESIVES (CONST. CHEM &amp; ADH) – SPECIFIC TERMS</div>
                     <ol style="margin-left:22px; font-size:15px;">
                         <li>Products must be stored, handled, mixed, and applied strictly as per manufacturer instructions.</li>
                         <li>Shelf life and storage conditions printed on packaging must be adhered to.</li>
@@ -901,14 +590,9 @@ item.afterDiscPrice
                         <li>Freight and unloading charges shall be borne by the consignee.</li>
                     </ol>
                 </apex:outputPanel>
-                
-                
-                <!-- ================= GRANITE & NATURAL STONE ================= -->
+
                 <apex:outputPanel rendered="{!hasGraniteNatStone}">
-                    <div style="font-size:16px; font-weight:bold; margin-top:16px;">
-                        GRANITE &amp; OTHER NATURAL STONES (GRANITE &amp; NAT. STONE) – SPECIFIC TERMS
-                    </div>
-                    
+                    <div style="font-size:16px; font-weight:bold; margin-top:16px;">GRANITE &amp; OTHER NATURAL STONES (GRANITE &amp; NAT. STONE) – SPECIFIC TERMS</div>
                     <ol style="margin-left:22px; font-size:15px;">
                         <li>Granite and natural stones are natural products and may show variations in colour, pattern, veins, and inclusions.</li>
                         <li>Thickness and size tolerance of ±1–2 mm is acceptable.</li>
@@ -919,13 +603,9 @@ item.afterDiscPrice
                         <li>Freight and unloading charges shall be borne by the consignee.</li>
                     </ol>
                 </apex:outputPanel>
-                
-                <!-- ================= AGGLOMERATE & COUNTERTOPS ================= -->
+
                 <apex:outputPanel rendered="{!hasAggloTops}">
-                    <div style="font-size:16px; font-weight:bold; margin-top:16px;">
-                        AGGLOMERATE &amp; COUNTERTOPS (AGGLO &amp; TOPS) – SPECIFIC TERMS
-                    </div>
-                    
+                    <div style="font-size:16px; font-weight:bold; margin-top:16px;">AGGLOMERATE &amp; COUNTERTOPS (AGGLO &amp; TOPS) – SPECIFIC TERMS</div>
                     <ol style="margin-left:22px; font-size:15px;">
                         <li>Engineered and agglomerate stone products may show minor shade and pattern variation between batches.</li>
                         <li>Final appearance may vary depending on edge profiling, joints, and lighting conditions.</li>
@@ -935,14 +615,9 @@ item.afterDiscPrice
                         <li>Freight and unloading charges shall be borne by the consignee.</li>
                     </ol>
                 </apex:outputPanel>
-                
-                
-                <!-- ================= TIMBER / WOODEN FLOORING / SPC FLOORING ================= -->
+
                 <apex:outputPanel rendered="{!hasTimberSpcFlr}">
-                    <div style="font-size:16px; font-weight:bold; margin-top:16px;">
-                        TIMBER / WOODEN FLOORING / SPC FLOORING (TIMBER / SPC FLR) – SPECIFIC TERMS
-                    </div>
-                    
+                    <div style="font-size:16px; font-weight:bold; margin-top:16px;">TIMBER / WOODEN FLOORING / SPC FLOORING (TIMBER / SPC FLR) – SPECIFIC TERMS</div>
                     <ol style="margin-left:22px; font-size:15px;">
                         <li>Timber and wooden flooring products may exhibit natural grain, knot, and shade variations.</li>
                         <li>Expansion, contraction, warping, or cupping may occur due to changes in temperature and humidity.</li>
@@ -952,16 +627,9 @@ item.afterDiscPrice
                         <li>Freight and unloading charges shall be borne by the consignee.</li>
                     </ol>
                 </apex:outputPanel>
-                
-                
-                
-                
-                <!-- ================= IMPORTED MARBLES ================= -->
+
                 <apex:outputPanel rendered="{!hasImpMarbles}">
-                    <div style="font-size:16px; font-weight:bold; margin-top:16px;">
-                        IMPORTED MARBLES (IMP. MARBLES) – SPECIFIC TERMS
-                    </div>
-                    
+                    <div style="font-size:16px; font-weight:bold; margin-top:16px;">IMPORTED MARBLES (IMP. MARBLES) – SPECIFIC TERMS</div>
                     <ol style="margin-left:22px; font-size:15px;">
                         <li>Imported marbles are 100% natural stones. Natural characteristics such as colour variations, veins, fissures, mineral deposits, patches, pinholes, hairline cracks, and texture differences are inherent and unavoidable.</li>
                         <li>Such natural characteristics shall not be construed as defects or grounds for rejection, replacement, or compensation.</li>
@@ -976,15 +644,9 @@ item.afterDiscPrice
                         <li>No warranty or guarantee, express or implied, is provided.</li>
                     </ol>
                 </apex:outputPanel>
-                
-                
-                
-                <!-- ================= PLUMBING & BATHING SOLUTIONS ================= -->
+
                 <apex:outputPanel rendered="{!hasPlumbingBath}">
-                    <div style="font-size:16px; font-weight:bold; margin-top:16px;">
-                        PLUMBING &amp; BATHING SOLUTIONS (PLUMBING &amp; BATH) – SPECIFIC TERMS
-                    </div>
-                    
+                    <div style="font-size:16px; font-weight:bold; margin-top:16px;">PLUMBING &amp; BATHING SOLUTIONS (PLUMBING &amp; BATH) – SPECIFIC TERMS</div>
                     <ol style="margin-left:22px; font-size:15px;">
                         <li>All plumbing and bathing products must be accepted on an open delivery basis.</li>
                         <li>Any shortage, damage, or mismatch must be reported at the time of delivery.</li>
@@ -995,17 +657,9 @@ item.afterDiscPrice
                         <li>Freight and unloading charges shall be borne by the consignee.</li>
                     </ol>
                 </apex:outputPanel>
-                
-                
-                
-                
-                
-                <!-- ================= ROOFING SOLUTIONS & CLAY PRODUCTS ================= -->
+
                 <apex:outputPanel rendered="{!hasRoofingClay}">
-                    <div style="font-size:16px; font-weight:bold; margin-top:16px;">
-                        ROOFING SOLUTIONS &amp; CLAY PRODUCTS (ROOFING &amp; CLAY) – SPECIFIC TERMS
-                    </div>
-                    
+                    <div style="font-size:16px; font-weight:bold; margin-top:16px;">ROOFING SOLUTIONS &amp; CLAY PRODUCTS (ROOFING &amp; CLAY) – SPECIFIC TERMS</div>
                     <ol style="margin-left:22px; font-size:15px;">
                         <li>Roofing and clay products may show minor dimensional and colour variations.</li>
                         <li>Due to the fragile nature of the products, transit breakage up to 2–3% is acceptable.</li>
@@ -1015,15 +669,9 @@ item.afterDiscPrice
                         <li>Freight and unloading charges shall be borne by the consignee.</li>
                     </ol>
                 </apex:outputPanel>
-                
-                
-                
-                <!-- ================= SINKS ================= -->
+
                 <apex:outputPanel rendered="{!hasSinks}">
-                    <div style="font-size:16px; font-weight:bold; margin-top:16px;">
-                        SINKS – SPECIFIC TERMS
-                    </div>
-                    
+                    <div style="font-size:16px; font-weight:bold; margin-top:16px;">SINKS – SPECIFIC TERMS</div>
                     <ol style="margin-left:22px; font-size:15px;">
                         <li>Sinks must be inspected for cracks, chips, glaze defects, and dimensions before installation.</li>
                         <li>Damage caused during installation, impact, or overtightening is not covered.</li>
@@ -1032,12 +680,9 @@ item.afterDiscPrice
                         <li>Freight and unloading charges shall be borne by the consignee.</li>
                     </ol>
                 </apex:outputPanel>
-                <!-- ================= GLASS MOSAICS & POOL SOLUTIONS ================= -->
+
                 <apex:outputPanel rendered="{!hasGlassMosaicPool}">
-                    <div style="font-size:16px; font-weight:bold; margin-top:16px;">
-                        GLASS MOSAICS &amp; POOL SOLUTIONS (GLASS MOSAIC &amp; POOL) – SPECIFIC TERMS
-                    </div>
-                    
+                    <div style="font-size:16px; font-weight:bold; margin-top:16px;">GLASS MOSAICS &amp; POOL SOLUTIONS (GLASS MOSAIC &amp; POOL) – SPECIFIC TERMS</div>
                     <ol style="margin-left:22px; font-size:15px;">
                         <li>Glass mosaics may show minor shade, size, and thickness variations.</li>
                         <li>Colour perception may vary under different lighting and water conditions.</li>
@@ -1048,16 +693,9 @@ item.afterDiscPrice
                         <li>Freight and unloading charges shall be borne by the consignee.</li>
                     </ol>
                 </apex:outputPanel>
-                
-                
-                
-                
-                <!-- ================= ELECTRICAL & LIGHTING SOLUTIONS ================= -->
+
                 <apex:outputPanel rendered="{!hasElecLighting}">
-                    <div style="font-size:16px; font-weight:bold; margin-top:16px;">
-                        ELECTRICAL &amp; LIGHTING SOLUTIONS (ELEC. &amp; LIGHTING) – SPECIFIC TERMS
-                    </div>
-                    
+                    <div style="font-size:16px; font-weight:bold; margin-top:16px;">ELECTRICAL &amp; LIGHTING SOLUTIONS (ELEC. &amp; LIGHTING) – SPECIFIC TERMS</div>
                     <ol style="margin-left:22px; font-size:15px;">
                         <li>Electrical products must be installed by licensed electricians only.</li>
                         <li>Electrical ratings and compatibility must be verified prior to installation.</li>
@@ -1067,13 +705,9 @@ item.afterDiscPrice
                         <li>Freight and unloading charges shall be borne by the consignee.</li>
                     </ol>
                 </apex:outputPanel>
-                
-                <!-- ================= TOOLS ================= -->
+
                 <apex:outputPanel rendered="{!hasTools}">
-                    <div style="font-size:16px; font-weight:bold; margin-top:16px;">
-                        TOOLS – SPECIFIC TERMS
-                    </div>
-                    
+                    <div style="font-size:16px; font-weight:bold; margin-top:16px;">TOOLS – SPECIFIC TERMS</div>
                     <ol style="margin-left:22px; font-size:15px;">
                         <li>Tools must be checked for functionality at the time of delivery.</li>
                         <li>Warranty, if applicable, is limited to manufacturing defects.</li>
@@ -1082,13 +716,9 @@ item.afterDiscPrice
                         <li>Freight and unloading charges shall be borne by the consignee.</li>
                     </ol>
                 </apex:outputPanel>
-                
-                <!-- ================= EXTERNAL FACADES & CLADDING SOLUTIONS ================= -->
+
                 <apex:outputPanel rendered="{!hasFacadesCladding}">
-                    <div style="font-size:16px; font-weight:bold; margin-top:16px;">
-                        EXTERNAL FACADES &amp; CLADDING SOLUTIONS (FACADES &amp; CLADDING) – SPECIFIC TERMS
-                    </div>
-                    
+                    <div style="font-size:16px; font-weight:bold; margin-top:16px;">EXTERNAL FACADES &amp; CLADDING SOLUTIONS (FACADES &amp; CLADDING) – SPECIFIC TERMS</div>
                     <ol style="margin-left:22px; font-size:15px;">
                         <li>Facade and cladding materials may show batch and shade variations.</li>
                         <li>Structural suitability must be verified by the project consultant or architect.</li>
@@ -1098,17 +728,9 @@ item.afterDiscPrice
                         <li>Freight and unloading charges shall be borne by the consignee.</li>
                     </ol>
                 </apex:outputPanel>
-                
-                
-                
-                
-                
-                
-                <!-- ================= NATURAL STONE ================= -->
+
                 <apex:outputPanel rendered="{!hasNaturalStone}">
-                    <div style="font-size:16px; font-weight:bold; margin-top:16px;">
-                        NATURAL STONE – SPECIFIC TERMS
-                    </div>
+                    <div style="font-size:16px; font-weight:bold; margin-top:16px;">NATURAL STONE – SPECIFIC TERMS</div>
                     <ul style="margin-left:20px; font-size:15px;">
                         <li>Delivery will be made within 15 days from the date of order confirmation, except for order-based items.</li>
                         <li>Replacement against transit damage (beyond permissible limits) will be arranged subject to availability.</li>
@@ -1120,21 +742,15 @@ item.afterDiscPrice
                         <li>The company does not provide any warranty or guarantee for natural stones or issues arising from faulty installation.</li>
                     </ul>
                 </apex:outputPanel>
-                
             </div>
-            
-            
-            
-            
-            
+
             <div class="signature-section" style="margin-top: 30px; margin-bottom: 20px; text-align: right;">
                 <div style="width: 300px; border: 2px solid #000000; padding: 15px; display: inline-block;">
                     <p style="color: #999; font-size: 22px; margin: 0 0 25px 0; text-align: center;">Customer Signature</p>
                     <div style="border-bottom: 1px solid #000000; margin-bottom: 8px;"></div>
                 </div>
             </div>
-            
-            
+
             <div class="footer">
                 <p style="font-size: 18px;">Le Marble Gallery | Opposite Civil Station | Eranhipalam | Calicut-20</p>
                 <p style="font-size: 18px;">e:hello@mggroupin.com | t: +914952373512 | www.mggroupin.com</p>
