@@ -1478,7 +1478,13 @@ console.log(el);
    // const unitPrice = this.pbEntryMap?.get(selectedProduct.Id) || 0;
     //const pricebookEntryId = this.pbEntryIdMap?.get(selectedProduct.Id) || '';
 
-        const unitPrice =selectedProduct.unitPrice;
+    // For N.STONE the input price must be the MSP (which already includes GST),
+    // not the pricebook unit price.
+    const isNaturalStoneSelection = selectedProduct.category === 'N.STONE';
+    const mspValue = parseFloat(selectedProduct.msp);
+    const unitPrice = isNaturalStoneSelection && !isNaN(mspValue)
+        ? mspValue
+        : selectedProduct.unitPrice;
     const pricebookEntryId = selectedProduct.pricebookEntryId;
 
  //alert(JSON.stringify(pricebookEntryId));
