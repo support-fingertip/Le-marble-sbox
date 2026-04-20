@@ -810,7 +810,7 @@ public class sapIntegration {
         // ── NEW FIELD ──────────────────────────────────────────────────────────
         // DiscountPercent sent to SAP for each document line.
         // Populated from Disc_Type__c / Dis_Value__c on the OrderItem.
-        public Decimal DiscountPercent;
+ //       public Decimal DiscountPercent;
         // ───────────────────────────────────────────────────────────────────────
         public List<BatchNumber> BatchNumbers;
     }
@@ -985,13 +985,13 @@ public class sapIntegration {
             SELECT Id,
                    Quantity,
                    Block_Quantity__c,
-                   UOM_Price_without_tax_and_after_disc__c,
+                   UOM_Price_without_tax_and_after_disc__c,Price_to_SAP__c,
                    Product2.Product_Category__c,
                    PricebookEntry.Product2.Product_Code__c,
                    Tax_Percentage__c,                           // ← directly on OrderItem
                    Warehouse__r.Warehouse_Code__c,
                    ListPrice,
-                   UnitPrice,
+                   UnitPrice,Sqmtr__c,
                    Disc_Type__c,                     // ← discount type (Amount / Percentage)
                    Dis_Value__c                      // ← discount value
             FROM OrderItem
@@ -1023,15 +1023,19 @@ public class sapIntegration {
                                     ? oi.Warehouse__r.Warehouse_Code__c
                                     : order.Warehouse__r.Warehouse_Code__c;
            //     dl.UnitPrice      = oi.UOM_Price_without_tax_and_after_disc__c;
-               dl.Price      = oi.UOM_Price_without_tax_and_after_disc__c;
+               dl.Price      = oi.Price_to_SAP__c;
                 dl.BatchNumbers   = new List<BatchNumber>();
                 dl.U_ReservedQTY  = oi.Block_Quantity__c;
                /* if(oi.Product2.Product_Category__c=='TILE'){
                       dl.Quantity       = oi.Quantity;
-                }*/
-                dl.Quantity       = oi.Quantity;
-                
-                dl.DiscountPercent = discPct;   // ← NEW
+}*/
+                if(oi.Product2.Product_Category__c=='N.STONE'){
+                    dl.Quantity       = oi.Sqmtr__c;
+                }
+                else{
+                    dl.Quantity       = oi.Quantity;
+                }
+            //    dl.DiscountPercent = discPct;   // ← NEW
                 payload.DocumentLines.add(dl);
                 continue;
             }
@@ -1051,9 +1055,9 @@ public class sapIntegration {
                 dl.ItemCode       = oi.PricebookEntry.Product2.Product_Code__c;
                 dl.WarehouseCode  = wh;
                // dl.UnitPrice      = oi.UOM_Price_without_tax_and_after_disc__c;
-                dl.Price      = oi.UOM_Price_without_tax_and_after_disc__c;
+                dl.Price      = oi.Price_to_SAP__c;
                 dl.BatchNumbers   = new List<BatchNumber>();
-                dl.DiscountPercent = discPct;   // ← NEW
+       //         dl.DiscountPercent = discPct;   // ← NEW
 
                 Decimal totalQty = 0;
                 Decimal bloQty   = 0;
