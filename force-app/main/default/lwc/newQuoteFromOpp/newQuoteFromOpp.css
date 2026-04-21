@@ -589,6 +589,26 @@
     box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
 }
 
+/* Edit Items button that lives inside the summary. Desktop keeps using the
+   standalone footer button, so hide the in-summary copy; the mobile media
+   query below re-enables it. */
+.summary-actions .edit-items-button {
+    display: none;
+    padding: 0.75rem;
+    background: #e53935;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.summary-actions .edit-items-button:hover {
+    background: #c62828;
+}
+
 /* Mobile Responsive Styles */
 @media (max-width: 768px) {
     .page-wrapper {
@@ -687,14 +707,15 @@
     /* On mobile the summary acts as a sticky header above the product list.
        order:0 on summary + order:1 on cart-items flips the visual stacking
        without changing the HTML, so drag/touch handlers keep working.
-       Summary sizes to its natural content so the Confirm Quote button is
-       never clipped; cart-items takes the remaining viewport height. */
+       Cap the summary height so the product list gets real screen space,
+       and pin the Edit Items / Confirm Quote row to the bottom of the
+       summary so both buttons are always visible. */
     .cart-summary {
         width: 100%;
         flex-shrink: 0;
         order: 0;
         border-radius: 0 0 8px 8px;
-        padding: 1rem;
+        padding: 0.75rem 1rem;
         position: relative;
         bottom: auto;
         top: 0;
@@ -702,11 +723,38 @@
         margin-bottom: 0;
         background: #ffffff;
         z-index: 4;
+        max-height: 45vh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
     }
 
-    .cart-summary .checkout-button {
-        display: block;
-        width: 100%;
+    /* Edit Items + Confirm Quote sit side by side, 50/50, pinned to the
+       bottom of the summary so they're always reachable. */
+    .cart-summary .summary-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+        position: sticky;
+        bottom: 0;
+        background: #ffffff;
+        padding-top: 0.5rem;
+        z-index: 5;
+    }
+
+    .cart-summary .summary-actions .edit-items-button,
+    .cart-summary .summary-actions .checkout-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 1 1 50%;
+        margin: 0;
+        padding: 0.75rem 0.5rem;
+    }
+
+    /* The standalone Edit Items footer is redundant on mobile — the summary
+       row already contains it. */
+    .preview-footer {
+        display: none;
     }
 
     .product-info {
