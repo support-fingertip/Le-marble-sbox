@@ -319,7 +319,12 @@ wiredAreaPicklist({ data, error }) {
             discValue:item.Dis_Value__c || 0,
                      afterDiscPricePieceWithoutTax: item.Product2.Product_Category__c === 'TILE'? 0:item.After_Discount_UOM_Price__c,
             afterDiscPriceSqftWithoutTax: 0,
-            afterDiscPrice: 0,
+            // TILE: MRP/Sqft input = Price_Sqft__c, After Disc/Sqft = After_Disc_Price_Sqft__c, After Disc/Unit = UnitPrice.
+            // N.STONE: After Disc (₹) input = After_Disc_Price_Sqft__c.
+            pricePerSqft: item.Product2.Product_Category__c === 'TILE' ? (item.Price_Sqft__c || 0) : 0,
+            afterDiscPriceSqft: item.Product2.Product_Category__c === 'TILE' ? (item.After_Disc_Price_Sqft__c || 0) : 0,
+            afterDiscPriceUnit: item.Product2.Product_Category__c === 'TILE' ? (item.UnitPrice || 0) : 0,
+            afterDiscPrice: item.Product2.Product_Category__c === 'N.STONE' ? (item.After_Disc_Price_Sqft__c || 0) : 0,
             afterDiscPriceWithoutTax: item.Product2.Product_Category__c === 'N.STONE'? item.After_Discount_UOM_Price__c : 0,
             afterDiscPriceUnitWithoutTax: item.Product2.Product_Category__c === 'TILE'? item.After_Discount_UOM_Price__c : 0,
              roomType:item.Area__c,
