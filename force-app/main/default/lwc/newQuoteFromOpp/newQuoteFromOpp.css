@@ -686,7 +686,9 @@
 
     /* On mobile the summary acts as a sticky header above the product list.
        order:0 on summary + order:1 on cart-items flips the visual stacking
-       without changing the HTML, so drag/touch handlers keep working. */
+       without changing the HTML, so drag/touch handlers keep working.
+       Summary sizes to its natural content so the Confirm Quote button is
+       never clipped; cart-items takes the remaining viewport height. */
     .cart-summary {
         width: 100%;
         flex-shrink: 0;
@@ -698,11 +700,13 @@
         top: 0;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
         margin-bottom: 0;
-        max-height: 45vh;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
         background: #ffffff;
         z-index: 4;
+    }
+
+    .cart-summary .checkout-button {
+        display: block;
+        width: 100%;
     }
 
     .product-info {
