@@ -676,9 +676,12 @@
             <span>₹{orderTotal}</span>
             </div>
               <template if:false={isConfirmed}>
-                <button class="checkout-button" onclick={handleConfirm}>
-                Confirm Quote
-                </button>
+                <div class="summary-actions">
+                    <button class="edit-items-button" onclick={handleClosePreview}>Edit Items</button>
+                    <button class="checkout-button" onclick={handleConfirm}>
+                    Confirm Quote
+                    </button>
+                </div>
             </template>
         </div>
         </div>
