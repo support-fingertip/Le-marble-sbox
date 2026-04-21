@@ -744,8 +744,9 @@ var i=0;
                     const afterDiscPriceWithoutTax = taxPercent > 0
                     ? parseFloat((afterDiscPrice / (1 + taxPercent / 100)).toFixed(6))
                     : afterDiscPrice;
-
+product.msp=unitPrice;
                 product.afterDiscPrice = afterDiscPrice.toFixed(6);
+                  product.pricePerSqft = unitPrice;
                   product.afterDiscPriceWithoutTax = afterDiscPriceWithoutTax.toFixed(6);
                 product.totalPrice = totalPrice.toFixed(2);
                 this.selectedProducts  = [...this.selectedProducts];
@@ -1478,7 +1479,7 @@ console.log(el);
    // const unitPrice = this.pbEntryMap?.get(selectedProduct.Id) || 0;
     //const pricebookEntryId = this.pbEntryIdMap?.get(selectedProduct.Id) || '';
 
-    // For N.STONE the input price must be the MSP (which already includes GST),
+          // For N.STONE the input price must be the MSP (which already includes GST),
     // not the pricebook unit price.
     const isNaturalStoneSelection = selectedProduct.category === 'N.STONE';
     const mspValue = parseFloat(selectedProduct.msp);

@@ -319,17 +319,16 @@ wiredAreaPicklist({ data, error }) {
             discValue:item.Dis_Value__c || 0,
                      afterDiscPricePieceWithoutTax: item.Product2.Product_Category__c === 'TILE'? 0:item.After_Discount_UOM_Price__c,
             afterDiscPriceSqftWithoutTax: 0,
-            // TILE: MRP/Sqft input = Price_Sqft__c, After Disc/Sqft = After_Disc_Price_Sqft__c, After Disc/Unit = UnitPrice.
+ // TILE: MRP/Sqft input = Price_Sqft__c, After Disc/Sqft = After_Disc_Price_Sqft__c, After Disc/Unit = UnitPrice.
             // N.STONE: After Disc (₹) input = After_Disc_Price_Sqft__c.
             pricePerSqft: item.Product2.Product_Category__c === 'TILE' ? (item.Price_Sqft__c || 0) : 0,
             afterDiscPriceSqft: item.Product2.Product_Category__c === 'TILE' ? (item.After_Disc_Price_Sqft__c || 0) : 0,
             afterDiscPriceUnit: item.Product2.Product_Category__c === 'TILE' ? (item.UnitPrice || 0) : 0,
-            afterDiscPrice: item.Product2.Product_Category__c === 'N.STONE' ? (item.After_Disc_Price_Sqft__c || 0) : 0,
-            afterDiscPriceWithoutTax: item.Product2.Product_Category__c === 'N.STONE'? item.After_Discount_UOM_Price__c : 0,
+            afterDiscPrice: item.Product2.Product_Category__c === 'N.STONE' ? (item.After_Disc_Price_Sqft__c || 0) : 0,            afterDiscPriceWithoutTax: item.Product2.Product_Category__c === 'N.STONE'? item.After_Discount_UOM_Price__c : 0,
             afterDiscPriceUnitWithoutTax: item.Product2.Product_Category__c === 'TILE'? item.After_Discount_UOM_Price__c : 0,
              roomType:item.Area__c,
             areaDesc:item.Room_Type__c,
-            description:item.Description,
+            description:item.Description!=null? item.Description : '',
             requiredSqft:item.Sqft__c,
             sqft:item.Sqft__c,
             sqm:item.Sqm__c,
@@ -609,7 +608,9 @@ console.log('product.compositeKey>>'+product.compositeKey);
                      const afterDiscPriceWithoutTax = taxPercent > 0
                     ? parseFloat((afterDiscPrice / (1 + taxPercent / 100)).toFixed(6))
                     : afterDiscPrice;
+                    product.msp=unitPrice;
                 product.afterDiscPrice = afterDiscPrice.toFixed(6);
+                 product.pricePerSqft = unitPrice;
                   product.afterDiscPriceWithoutTax = afterDiscPriceWithoutTax.toFixed(6);
                 product.totalPrice = totalPrice.toFixed(2);
                 this.selectedProducts = [...this.selectedProducts];
@@ -795,7 +796,7 @@ console.log('discValue.>>>>:', discValue);
     
     // VALIDATION LOOP
     for (let item of this.selectedProducts) {
-        if (!item.roomType || item.roomType.trim() === '') {
+        if ((!item.roomType || item.roomType.trim() === '') && item.category!='ADHESIVE')  {
             this.showError(`Please enter Area/Room Type for product: ${item.name}`);
             return;
         }
@@ -1259,7 +1260,13 @@ handleSearchResultClick(event) {
       return;
     }
 
-    const unitPrice =selectedProduct.unitPrice;
+        // For N.STONE the input price must be the MSP (which already includes GST),
+    // not the pricebook unit price.
+    const isNaturalStoneSelection = selectedProduct.category === 'N.STONE';
+    const mspValue = parseFloat(selectedProduct.msp);
+    const unitPrice = isNaturalStoneSelection && !isNaN(mspValue)
+        ? mspValue
+        : selectedProduct.unitPrice;
     const pricebookEntryId = selectedProduct.pricebookEntryId;
     //this.pbEntryIdMap?.get(selectedProduct.Id) || '';
 

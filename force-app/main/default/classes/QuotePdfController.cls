@@ -90,7 +90,7 @@ public with sharing class QuotePdfController {
                        Sqft__c, Price_Sqft__c, After_Disc_Price_Sqft__c,
                        Total_Price__c, Price__c, Unit_Price__c, UOM__c,
                        After_Disc_Price_Piece__c, Dis_Value__c,
-                       Room_Type__c, Disc_Type__c, UnitPrice, Area__c,
+                       Room_Type__c, Disc_Type__c, UnitPrice, Area__c,MSP__c,
                        Description, Without_Discount_Total_Price__c,
                        Calculated_Total_Price__c 
                 FROM QuoteLineItem
@@ -102,7 +102,7 @@ public with sharing class QuotePdfController {
                        Sqft__c, Price_Sqft__c, After_Disc_Price_Sqft__c,
                        Total_Price__c, Price__c, Unit_Price__c, UOM__c,
                        After_Disc_Price_Piece__c, Dis_Value__c, UnitPrice,
-                       Room_Type__c, Disc_Type__c, Area__c,
+                       Room_Type__c, Disc_Type__c, Area__c,MSP__c,
                        Description, Without_Discount_Total_Price__c,
                        Calculated_Total_Price__c 
                 FROM QuoteLineItem
@@ -314,7 +314,7 @@ this.mrpTotal += item.Without_Discount_Total_Price__c;
                 item.Product_Category__c,
  				 (item.Product_Category__c == 'N.STONE' ? null : item.Quantity),                
                 item.Sqft__c,
-                (item.Product_Category__c == 'TILE'? item.Price_Sqft__c : (item.Product_Category__c == 'N.STONE'? item.After_Disc_Price_Sqft__c + discountAmount: item.After_Disc_Price_Piece__c + discountAmount)),
+                (item.Product_Category__c == 'TILE'? item.Price_Sqft__c : (item.Product_Category__c == 'N.STONE'? item.After_Disc_Price_Sqft__c + discountAmount: item.MSP__c)),//item.After_Disc_Price_Piece__c + discountAmount
                 // Set beforeDiscPrice: if tile, use After_Disc_Price_Sqft__c, else After_Disc_Price_Piece__c
                 (item.Product_Category__c == 'TILE' || item.Product_Category__c == 'N.STONE'? item.After_Disc_Price_Sqft__c : item.After_Disc_Price_Piece__c),
                 item.Dis_Value__c,
