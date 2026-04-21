@@ -1154,3 +1154,13 @@
     border: 2px solid #0176d3;
     background: #f3f9ff;
 }
+
+/* Drag-and-drop visual feedback */
+.cart-item.dragging {
+    opacity: 0.5;
+    background: #e2e8f0;
+}
+
+.cart-item.drag-over {
+    border-top: 3px solid #2563eb;
+}
