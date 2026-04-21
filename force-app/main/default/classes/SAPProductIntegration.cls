@@ -9,7 +9,13 @@ public class SAPProductIntegration implements Schedulable {
     private static final String PASSWORD = 'Mgsap12@';
 
     public void execute(SchedulableContext sc) {
-         runSync(null);
+        // Scheduled Apex cannot make callouts directly. Hop into a @future
+        // context so the HTTP callouts inside runSync are permitted.
+        runSyncFuture();
+    }
+    @future(callout=true)
+    public static void runSyncFuture() {
+        runSync(null);
     }
    public static void runSync() {
         runSync(null);
