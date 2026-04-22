@@ -3,7 +3,7 @@ name: Changeonly Deploy to Salesforce
 on:
   push:
     branches:
-      - Roopesh-Le2
+      - Roopesh-L
 
 jobs:
   deploy:
