@@ -47,5 +47,8 @@
     </flexiPageRegions>
     <masterLabel>Visit Record Page</masterLabel>
     <sobjectType>Visit__c</sobjectType>
+    <template>
+        <name>flexipage:recordHomeTemplateDesktop</name>
+    </template>
     <type>RecordPage</type>
 </FlexiPage>
