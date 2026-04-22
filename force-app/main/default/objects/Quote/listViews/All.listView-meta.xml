@@ -11,6 +11,7 @@
     <columns>QUOTE.STATUS</columns>
     <columns>Approval_Status__c</columns>
     <columns>Sales_Order_Created__c</columns>
+    <columns>QUOTE.DESCRIPTION</columns>
     <filterScope>Everything</filterScope>
     <label>All Quotes</label>
 </ListView>

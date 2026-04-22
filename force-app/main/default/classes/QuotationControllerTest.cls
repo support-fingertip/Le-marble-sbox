@@ -133,13 +133,27 @@ public class QuotationControllerTest {
         Cart__c cart = [SELECT Id, Deals__c FROM Cart__c LIMIT 1];
         
         // Create Opportunity and Quote for test (needed for sendQuotationEmail)
-        Account acc = new Account(Name = 'Test Account Email');
+        Account acc = new Account(
+            Name              = 'Test Account Email',
+            BillingCountry    = 'India',
+            BillingState      = 'Maharashtra',
+            BillingPostalCode = '400001',
+            BillingStreet     = '123 Test Street',
+            District__c       = 'Ernakulam',
+            Pin_Code__c       = 400001
+        );
         insert acc;
+        String validState;
+        for (Schema.PicklistEntry pe : Opportunity.State__c.getDescribe().getPicklistValues()) {
+            if (pe.isActive()) { validState = pe.getValue(); break; }
+        }
         Opportunity opp = new Opportunity(
             Name = 'Test Opp Email',
             AccountId = acc.Id,
             StageName = 'Qualification',
-            CloseDate = Date.today().addDays(30)
+            CloseDate = Date.today().addDays(30),
+            State__c = validState,
+            Pin_Code__c = 400001
         );
         insert opp;
         Quote q = new Quote(
@@ -398,13 +412,27 @@ public class QuotationControllerTest {
         Cart__c cart = [SELECT Id, Deals__c FROM Cart__c LIMIT 1];
         
         // Create Opportunity and Quote for test
-        Account acc = new Account(Name = 'Test Account Body');
+        Account acc = new Account(
+            Name              = 'Test Account Body',
+            BillingCountry    = 'India',
+            BillingState      = 'Maharashtra',
+            BillingPostalCode = '400001',
+            BillingStreet     = '123 Test Street',
+            District__c       = 'Ernakulam',
+            Pin_Code__c       = 400001
+        );
         insert acc;
+        String validState;
+        for (Schema.PicklistEntry pe : Opportunity.State__c.getDescribe().getPicklistValues()) {
+            if (pe.isActive()) { validState = pe.getValue(); break; }
+        }
         Opportunity opp = new Opportunity(
             Name = 'Test Opp Body',
             AccountId = acc.Id,
             StageName = 'Qualification',
-            CloseDate = Date.today().addDays(30)
+            CloseDate = Date.today().addDays(30),
+            State__c = validState,
+            Pin_Code__c = 400001
         );
         insert opp;
         Quote q = new Quote(

@@ -20,6 +20,12 @@ public static Map<String, Object> getQuoteInfo(Id quoteId) {
                 Account.BillingPostalCode,
                 Account.BillingCountry,
              Account.Blocked_Account__c,
+               AddressLine1__c,
+                    AddressLine2__c,
+                    AddressLine3__c,
+                    District__c,
+                    State__c,
+                    Pin_Code__c,
              Opportunity.Delivery_Committed_Date__c,
                 Owner.Name,
                 OpportunityId,
@@ -59,7 +65,7 @@ public static Map<String, Object> getQuoteInfo(Id quoteId) {
             Product2.Family,
             Product2.Product_Category__c,
             PricebookEntry.Product2.Product_Category__c,
-            Order_Created__c
+            Order_Created__c,Sqft__c
             FROM QuoteLineItem
             WHERE QuoteId = :quoteId
             AND Order_Created__c = false
@@ -76,7 +82,7 @@ public static Map<String, Object> getQuoteInfo(Id quoteId) {
     // 3. Create Order from Quote
     
     @AuraEnabled
-    public static Id createOrderFromQuote(Id quoteId , Id warehouseId,List<Id> selectedQuoteLineItemIds, Map<Id, Decimal> blockQtyMap,Map<Id, String> warehouseCodeMap, Date deliveryCommittedDate, String remarks,boolean credit, String paymentMethod, String batchJson,boolean againstOrder) {
+    public static Id createOrderFromQuote(Id quoteId , Id warehouseId,List<Id> selectedQuoteLineItemIds, Map<Id, Decimal> blockQtyMap,Map<Id, String> warehouseCodeMap, Date deliveryCommittedDate, String remarks,boolean credit, String paymentMethod, String batchJson,boolean againstOrder, Decimal creditAmount) {
      
         system.debug('quoteId>>'+quoteId);
          system.debug('warehouseId>>'+warehouseId);
@@ -139,7 +145,7 @@ if (deliveryCommittedDate < Date.today()) {
         Id,
         Quantity,
         UnitPrice,Product2.tax__c,Disc_Type__c,Dis_Value__c,
-        PricebookEntryId,Product2.Product_Code__c,
+        PricebookEntryId,Product2.Product_Code__c,Sqft__c,
         PricebookEntry.Product2.Product_Category__c,after_discount_uom_price__c
     FROM QuoteLineItem
     WHERE Id IN :selectedQuoteLineItemIds
@@ -170,6 +176,9 @@ if (deliveryCommittedDate < Date.today()) {
             // Set Payment Method if credit order
             if (credit && String.isNotBlank(paymentMethod)) {
                 ord.Payment_methods__c = paymentMethod;
+            }
+             if (credit && creditAmount != null) {
+                ord.Credit_Amount__c = creditAmount;
             }
             ord.Product_Category__c = category;
             ord.Against_Order__c = againstOrder;
@@ -242,6 +251,7 @@ if (deliveryCommittedDate < Date.today()) {
                 oi.QuoteLineItemId  = qli.Id;
                 oi.PricebookEntryId = qli.PricebookEntryId;
                 oi.Quantity         = qli.Quantity;
+                 oi.Sqft__c         = qli.Sqft__c;
                 oi.UnitPrice        = qli.UnitPrice;
                 oi.UOM_Price_without_tax_and_after_disc__c = qli.After_Discount_UOM_Price__c;
                 oi.Block_Quantity__c = (blockQtyMap != null && blockQtyMap.containsKey(qli.Id))? blockQtyMap.get(qli.Id): 0;
@@ -349,7 +359,7 @@ if (deliveryCommittedDate < Date.today()) {
    @AuraEnabled(cacheable=true)
     public static List<Warehouse__c> getActiveWarehouses() {
     return [
-        SELECT Id, Name,type__c
+        SELECT Id, Name,type__c,Warehouse_Code__c
         FROM Warehouse__c
         ORDER BY Name
     ];

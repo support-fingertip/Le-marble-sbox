@@ -12,7 +12,15 @@ public class OpportunityContactRoleTriggerTest {
     @TestSetup
     static void setupData() {
 
-        Account acc = new Account(Name = 'Test Account');
+        Account acc = new Account(
+            Name              = 'Test Account',
+            BillingCountry    = 'India',
+            BillingState      = 'Maharashtra',
+            BillingPostalCode = '400001',
+            BillingStreet     = '123 Test Street',
+            District__c       = 'Ernakulam',
+            Pin_Code__c       = 400001
+        );
         insert acc;
 
         Contact con1 = new Contact(
@@ -37,20 +45,27 @@ public class OpportunityContactRoleTriggerTest {
         String productValue =
             getPicklistValue(Opportunity.Product_Category__c);
 
+        String stateValue =
+            getPicklistValue(Opportunity.State__c);
+
         Opportunity opp1 = new Opportunity(
             Name = 'Test Opp 1',
             AccountId = acc.Id,
             StageName = 'Prospecting',
             CloseDate = System.today().addDays(10),
             Branch_Location__c = branchValue,
-            Product_Category__c = productValue
+            Product_Category__c = productValue,
+            State__c = stateValue,
+            Pin_Code__c = 400001
         );
 
         Opportunity opp2 = new Opportunity(
             Name = 'Test Opp 2',
             AccountId = acc.Id,
             StageName = 'Prospecting',
-            CloseDate = System.today().addDays(15)
+            CloseDate = System.today().addDays(15),
+            State__c = stateValue,
+            Pin_Code__c = 400001
         );
 
         insert new List<Opportunity>{opp1, opp2};

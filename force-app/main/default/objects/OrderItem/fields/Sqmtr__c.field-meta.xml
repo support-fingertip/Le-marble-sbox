@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Sqmtr__c</fullName>
+    <externalId>false</externalId>
+    <formula>IF(
+    AND(
+         ISPICKVAL(Product2.Product_Category__c, &quot;STONE&quot;),
+        NOT(ISBLANK( Quantity ))
+    ),
+    ROUND(Quantity * 0.092903, 2),
+    NULL
+)</formula>
+    <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+    <label>Sqmtr</label>
+    <precision>18</precision>
+    <required>false</required>
+    <scale>2</scale>
+    <trackHistory>false</trackHistory>
+    <type>Number</type>
+    <unique>false</unique>
+</CustomField>

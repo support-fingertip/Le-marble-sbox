@@ -349,7 +349,7 @@
 
                             <div class="slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8 qty-box">
                                 <lightning-input type="number" label="Unit Price (₹)"
-                                                    value={item.unitPrice}
+                                                    value={item.msp}
                                                     data-product-id={item.id}
                                                     data-index={index}
                                                     onchange={handleNaturalStoneUnitPriceChange}>
@@ -450,7 +450,7 @@
                                                         data-index={index}
                                                         data-product-id={item.id}
                                                         onchange={handleDiscValueChange}
-                                                        >
+                                                        step="any">
                                     </lightning-input>
                                     
                                 </div>
@@ -707,7 +707,10 @@
                         data-index={index}
                         ondragstart={handleDragStart}
                         ondragover={handleDragOver}
-                        ondrop={handleDrop}>
+                        ondrop={handleDrop}
+                        ontouchstart={handleRowTouchStart}
+                        ontouchmove={handleRowTouchMove}
+                        ontouchend={handleRowTouchEnd}>
                     <td class="product-info">
                         <img src={item.imageUrl} alt={item.name} />
                         <div>
@@ -792,9 +795,14 @@
             <span>Quote Total</span>
             <span>₹{orderTotal}</span>
             </div>
-            <button class="checkout-button" onclick={handleConfirm}>
-            Confirm Quote
-            </button>
+             <template if:false={isConfirmed}>
+                <div class="summary-actions">
+                    <button class="edit-items-button" onclick={handleClosePreview}>Edit Items</button>
+                    <button class="checkout-button" onclick={handleConfirm}>
+                    Confirm Quote
+                    </button>
+                </div>
+            </template>
         </div>
         </div>
         <template if:true={selectedProducts}>

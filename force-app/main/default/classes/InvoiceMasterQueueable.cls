@@ -13,8 +13,9 @@ public class InvoiceMasterQueueable  implements Queueable, Database.AllowsCallou
             return;
         }
 
+        // Re-scheduling on a 55-minute cadence is handled by InvoiceMasterScheduler.
+        // System.enqueueJob(...,delay) caps the delay at 10 minutes, so we cannot
+        // self-chain here to achieve a 55-minute interval.
         sapIntegration.getInvoiceMaster('');
-
-        System.enqueueJob(new InvoiceMasterQueueable(), 55 * 60);
     }
 }

@@ -2,44 +2,7 @@ public class QuoteTriggerHandler {
     
     // Recursion control for Coordinator name update
     private static Boolean isUpdatingCoordinator = false;
-    
-    /*    public static void beforeInsert(List<Quote> newQuotes) {
-populateEmailFromPrimaryContact(newQuotes);
-}
 
-private static void populateEmailFromPrimaryContact(List<Quote> newQuotes) {
-
-Set<Id> oppIds = new Set<Id>();
-
-for (Quote q : newQuotes) {
-if (q.OpportunityId != null && q.Email == null) {
-oppIds.add(q.OpportunityId);
-}
-}
-
-if (oppIds.isEmpty()) return;
-
-// Get Primary Contact Email per Opportunity
-Map<Id, String> oppToEmail = new Map<Id, String>();
-
-for (OpportunityContactRole ocr : [
-SELECT OpportunityId, Contact.Email
-FROM OpportunityContactRole
-WHERE IsPrimary = true
-AND OpportunityId IN :oppIds
-AND Contact.Email != null
-]) {
-oppToEmail.put(ocr.OpportunityId, ocr.Contact.Email);
-}
-
-// Populate Quote Email
-for (Quote q : newQuotes) {
-if (oppToEmail.containsKey(q.OpportunityId)) {
-q.Email = oppToEmail.get(q.OpportunityId);
-}
-}
-}*/
-    
     // 🔹 Existing task logic (unchanged)
     public static void handleAfterSave(List<Quote> newList,Map<Id, Quote> oldMap,Boolean isInsert) {
         Set<Id> acceptedQuoteIds = new Set<Id>();
@@ -283,37 +246,49 @@ q.Email = oppToEmail.get(q.OpportunityId);
         }
         
         if (acceptedQuotes.isEmpty()) return;
-        Map<Id, User> users = new Map<Id, User>([SELECT Id, ManagerId FROM User WHERE Id IN :ownIds  AND ManagerId != null]);
-        
-        
+        Map<Id, User> users = new Map<Id, User>([SELECT Id, ManagerId, Profile.Name FROM User WHERE Id IN :ownIds]);
+
+
+        // Build lookup keys based on owner's profile:
+        //  - Manager profile  -> find Coordinators directly reporting to the owner (ManagerId = owner.Id)
+        //  - Otherwise (e.g. Executive) -> find Coordinators sharing the same ManagerId as the owner
         Set<Id> managerIds = new Set<Id>();
         for (User u : users.values()) {
-            managerIds.add(u.ManagerId);
+            if (u.Profile != null && u.Profile.Name == 'Manager') {
+                managerIds.add(u.Id);
+            } else if (u.ManagerId != null) {
+                managerIds.add(u.ManagerId);
+            }
         }
-        
+
         if (managerIds.isEmpty()) return;
-        
+
         Map<Id, List<User>> managerToCoordinators = new Map<Id, List<User>>();
-        
+
         for (User u : [ SELECT Id, Name, ManagerId FROM User WHERE ManagerId IN :managerIds AND Profile.Name = 'Coordinator' AND IsActive = true ]) {
             if (!managerToCoordinators.containsKey(u.ManagerId)) {
                 managerToCoordinators.put(u.ManagerId, new List<User>());
             }
             managerToCoordinators.get(u.ManagerId).add(u);
         }
-        
+
         // 2. Fetch Opportunity → Account
         Map<Id, Opportunity> oppMap = new Map<Id, Opportunity>([SELECT Id, Account.Name FROM Opportunity WHERE Id IN :oppIds ]);
-        
+
         // 3. Notify internal user (Quote Owner) and save Coordinator name
         List<Quote> quotesToUpdate = new List<Quote>();
-        
+
         for (Quote q : acceptedQuotes.values()) {
-            
+
             User owner = users.get(q.OwnerId);
             if (owner == null) continue;
-            
-            List<User> coordinators = managerToCoordinators.get(owner.ManagerId);
+
+            Id lookupKey = (owner.Profile != null && owner.Profile.Name == 'Manager')
+                ? owner.Id
+                : owner.ManagerId;
+            if (lookupKey == null) continue;
+
+            List<User> coordinators = managerToCoordinators.get(lookupKey);
             if (coordinators == null || coordinators.isEmpty()) continue;
             
             // Get the first Coordinator's name and save to Quote

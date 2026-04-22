@@ -146,6 +146,10 @@
                 <behavior>Edit</behavior>
                 <field>Round_Off__c</field>
             </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>Credit_Amount__c</field>
+            </layoutItems>
         </layoutColumns>
         <layoutColumns>
             <layoutItems>

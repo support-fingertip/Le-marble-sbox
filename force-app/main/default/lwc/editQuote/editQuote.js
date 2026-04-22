@@ -27,6 +27,7 @@ deletedQLIIds=[];
     pbEntryIdMap = new Map();
     @track isDropdownOpen = false;
     @track isLoading = false;
+     @track isConfirmed = false;
     @track searchQuery = '';
     @track products = []; // Initialize products array
     @track selectedProducts = []; // Initialize selectedProducts array
@@ -316,11 +317,18 @@ wiredAreaPicklist({ data, error }) {
             discType:item.Disc_Type__c,
             afterDiscPricePiece:item.After_Disc_Price_Piece__c,
             discValue:item.Dis_Value__c || 0,
-             afterDiscPricePieceWithoutTax: item.Product2.Product_Category__c === 'TILE'? 0:item.After_Discount_UOM_Price__c,
-                    afterDiscPriceSqftWithoutTax: item.Product2.Product_Category__c === 'TILE'? item.After_Discount_UOM_Price__c:0,
-            roomType:item.Area__c,
+                     afterDiscPricePieceWithoutTax: item.Product2.Product_Category__c === 'TILE'? 0:item.After_Discount_UOM_Price__c,
+            afterDiscPriceSqftWithoutTax: 0,
+ // TILE: MRP/Sqft input = Price_Sqft__c, After Disc/Sqft = After_Disc_Price_Sqft__c, After Disc/Unit = UnitPrice.
+            // N.STONE: After Disc (₹) input = After_Disc_Price_Sqft__c.
+            pricePerSqft: item.Product2.Product_Category__c === 'TILE' ? (item.Price_Sqft__c || 0) : 0,
+            afterDiscPriceSqft: item.Product2.Product_Category__c === 'TILE' ? (item.After_Disc_Price_Sqft__c || 0) : 0,
+            afterDiscPriceUnit: item.Product2.Product_Category__c === 'TILE' ? (item.UnitPrice || 0) : 0,
+            afterDiscPrice: item.Product2.Product_Category__c === 'N.STONE' ? (item.After_Disc_Price_Sqft__c || 0) : 0,            afterDiscPriceWithoutTax: item.Product2.Product_Category__c === 'N.STONE'? item.After_Discount_UOM_Price__c : 0,
+            afterDiscPriceUnitWithoutTax: item.Product2.Product_Category__c === 'TILE'? item.After_Discount_UOM_Price__c : 0,
+             roomType:item.Area__c,
             areaDesc:item.Room_Type__c,
-            description:item.Description,
+            description:item.Description!=null? item.Description : '',
             requiredSqft:item.Sqft__c,
             sqft:item.Sqft__c,
             sqm:item.Sqm__c,
@@ -584,6 +592,7 @@ console.log('product.compositeKey>>'+product.compositeKey);
             // Natural Stone
             if (product.isNaturalStone) {
                 const unitPrice = parseFloat(product.unitPrice) || 0;
+                 const taxPercent = parseFloat(product.Tax) || 0;
                 const requiredSqft = parseFloat(product.requiredSqft) || 0;
                 const discType = product.discType || 'Percentage';
                 const discValue = parseFloat(product.discValue) || 0;
@@ -596,7 +605,13 @@ console.log('product.compositeKey>>'+product.compositeKey);
                     afterDiscPrice = Math.max(unitPrice - discValue, 0);
                     totalPrice = afterDiscPrice * requiredSqft;
                 }
+                     const afterDiscPriceWithoutTax = taxPercent > 0
+                    ? parseFloat((afterDiscPrice / (1 + taxPercent / 100)).toFixed(6))
+                    : afterDiscPrice;
+                    product.msp=unitPrice;
                 product.afterDiscPrice = afterDiscPrice.toFixed(6);
+                 product.pricePerSqft = unitPrice;
+                  product.afterDiscPriceWithoutTax = afterDiscPriceWithoutTax.toFixed(6);
                 product.totalPrice = totalPrice.toFixed(2);
                 this.selectedProducts = [...this.selectedProducts];
 
@@ -661,8 +676,7 @@ console.log('discValue.>>>>:', discValue);
                     afterDiscPriceSqftWithoutTax = parseFloat((pricePerSqftWithoutTax - discValue).toFixed(6));
                 }
                 product.afterDiscPriceSqftWithoutTax = afterDiscPriceSqftWithoutTax.toFixed(6);
-                // product.afterDiscPriceUnitWithoutTax = afterDiscPriceUnitWithoutTax.toFixed(6); // Uncomment if needed
-
+                         product.afterDiscPriceUnitWithoutTax = (afterDiscPriceSqftWithoutTax * sqftPerPiece).toFixed(6);
                 this.selectedProducts = [...this.selectedProducts];
 
                 return;
@@ -752,8 +766,8 @@ console.log('discValue.>>>>:', discValue);
         return;
     }
 
-//duplicate
-   const validRows = this.selectedProducts
+//duplicate removed as client req 7/4/26
+ /*  const validRows = this.selectedProducts
     .map((item, index) => ({ item, index }))
     .filter(({ item }) =>
         item.quantity > 0 ||
@@ -778,11 +792,11 @@ console.log('discValue.>>>>:', discValue);
         );
         return;
     }
-} 
+} */
     
     // VALIDATION LOOP
     for (let item of this.selectedProducts) {
-        if (!item.roomType || item.roomType.trim() === '') {
+        if ((!item.roomType || item.roomType.trim() === '') && item.category!='ADHESIVE')  {
             this.showError(`Please enter Area/Room Type for product: ${item.name}`);
             return;
         }
@@ -962,17 +976,7 @@ console.log('Prepared items for preview:', JSON.stringify(this.selectedProducts)
                 return;
             }
 
-            // Show loading toast
- /*           this.dispatchEvent(
-                new ShowToastEvent({
-                    title: 'Creating Cart',
-                    message: 'Please wait while we create your cart...',
-                    variant: 'info'
-                })
-            );*/
-
-            // Get cart summary values from the modal
-       //     const { freightCharge, loadingCharge, unloadingCharge,orderTotal } = event.detail.summary || {};
+                 this.isConfirmed = true;
 
             // Prepare cart items with only the necessary data to minimize payload size
             const cartItems = this.selectedProducts.map(item => {
@@ -992,10 +996,13 @@ console.log('Prepared items for preview:', JSON.stringify(this.selectedProducts)
                     uom: item.uom,
                     sqft: item.sqft || 0,
                     sqm: item.sqm || 0,
+                     afterDiscPrice: item.afterDiscPrice,
+                    afterDiscPriceWithoutTax: item.afterDiscPriceWithoutTax,
                     afterDiscPricePiece: item.afterDiscPricePiece,
                     afterDiscPriceSqft: item.afterDiscPriceSqft,
-                     afterDiscPricePieceWithoutTax: item.afterDiscPricePieceWithoutTax,
+                    afterDiscPricePieceWithoutTax: item.afterDiscPricePieceWithoutTax,
                     afterDiscPriceSqftWithoutTax: item.afterDiscPriceSqftWithoutTax,
+                      afterDiscPriceUnitWithoutTax: item.afterDiscPriceUnitWithoutTax,
                     price: item.unitPrice,
                     discount: item.discValue,
                     totalPrice: item.totalPrice,
@@ -1070,6 +1077,7 @@ console.log('Prepared items for preview:', JSON.stringify(this.selectedProducts)
                     variant: 'error'
                 })
             );
+              this.isConfirmed = false;
             this.openPreview=false;
         }
     }
@@ -1122,8 +1130,11 @@ console.log('Prepared items for preview:', JSON.stringify(this.selectedProducts)
                 afterDiscPricePiece: 0,
                 afterDiscPriceSqft: 0,
                 afterDiscPriceUnit: 0,
-                 afterDiscPricePieceWithoutTax: 0,
-                    afterDiscPriceSqftWithoutTax: 0,
+                   afterDiscPrice: 0,
+                afterDiscPriceWithoutTax: 0,
+                afterDiscPricePieceWithoutTax: 0,
+                afterDiscPriceSqftWithoutTax: 0,
+                afterDiscPriceUnitWithoutTax: 0,
                   
                 pricePerSqft: 0,
                 totalPrice: 0,
@@ -1249,7 +1260,13 @@ handleSearchResultClick(event) {
       return;
     }
 
-    const unitPrice =selectedProduct.unitPrice;
+        // For N.STONE the input price must be the MSP (which already includes GST),
+    // not the pricebook unit price.
+    const isNaturalStoneSelection = selectedProduct.category === 'N.STONE';
+    const mspValue = parseFloat(selectedProduct.msp);
+    const unitPrice = isNaturalStoneSelection && !isNaN(mspValue)
+        ? mspValue
+        : selectedProduct.unitPrice;
     const pricebookEntryId = selectedProduct.pricebookEntryId;
     //this.pbEntryIdMap?.get(selectedProduct.Id) || '';
 
@@ -1428,7 +1445,7 @@ handleAreaDesChange(event) {
         try {
             const product = this.selectedProducts[idx];
             if (!product || !product.isNaturalStone) return;    
-
+ const taxPercent = parseFloat(product.Tax) || 0;
             const unitPrice = parseFloat(product.unitPrice) || 0;
             const requiredSqft = parseFloat(product.requiredSqft) || 0;
             const discType = product.discType || 'Percentage';
@@ -1447,11 +1464,16 @@ handleAreaDesChange(event) {
                 afterDiscPrice = Math.max(unitPrice - discValue, 0);
                 totalPrice = afterDiscPrice * requiredSqft;
             }
-            
+                  const afterDiscPriceWithoutTax = taxPercent > 0
+                ? parseFloat((afterDiscPrice / (1 + taxPercent / 100)).toFixed(6))
+                : afterDiscPrice;
+
             // Update only if values have changed
             if (product.afterDiscPrice !== Number(afterDiscPrice).toFixed(2)) {
                 this.updateProduct(productId, 'afterDiscPrice', Number(afterDiscPrice).toFixed(2),idx);
             }
+             this.updateProduct(productId, 'afterDiscPriceWithoutTax', Number(afterDiscPriceWithoutTax).toFixed(6),idx);
+
             if (product.totalPrice !== Number(totalPrice).toFixed(2)) {
                 this.updateProduct(productId, 'totalPrice', Number(totalPrice).toFixed(2),idx);
             }
@@ -1537,6 +1559,8 @@ handleAreaDesChange(event) {
                     unitPrice:0,
                     msp:0,
                     afterDiscPricePiece:  0,
+                      afterDiscPrice: 0,
+                    afterDiscPriceWithoutTax: 0,
                     totalPrice: 0,
                     description: '',
                     discType: 'Amount',
@@ -1551,6 +1575,7 @@ handleAreaDesChange(event) {
                      isNaturalStone: false,
                       afterDiscPricePieceWithoutTax: 0,
                     afterDiscPriceSqftWithoutTax: 0,
+                          afterDiscPriceUnitWithoutTax: 0,
                       isTile: false,
                     showDropdown: false,
                 isActive: true,
@@ -1667,6 +1692,96 @@ handleAreaDesChange(event) {
             this.updateLineNumbers();
             this.draggedIndex = null;
         }
-        
-        
+
+        // ── Touch-based drag-and-drop for mobile ──
+        _touchDragIndex = null;
+        _touchDragMoved = false;
+        _lastTouchOverIndex = null;
+        _touchDragTimer = null;
+
+        handleRowTouchStart(event) {
+            const row = event.currentTarget;
+            this._touchDragIndex = Number(row.dataset.index);
+            this._touchStartY = event.touches[0].clientY;
+            this._touchDragMoved = false;
+            this._lastTouchOverIndex = null;
+
+            // Long-press delay — start drag after 200ms hold
+            // eslint-disable-next-line @lwc/lwc/no-async-operation
+            this._touchDragTimer = setTimeout(() => {
+                this._touchDragMoved = true;
+                row.classList.add('dragging');
+            }, 200);
+        }
+
+        handleRowTouchMove(event) {
+            if (!this._touchDragMoved) {
+                // Cancel long-press if the finger moved before the timer fired
+                const dy = Math.abs(event.touches[0].clientY - this._touchStartY);
+                if (dy > 10 && this._touchDragTimer) {
+                    clearTimeout(this._touchDragTimer);
+                    this._touchDragTimer = null;
+                }
+                return;
+            }
+
+            event.preventDefault(); // prevent page scroll while dragging
+
+            const touch = event.touches[0];
+            const targetEl = this.template.elementFromPoint
+                ? this.template.elementFromPoint(touch.clientX, touch.clientY)
+                : document.elementFromPoint(touch.clientX, touch.clientY);
+
+            if (!targetEl) return;
+
+            const tr = targetEl.closest('tr.cart-item');
+            if (!tr) return;
+
+            const overIndex = Number(tr.dataset.index);
+
+            if (this._lastTouchOverIndex !== null && this._lastTouchOverIndex !== overIndex) {
+                const rows = this.template.querySelectorAll('tr.cart-item');
+                rows.forEach(r => r.classList.remove('drag-over'));
+            }
+
+            if (overIndex !== this._touchDragIndex) {
+                tr.classList.add('drag-over');
+                this._lastTouchOverIndex = overIndex;
+            }
+        }
+
+        handleRowTouchEnd() {
+            if (this._touchDragTimer) {
+                clearTimeout(this._touchDragTimer);
+                this._touchDragTimer = null;
+            }
+
+            const rows = this.template.querySelectorAll('tr.cart-item');
+            rows.forEach(r => {
+                r.classList.remove('dragging');
+                r.classList.remove('drag-over');
+            });
+
+            if (!this._touchDragMoved || this._lastTouchOverIndex === null) {
+                this._touchDragIndex = null;
+                return;
+            }
+
+            const fromIndex = this._touchDragIndex;
+            const toIndex = this._lastTouchOverIndex;
+
+            if (fromIndex !== toIndex) {
+                const items = [...this.selectedProducts];
+                const draggedItem = items.splice(fromIndex, 1)[0];
+                items.splice(toIndex, 0, draggedItem);
+                this.selectedProducts = items;
+                this.updateLineNumbers();
+            }
+
+            this._touchDragIndex = null;
+            this._lastTouchOverIndex = null;
+            this._touchDragMoved = false;
+        }
+
+
     }

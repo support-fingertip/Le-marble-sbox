@@ -4,14 +4,28 @@ public class QuoteLineItem_HandlerTest {
     @IsTest
     static void testAfterInsertMethod() {
 
-        Account acc = new Account(Name = 'Test Account');
+        Account acc = new Account(
+            Name              = 'Test Account',
+            BillingCountry    = 'India',
+            BillingState      = 'Maharashtra',
+            BillingPostalCode = '400001',
+            BillingStreet     = '123 Test Street',
+            District__c       = 'Ernakulam',
+            Pin_Code__c       = 400001
+        );
         insert acc;
 
+        String validState;
+        for (Schema.PicklistEntry pe : Opportunity.State__c.getDescribe().getPicklistValues()) {
+            if (pe.isActive()) { validState = pe.getValue(); break; }
+        }
         Opportunity opp = new Opportunity(
             Name = 'Test Opp',
             StageName = 'Prospecting',
             CloseDate = Date.today(),
-            AccountId = acc.Id
+            AccountId = acc.Id,
+            State__c = validState,
+            Pin_Code__c = 400001
         );
         insert opp;
 

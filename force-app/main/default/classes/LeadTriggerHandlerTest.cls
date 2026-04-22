@@ -610,6 +610,17 @@ public class LeadTriggerHandlerTest {
         );
         insert l;
 
+        Account existingAcc = new Account(
+            Name              = 'Convert Email',
+            BillingCountry    = 'India',
+            BillingState      = 'Kerala',
+            BillingPostalCode = '682001',
+            BillingStreet     = 'Test Street',
+            District__c       = 'Ernakulam',
+            Pin_Code__c       = 682001
+        );
+        insert existingAcc;
+
         String convertedStatus = [
             SELECT MasterLabel FROM LeadStatus WHERE IsConverted = true LIMIT 1
         ].MasterLabel;
@@ -619,6 +630,7 @@ public class LeadTriggerHandlerTest {
         lc.setLeadId(l.Id);
         lc.setConvertedStatus(convertedStatus);
         lc.setDoNotCreateOpportunity(true);
+        lc.setAccountId(existingAcc.Id);
         Database.LeadConvertResult result = Database.convertLead(lc);
         Test.stopTest();
 
@@ -657,6 +669,17 @@ public class LeadTriggerHandlerTest {
         );
         insert l;
 
+        Account existingAcc = new Account(
+            Name              = 'NoEmail Convert',
+            BillingCountry    = 'India',
+            BillingState      = 'Kerala',
+            BillingPostalCode = '682001',
+            BillingStreet     = 'Test Street',
+            District__c       = 'Ernakulam',
+            Pin_Code__c       = 682001
+        );
+        insert existingAcc;
+
         String convertedStatus = [
             SELECT MasterLabel FROM LeadStatus WHERE IsConverted = true LIMIT 1
         ].MasterLabel;
@@ -666,6 +689,7 @@ public class LeadTriggerHandlerTest {
         lc.setLeadId(l.Id);
         lc.setConvertedStatus(convertedStatus);
         lc.setDoNotCreateOpportunity(true);
+        lc.setAccountId(existingAcc.Id);
         Database.LeadConvertResult result = Database.convertLead(lc);
         Test.stopTest();
 

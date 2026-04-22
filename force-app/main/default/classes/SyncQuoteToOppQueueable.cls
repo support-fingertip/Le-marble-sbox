@@ -4,7 +4,7 @@ public class SyncQuoteToOppQueueable implements Queueable {
     public SyncQuoteToOppQueueable(Map<Id, Id> oppToQuoteMap) {
         this.oppToQuoteMap = oppToQuoteMap;
     }
-
+	
     public void execute(QueueableContext context) {
         List<Opportunity> oppsToUpdate = new List<Opportunity>();
         for (Id oppId : oppToQuoteMap.keySet()) {

@@ -247,7 +247,7 @@
         
         var action=component.get("c.getProductMaster");
         action.setParams({
-            "formattedDate":fromDate
+            "selectedDate":fromDate
         });
         action.setCallback(this,function(response){ 
             //  if(response.getState() == "SUCCESS"){ 

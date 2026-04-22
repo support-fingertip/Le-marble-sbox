@@ -119,7 +119,7 @@ export default class QuotPDFButton extends NavigationMixin(LightningElement) {
         }
     }
 
-    handleDownload() {
+   /* handleDownload() {
         if (this.downloadUrl) {
             window.open(this.downloadUrl, '_blank');
         }
@@ -129,6 +129,22 @@ export default class QuotPDFButton extends NavigationMixin(LightningElement) {
       const url = `/apex/StandardQuote?id=${this.recordId}&selectedItems=${this.selectedItems.join(',')}`;
 
         window.open(url, '_blank');
+    }*/
+    handleDownload() {
+        if (!this.downloadUrl) return;
+        this[NavigationMixin.Navigate]({
+            type: 'standard__webPage',
+            attributes: { url: this.downloadUrl }
+        });
+    }
+
+    handleViewPdf() {
+        const url = `/apex/StandardQuote?id=${this.recordId}`
+                  + `&selectedItems=${this.selectedItems.join(',')}`;
+        this[NavigationMixin.Navigate]({
+            type: 'standard__webPage',
+            attributes: { url }
+        });
     }
 
     handleClose() {

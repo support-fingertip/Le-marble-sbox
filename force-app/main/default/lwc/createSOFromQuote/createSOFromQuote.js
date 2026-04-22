@@ -49,6 +49,7 @@ export default class CreateSOFromQuote extends NavigationMixin(LightningElement)
         phone: '',
         company: '',
         address: '',
+        shippingAddress: '',
         executive: ''
     };
     @track againstOrder = false;
@@ -113,7 +114,7 @@ wiredQuoteInfo({ error, data }) {
      //   this.showCreateSOButton = !quote.Sales_Order_Created__c;
 
         this.customerInfo = {
-            name: quote.Name || 'N/A',
+            name:  quote.Account?.Name|| 'N/A',
             email: data.email || 'N/A',   
             phone: quote.Account?.Phone || 'N/A',
             company: quote.Account?.Name || 'N/A',
@@ -126,6 +127,14 @@ wiredQuoteInfo({ error, data }) {
                     quote.Account.BillingCountry
                   ].filter(Boolean).join(', ')
                 : 'N/A',
+            shippingAddress: [
+                    quote.AddressLine1__c,
+                    quote.AddressLine2__c,
+                    quote.AddressLine3__c,
+                    quote.District__c,
+                    quote.State__c,
+                    quote.Pin_Code__c
+                    ].filter(Boolean).join(', ') || 'N/A',
             executive: quote.Owner?.Name || 'N/A'
         };
          this.deliveryCommittedDate = quote.Opportunity?.Delivery_Committed_Date__c || '';
@@ -173,7 +182,7 @@ wiredQuoteInfo({ error, data }) {
         wiredWarehouses({ data, error }) {
             if (data) {
                 this.warehouseOptions = data.map(w => ({
-                    label: w.Name,
+                    label: w.Warehouse_Code__c +' : '+w.Name,
                     value: w.Id,
                     type: w.Type__c 
                 }));
@@ -589,7 +598,8 @@ wiredQuoteInfo({ error, data }) {
         credit: this.credit,
         paymentMethod: this.selectedPaymentMethod,
         batchJson: JSON.stringify(batchPayload),
-        againstOrder: this.againstOrder
+        againstOrder: this.againstOrder,
+         creditAmount: this.creditAmount ? parseFloat(this.creditAmount) : 0
     });
         this.showToast(
             'Success',
