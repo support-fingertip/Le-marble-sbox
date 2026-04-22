@@ -589,6 +589,26 @@
     box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
 }
 
+/* Edit Items button that lives inside the summary. Desktop keeps using the
+   standalone footer button, so hide the in-summary copy; the mobile media
+   query below re-enables it. */
+.summary-actions .edit-items-button {
+    display: none;
+    padding: 0.75rem;
+    background: #e53935;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.summary-actions .edit-items-button:hover {
+    background: #c62828;
+}
+
 /* Mobile Responsive Styles */
 @media (max-width: 768px) {
     .page-wrapper {
@@ -607,50 +627,131 @@
         padding: 8px;
     }
 
+    /* Preview takes full screen on mobile, no overflow on container */
     .modal-container {
         width: 100%;
         height: 100vh;
         max-height: 100vh;
         border-radius: 0;
-        overflow-y: auto;
+        overflow: hidden;
     }
- .preview-footer {
-        position: static;   /* 👈 prevents jump */
+
+    /* The standalone Edit Items footer is redundant on mobile — the summary
+       row already contains it. */
+    .preview-footer {
+        display: none;
     }
+
+    /* Wrapper fills screen, no scroll on wrapper itself */
+    .cart-wrapper {
+        height: 100vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Content is a flex column, no scroll here either */
     .cart-content {
         flex-direction: column;
-        height: auto;
-        min-height: calc(100vh - 60px);
-        padding: 0.75rem;
-        gap: 0.75rem;
-        overflow-y: auto;
-         max-height: 100%;
-          -webkit-overflow-scrolling: touch;
+        flex: 1;
+        height: 0;
+        min-height: 0;
+        padding: 0;
+        gap: 0;
+        overflow: hidden;
     }
 
+    /* cart-items is the ONLY vertical scroll container */
     .cart-items {
+        flex: 1;
+        min-height: 0;
+        order: 1;
+        padding: 0;
         padding-right: 0;
-    }
-
-    .cart-summary {
-        width: 100%;
-        border-radius: 8px;
-        padding: 1rem;
-        position: relative;
-        bottom: auto;
-        box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.07);
-        margin-bottom: 1rem;
-    }
-
-    .cart-table {
-        display: block;
-        width: 100%;
+        overflow-y: auto;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
     }
 
+    /* On mobile the summary acts as a sticky header above the product list.
+       order:0 on summary + order:1 on cart-items flips the visual stacking
+       without changing the HTML, so drag/touch handlers keep working.
+       Cap the summary height so the product list gets real screen space,
+       and pin the Edit Items / Confirm Quote row to the bottom of the
+       summary so both buttons are always visible. */
+    .cart-summary {
+        width: 100%;
+        flex-shrink: 0;
+        order: 0;
+        border-radius: 0 0 8px 8px;
+        padding: 0.75rem 1rem;
+        position: relative;
+        bottom: auto;
+        top: 0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
+        margin-bottom: 0;
+        background: #ffffff;
+        z-index: 4;
+        max-height: 45vh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Edit Items + Confirm Quote sit side by side, 50/50, pinned to the
+       bottom of the summary so they're always reachable. */
+    .cart-summary .summary-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+        position: sticky;
+        bottom: 0;
+        background: #ffffff;
+        padding-top: 0.5rem;
+        z-index: 5;
+    }
+
+    .cart-summary .summary-actions .edit-items-button,
+    .cart-summary .summary-actions .checkout-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 1 1 50%;
+        margin: 0;
+        padding: 0.75rem 0.5rem;
+    }
+
+    /* Sticky table header — works because cart-items is the sole scroll parent */
+    .cart-table {
+        width: max-content;
+        min-width: 100%;
+        border-collapse: collapse;
+    }
+
+    .cart-table thead {
+        position: sticky;
+        top: 0;
+        z-index: 5;
+    }
+
+    .cart-table th {
+        background: #f1f5f9;
+        position: sticky;
+        top: 0;
+        z-index: 5;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+        white-space: nowrap;
+        padding: 0.5rem 0.625rem;
+        font-size: 0.75rem;
+    }
+
+    .cart-table td {
+        padding: 0.5rem 0.625rem;
+        font-size: 0.8125rem;
+        white-space: nowrap;
+    }
+
     .cart-item {
-        margin-bottom: 0.75rem;
+        margin-bottom: 0;
     }
 
     .product-info {
@@ -1052,4 +1153,14 @@
 .item-card.active {
     border: 2px solid #0176d3;
     background: #f3f9ff;
+}
+
+/* Drag-and-drop visual feedback */
+.cart-item.dragging {
+    opacity: 0.5;
+    background: #e2e8f0;
+}
+
+.cart-item.drag-over {
+    border-top: 3px solid #2563eb;
 }

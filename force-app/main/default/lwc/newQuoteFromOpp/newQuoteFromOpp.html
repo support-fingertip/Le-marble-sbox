@@ -349,7 +349,7 @@
 
                             <div class="slds-col slds-small-size_1-of-1 slds-medium-size_1-of-8 qty-box">
                                 <lightning-input type="number" label="Unit Price (₹)"
-                                                    value={item.unitPrice}
+                                                    value={item.msp}
                                                     data-product-id={item.id}
                                                     data-index={index}
                                                     onchange={handleNaturalStoneUnitPriceChange}>
@@ -450,7 +450,7 @@
                                                         data-index={index}
                                                         data-product-id={item.id}
                                                         onchange={handleDiscValueChange}
-                                                        >
+                                                        step="any">
                                     </lightning-input>
                                     
                                 </div>
@@ -796,9 +796,12 @@
             <span>₹{orderTotal}</span>
             </div>
              <template if:false={isConfirmed}>
-                <button class="checkout-button" onclick={handleConfirm}>
-                Confirm Quote
-                </button>
+                <div class="summary-actions">
+                    <button class="edit-items-button" onclick={handleClosePreview}>Edit Items</button>
+                    <button class="checkout-button" onclick={handleConfirm}>
+                    Confirm Quote
+                    </button>
+                </div>
             </template>
         </div>
         </div>

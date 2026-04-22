@@ -149,7 +149,7 @@ public static Map<String,Object> getQuoteLineItems(Id quoteId){
                Product2.Product_Code__c,
                Product2.Product_Category__c,
                After_Disc_Price_Sqft__c,
-        Product2.MSP__c,MSP__c,
+        Product2.MSP__c,MSP__c,Price_Sqft__c,
         Description,
                Product2.Tax__c,
                Product2.Sqft_Piece__c

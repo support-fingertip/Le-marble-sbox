@@ -9,7 +9,13 @@ public class SAPProductIntegration implements Schedulable {
     private static final String PASSWORD = 'Mgsap12@';
 
     public void execute(SchedulableContext sc) {
-         runSync(null);
+        // Scheduled Apex cannot make callouts directly. Hop into a @future
+        // context so the HTTP callouts inside runSync are permitted.
+        runSyncFuture();
+    }
+    @future(callout=true)
+    public static void runSyncFuture() {
+        runSync(null);
     }
    public static void runSync() {
         runSync(null);
@@ -95,23 +101,41 @@ insert log;
             System.debug('CreateDate callout URL: ' + EncodingUtil.urlDecode(createUrl, 'UTF-8'));
             fetchItems(sessionId, createUrl, http, allRecords, pbItems, log);
 
-            // 3. Upsert all collected records after all callouts complete
-            if (!allRecords.isEmpty()) {
-                List<Database.UpsertResult> results = Database.upsert(allRecords, Product2.Fields.Product_Code__c, false);
+            // 3. Deduplicate by external ID (same record may appear in both the
+            //    UpdateDate and CreateDate result sets) then upsert.
+            Map<String, Product2> dedupedProducts = new Map<String, Product2>();
+            for (Product2 p : allRecords) {
+                if (String.isNotBlank(p.Product_Code__c)) {
+                    dedupedProducts.put(p.Product_Code__c, p); // later wins
+                }
+            }
+            Map<String, PricebookEntry> dedupedPbes = new Map<String, PricebookEntry>();
+            for (PricebookEntry pbe : pbItems) {
+                if (String.isNotBlank(pbe.PricebookItem_ExtId__c)) {
+                    dedupedPbes.put(pbe.PricebookItem_ExtId__c, pbe);
+                }
+            }
+
+            if (!dedupedProducts.isEmpty()) {
+                List<Product2> toUpsert = dedupedProducts.values();
+                List<Database.UpsertResult> results = Database.upsert(toUpsert, Product2.Fields.Product_Code__c, false);
                 for (Integer i = 0, sz = results.size(); i < sz; i++) {
                     if (!results[i].isSuccess()) {
                         for (Database.Error error : results[i].getErrors()) {
-                            System.debug('Product Error: ' + error.getStatusCode() + ' : ' + error.getFields());
+                            System.debug('Product Error: ' + error.getStatusCode() + ' : ' + error.getFields()
+                                + ' code=' + toUpsert[i].Product_Code__c);
                         }
                     }
                 }
             }
-            if (!pbItems.isEmpty()) {
-                List<Database.UpsertResult> results1 = Database.upsert(pbItems, PricebookEntry.Fields.PricebookItem_ExtId__c, false);
+            if (!dedupedPbes.isEmpty()) {
+                List<PricebookEntry> toUpsert = dedupedPbes.values();
+                List<Database.UpsertResult> results1 = Database.upsert(toUpsert, PricebookEntry.Fields.PricebookItem_ExtId__c, false);
                 for (Integer i = 0, sz = results1.size(); i < sz; i++) {
                     if (!results1[i].isSuccess()) {
                         for (Database.Error error : results1[i].getErrors()) {
-                            System.debug('PB Error: ' + error.getStatusCode() + ' : ' + error.getFields());
+                            System.debug('PB Error: ' + error.getStatusCode() + ' : ' + error.getFields()
+                                + ' extId=' + toUpsert[i].PricebookItem_ExtId__c);
                         }
                     }
                 }
@@ -185,6 +209,12 @@ insert log;
                         System.debug('Product: ' + prod.Product_Code__c + ', PriceList: ' + priceList + ', Price: ' + price);
                         if (priceList == '1') {
                             prod.MSP__c = price;
+                        }
+
+                        // Skip PBE rows without a usable parent — blank PriceList cannot resolve
+                        // Pricebook2 via Price_List_No__c and surfaces as INVALID_FIELD : () on upsert.
+                        if (String.isBlank(priceList) || String.isBlank(prod.Product_Code__c)) {
+                            continue;
                         }
 
                         PricebookEntry pbe = new PricebookEntry();
