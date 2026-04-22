@@ -6,15 +6,10 @@ public class VisitTriggerHandlerTest {
     ===================================================== */
     private static Map<String, Id> createBaseData() {
 
-        // ---- Account (Phone + Customer Category required) ----
-        String customerCategory =
-            Account.Customer_Category__c.getDescribe()
-                .getPicklistValues()[0].getValue();
-
+        // ---- Account ----
         Account acc = new Account(
             Name = 'Test Account',
-            Phone = '9876543210',
-            Customer_Category__c = customerCategory
+            Phone = '9876543210'
         );
         insert acc;
 

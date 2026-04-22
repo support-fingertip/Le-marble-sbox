@@ -29,7 +29,7 @@ public class DailyLogVisitMapControllerTest {
         Account testAccount = new Account(
             Name = 'DLVM Test Account',
             Phone = '1234567890',
-            Customer_Category__c = 'Exporters'
+
         );
         insert testAccount;
 

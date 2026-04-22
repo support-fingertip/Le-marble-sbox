@@ -12,22 +12,7 @@ global with sharing class beatPlannerlwc {
     global static data getAllVisitData(string recordId){
         
         data dt = new data();
-        List<Order> ordList = [SELECT Id FROM Order WHERE Visit__c = :recordId];
-        
-        if (!ordList.isEmpty()) {
-            // Extract Order__c Ids
-            List<Id> orderIds = new List<Id>();
-            for (Order ord : ordList) {
-                orderIds.add(ord.Id);
-            }
-            
-            // Fetch related Order_Item__c records
-         /*   dt.orList = [SELECT Id, Name, Product__c, Product__r.Name, Product_Category__c, Product_Category__r.Name,
-                         Total_Amount__c, Account__r.Name, Visit__c, Visit__r.Name, Daily_log__r.Name, Quantity__c
-                         FROM OrderItem 
-                         WHERE Order IN :orderIds];*/
-        }
-        
+
         dt.VisitPhoto = LightningFileUploadHandler.getFiles(recordId);
        /* dt.Stock = [select Id,name,Product__c,Product__r.Name,Product_Category__c,Product_Category__r.Name,
                     Quantity__c, Unit_Price__c from Dealer_Stock__c where Visit__c =:recordId ];
@@ -124,7 +109,7 @@ global with sharing class beatPlannerlwc {
      //   db.Distributor = [SELECT Id,City__c,Name,Customer_Type__c,Customer_Preference__c,Customer_Code__c,State__c from account WHERE  Customer_Type__c = 'Distributor' ]; 
        // db.ModrenTrade= [SELECT Id,City__c,Name,Customer_Type__c,Customer_Preference__c,Customer_Code__c,State__c from account WHERE  Customer_Type__c = 'Modern Trade' ]; 
         db.lead = [SELECT Id,Name,phone,MobilePhone FROM LEAD where Status!='Closed Lost' and Status!='Closed Won' and isConverted=false];//WHERE  Lead_Status__c != 'Converted' and  Approval_Status__c != 'Submitted'
-         db.Customer = [SELECT Id,Name,Customer_Code__c,phone from account where Status__c!='Inactive'];
+         db.Customer = [SELECT Id,Name,Customer_Code__c,phone from account];
        
         
         return db;
