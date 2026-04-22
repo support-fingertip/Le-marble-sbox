@@ -43,7 +43,7 @@ private class DistanceMatrixControllerForVisitTest {
                 testAccounts.add(new Account(
                     Name = 'Test Account ' + i,
                     OwnerId = testUser1.Id,  // Assign ownership to test user
-                    Customer_Category__c = 'Exporters',  // Add required Customer Category
+  // Add required Customer Category
                     Phone = '1234567890'  // Add phone for account
                 ));
             }
@@ -155,7 +155,7 @@ private class DistanceMatrixControllerForVisitTest {
         User testUser = [SELECT Id FROM User WHERE UserName = 'testuser1@testorg.com.testclass' LIMIT 1];
         
         System.runAs(new User(Id = UserInfo.getUserId())) {
-            Account testAccount = [SELECT Id FROM Account WHERE Customer_Category__c = 'Exporters' LIMIT 1];
+            Account testAccount = [SELECT Id FROM Account LIMIT 1];
             Daily_Log__c dailyLog = [SELECT Id FROM Daily_Log__c LIMIT 1];
             
             // Create visit without coordinates
@@ -180,7 +180,7 @@ private class DistanceMatrixControllerForVisitTest {
         User testUser = [SELECT Id FROM User WHERE UserName = 'testuser1@testorg.com.testclass' LIMIT 1];
         
         System.runAs(new User(Id = UserInfo.getUserId())) {
-            Account testAccount = [SELECT Id FROM Account WHERE Customer_Category__c = 'Exporters' LIMIT 1];
+            Account testAccount = [SELECT Id FROM Account LIMIT 1];
             
             // Create visit without daily log
             Visit__c visitWithoutLog = new Visit__c(
@@ -205,7 +205,7 @@ private class DistanceMatrixControllerForVisitTest {
         User testUser = [SELECT Id FROM User WHERE UserName = 'testuser1@testorg.com.testclass' LIMIT 1];
         
         System.runAs(new User(Id = UserInfo.getUserId())) {
-            Account testAccount = [SELECT Id FROM Account WHERE Customer_Category__c = 'Exporters' LIMIT 1];
+            Account testAccount = [SELECT Id FROM Account LIMIT 1];
             Daily_Log__c dailyLog = [SELECT Id FROM Daily_Log__c LIMIT 1];
             
             // Create bulk visits
@@ -287,7 +287,7 @@ private class DistanceMatrixControllerForVisitTest {
             Account newAccount = new Account(
                 Name = 'New Account',
                 OwnerId = newUser.Id,
-                Customer_Category__c = 'Exporters',
+
                 Phone = '1234567892'
             );
             insert newAccount;
@@ -323,7 +323,7 @@ private class DistanceMatrixControllerForVisitTest {
         User testUser = [SELECT Id FROM User WHERE UserName = 'testuser1@testorg.com.testclass' LIMIT 1];
         
         System.runAs(new User(Id = UserInfo.getUserId())) {
-            Account testAccount = [SELECT Id FROM Account WHERE Customer_Category__c = 'Exporters' LIMIT 1];
+            Account testAccount = [SELECT Id FROM Account LIMIT 1];
             
             // Create daily log without coordinates
             Daily_Log__c dailyLogNoCoords = new Daily_Log__c(

@@ -11,7 +11,7 @@ public class beatPlannerlwcTest {
         Account acc = new Account(
             Name = 'Test Account',
             Phone = '9999999999',
-             Customer_Category__c = 'Dealer'
+
         );
         insert acc;
 

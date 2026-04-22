@@ -23,7 +23,7 @@ public with sharing class visitManagerTest {
                 testAccounts.add(new Account(
                     Name = 'Test Account ' + i,
                     Phone = '987654321' + i,
-                    Customer_Category__c='Exporters'
+
                 ));
             }
             insert testAccounts;
@@ -331,7 +331,7 @@ public with sharing class visitManagerTest {
         System.runAs(testUser) {
             Account testAccount = new Account(
                 Name = 'Test Account No Orders',
-                Customer_Category__c='Exporters',
+
                 phone='1234567867'
             );
             insert testAccount;

@@ -270,9 +270,7 @@ handleEnable(e) {
                     Name: lead.Name,
                     Phone: lead.Phone,
                     MobilePhone: lead.MobilePhone,
-                    Company: lead.Company,
-                    Business_Vertical__c: lead.Business_Vertical__c,
-                    ProductName: lead.Product__r ? lead.Product__r.Name : ''
+                    Company: lead.Company
                 }));
                 this.objData.Customer = result.Customer;
                 this.objData.searchItems = this.objData.Lead;

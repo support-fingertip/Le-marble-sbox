@@ -25,17 +25,7 @@ public with sharing class visitManager {
     public static data getAllVisitData(string recordId){
         
         data dt = new data();
-        List<Order> ordList = [SELECT Id FROM Order WHERE Visit__c = :recordId];
-        
-        if (!ordList.isEmpty()) {
-            // Extract Order__c Ids
-            List<Id> orderIds = new List<Id>();
-            for (Order ord : ordList) {
-                orderIds.add(ord.Id);
-            }
-            
-        }
-        
+
         dt.VisitPhoto = LightningFileUploadHandler.getFiles(recordId);
         
         visit__c vs = [select id,Daily_Log__c ,Visit_for__c,Account__c,Lead__c
@@ -93,8 +83,8 @@ public with sharing class visitManager {
     public static data getVisitCreateData(){
         
         data db = new data();
-        db.lead = [SELECT Id,Name,Phone,MobilePhone,Company,Business_Vertical__c,Product__c,Product__r.Name FROM LEAD where Status!='Qualified'  and isConverted=false];//WHERE  Lead_Status__c != 'Converted' and  Approval_Status__c != 'Submitted'
-        db.Customer = [SELECT Id,Name,Customer_Code__c,phone from account where Status__c != 'Inactive'];
+        db.lead = [SELECT Id,Name,Phone,MobilePhone,Company FROM LEAD where Status!='Qualified'  and isConverted=false];//WHERE  Lead_Status__c != 'Converted' and  Approval_Status__c != 'Submitted'
+        db.Customer = [SELECT Id,Name,Customer_Code__c,phone from account];
   return db;
     }
     //visit cmp not using
