@@ -9,7 +9,6 @@ import searchContractors from '@salesforce/apex/CustomerEntryController.searchCo
 import createContractor from '@salesforce/apex/CustomerEntryController.createContractor';
 import searchMaisons from '@salesforce/apex/CustomerEntryController.searchMaisons';
 import createMaison from '@salesforce/apex/CustomerEntryController.createMaison';
-import getExecutives from '@salesforce/apex/CustomerEntryController.getExecutives';
 import createLead from '@salesforce/apex/StandardLeadController.createLead';
 
 import getReferenceTypes from '@salesforce/apex/CustomerEntryController.getReferenceTypes';
@@ -47,8 +46,6 @@ export default class NewLeadCreation extends NavigationMixin(LightningElement) {
         customerId: '',
         leadType: '',
         leadPurpose: '',
-        customerEntryDate: new Date().toISOString().split('T')[0],
-        assignedExecutive: '',
         remarks: '',
         referralName: '',
         phoneNumber: '',
@@ -60,14 +57,8 @@ export default class NewLeadCreation extends NavigationMixin(LightningElement) {
         panchayat: '',
         Company:'',
     };
-    
-    // Add getter for minimum date
-    get minDate() {
-        return new Date().toISOString().split('T')[0];
-    }
-    
-    @track executives = [];
-       @api recordId;
+
+    @api recordId;
     @api embedded = false;
     // Toast properties
     @track showToast = false;
@@ -160,15 +151,11 @@ export default class NewLeadCreation extends NavigationMixin(LightningElement) {
 
     @track country = 'IN';
     @track phone = '';
-    
-    @track secondaryCountry = 'IN';
 
     @track panchayatList = [];
     isPanchayatDisabled = true;
 
     @track showDistrictAndPanchayat = false;
-
-    @track secondaryPhoneError = '';
 
     @track panchayatSearchTerm = '';
     @track filteredPanchayatOptions = [];
@@ -289,9 +276,12 @@ export default class NewLeadCreation extends NavigationMixin(LightningElement) {
         }
     }
 
-    // Getter for states list
+    // Getter for states list – returns picklist label for display and API value
     get statesList() {
-        return this.stateOptionsStd;
+        return (this.stateOptionsStd || []).map(opt => ({
+            label: opt.label,
+            value: opt.value
+        }));
     }
 
     get keralaDistrictsList() {
@@ -321,23 +311,8 @@ export default class NewLeadCreation extends NavigationMixin(LightningElement) {
     }
     
     connectedCallback() {
-        // Load executives when component is initialized
-        this.loadExecutives();
     }
-    
-    loadExecutives() {
-        getExecutives()
-            .then(result => {
-                console.log('Raw executives data:', result); // Log raw data
-                this.executives = result;
-                console.log('Executives loaded:', this.executives);
-            })
-            .catch(error => {
-                console.error('Error loading executives', error);
-                this.showErrorToast('Error loading executives', error.message);
-            });
-    }
-    
+
     renderedCallback() {
         // No third-party library needed
     }
@@ -356,11 +331,9 @@ export default class NewLeadCreation extends NavigationMixin(LightningElement) {
     }
     
     validateForm() {
-        const allInputs = [...this.template.querySelectorAll('input, select')].filter(
-            input => input.id !== 'assignedExecutive'
-        );
+        const allInputs = [...this.template.querySelectorAll('input, select')];
         let isValid = true;
-        
+
         allInputs.forEach(inputField => {
             if (inputField.required && !inputField.value) {
                 inputField.classList.add('error');
@@ -369,14 +342,13 @@ export default class NewLeadCreation extends NavigationMixin(LightningElement) {
                 inputField.classList.remove('error');
             }
         });
-        
+
         // Validate required fields
         const requiredFields = {
             'firstName': 'First Name',
             'primaryPhone': 'Phone',
             'state': 'State',
             'customerSource': 'Lead Source',
-            'customerEntryDate': 'Customer Entry Date',
             'type': 'Type'
         };
 
@@ -402,11 +374,7 @@ export default class NewLeadCreation extends NavigationMixin(LightningElement) {
             const saveData = { ...this.customerData };
             console.log('Saving customer data:', saveData);
             console.log('Architect ID before save:', saveData.referenceArchitect);
-            
-            // Remove empty fields to avoid validation issues
-            if (!saveData.assignedExecutive) {
-                delete saveData.assignedExecutive;
-            }
+
             // Only delete referenceArchitect if it's completely empty (not just falsy)
             if (!saveData.referenceArchitect || saveData.referenceArchitect === '') {
                 delete saveData.referenceArchitect;
@@ -492,8 +460,6 @@ export default class NewLeadCreation extends NavigationMixin(LightningElement) {
             customerId: '',
             leadType: '',
             leadPurpose: '',
-            customerEntryDate: new Date().toISOString().split('T')[0],
-            assignedExecutive: '',
             remarks: '',
             referralName: '',
             phoneNumber: '',
@@ -534,11 +500,9 @@ export default class NewLeadCreation extends NavigationMixin(LightningElement) {
         this.showMaisonResults = false;
         this.showCustomerReferenceFields = false;
         
-        // Reset country selections
+        // Reset country selection
         this.country = 'IN';
-        this.secondaryCountry = 'IN';
         this.phoneError = '';
-        this.secondaryPhoneError = '';
     }
     
     displayToast(title, message, variant, recordId = null) {
@@ -1023,15 +987,16 @@ export default class NewLeadCreation extends NavigationMixin(LightningElement) {
     }
 
     handlePhoneInput(event) {
-        const digits = event.target.value.replace(/[^0-9]/g, ''); // Only digits
+        const digits = event.target.value.replace(/[^0-9]/g, '').slice(0, 10); // Only digits, max 10
         this.customerData.primaryPhone = digits; // Update the tracked field
+        event.target.value = digits;
         this.phoneError = '';
     }
 
     handleSecondaryPhoneInput(event) {
-        const digits = event.target.value.replace(/[^0-9]/g, ''); // Only digits
+        const digits = event.target.value.replace(/[^0-9]/g, '').slice(0, 10); // Only digits, max 10
         this.customerData.secondaryPhone = digits; // Update the tracked field
-        this.secondaryPhoneError = '';
+        event.target.value = digits;
     }
 
     get countryList() {
@@ -1050,16 +1015,6 @@ export default class NewLeadCreation extends NavigationMixin(LightningElement) {
 
     get selectedCountryCode() {
         return '';
-    }
-
-    get selectedSecondaryCountryCode() {
-        return '';
-    }
-
-    handleSecondaryCountryChange(event) {
-        this.secondaryCountry = event.target.value;
-        this.secondaryPhoneError = '';
-        this.customerData.secondaryPhone = '';
     }
 
     handlePanchayatSearch(event) {

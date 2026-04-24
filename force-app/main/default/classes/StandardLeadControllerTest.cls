@@ -21,7 +21,7 @@ private class StandardLeadControllerTest {
         List<String> salutations = StandardLeadController.getSalutations();
         List<String> leadSources = StandardLeadController.getLeadSources();
         List<String> leadCategories = StandardLeadController.getLeadCategories();
-        List<String> states = StandardLeadController.getStates();
+        List<StandardLeadController.PicklistOption> states = StandardLeadController.getStates();
         List<String> districts = StandardLeadController.getDistricts();
         List<String> panchayaths = StandardLeadController.getPanchayaths();
         List<String> countries = StandardLeadController.getCountries();
