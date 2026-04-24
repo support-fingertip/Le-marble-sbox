@@ -23,8 +23,8 @@ public with sharing class StandardLeadController {
     }
 
     @AuraEnabled(cacheable=true)
-    public static List<String> getStates() {
-        return getPicklistValues('Lead', 'State__c');
+    public static List<PicklistOption> getStates() {
+        return getPicklistEntries('Lead', 'State__c');
     }
 
     @AuraEnabled(cacheable=true)
@@ -123,5 +123,32 @@ public with sharing class StandardLeadController {
             throw new AuraHandledException('Error fetching picklist values: ' + e.getMessage());
         }
         return picklistValues;
+    }
+
+    private static List<PicklistOption> getPicklistEntries(String objectName, String fieldName) {
+        List<PicklistOption> options = new List<PicklistOption>();
+        try {
+            Schema.SObjectType sObj = Schema.getGlobalDescribe().get(objectName);
+            Schema.DescribeFieldResult fieldResult = sObj.getDescribe().fields.getMap().get(fieldName).getDescribe();
+
+            for (Schema.PicklistEntry entry : fieldResult.getPicklistValues()) {
+                if (entry.isActive()) {
+                    options.add(new PicklistOption(entry.getLabel(), entry.getValue()));
+                }
+            }
+        } catch (Exception e) {
+            throw new AuraHandledException('Error fetching picklist values: ' + e.getMessage());
+        }
+        return options;
+    }
+
+    public class PicklistOption {
+        @AuraEnabled public String label;
+        @AuraEnabled public String value;
+
+        public PicklistOption(String label, String value) {
+            this.label = label;
+            this.value = value;
+        }
     }
 }
