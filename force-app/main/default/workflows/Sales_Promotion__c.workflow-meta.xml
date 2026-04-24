@@ -12,6 +12,17 @@
         <reevaluateOnChange>false</reevaluateOnChange>
     </fieldUpdates>
     <fieldUpdates>
+        <fullName>Set_Promotion_Proposed</fullName>
+        <description>Sets Promotion Status to Proposed on initial submission.</description>
+        <field>Promotion_Status__c</field>
+        <literalValue>Proposed</literalValue>
+        <name>Set Promotion Proposed</name>
+        <notifyAssignee>false</notifyAssignee>
+        <operation>Literal</operation>
+        <protected>false</protected>
+        <reevaluateOnChange>false</reevaluateOnChange>
+    </fieldUpdates>
+    <fieldUpdates>
         <fullName>Set_Approval_Approved</fullName>
         <description>Sets Approval Status to Approved on final approval.</description>
         <field>Approval_Status__c</field>

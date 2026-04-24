@@ -22,6 +22,9 @@
         </approvalActions>
         <label>Manager Approval</label>
         <name>Manager_Approval</name>
+        <rejectBehavior>
+            <type>RejectRequest</type>
+        </rejectBehavior>
     </approvalStep>
     <approvalStep>
         <allowDelegate>false</allowDelegate>
@@ -48,6 +51,9 @@
         </approvalActions>
         <label>Business Head Approval</label>
         <name>Business_Head_Approval</name>
+        <rejectBehavior>
+            <type>RejectRequest</type>
+        </rejectBehavior>
     </approvalStep>
     <approvalStep>
         <allowDelegate>false</allowDelegate>
@@ -80,6 +86,9 @@
         </approvalActions>
         <label>Finance Approval</label>
         <name>Finance_Approval</name>
+        <rejectBehavior>
+            <type>RejectRequest</type>
+        </rejectBehavior>
     </approvalStep>
     <approvalStep>
         <allowDelegate>false</allowDelegate>
@@ -106,6 +115,9 @@
         </approvalActions>
         <label>Managing Director Approval</label>
         <name>Managing_Director_Approval</name>
+        <rejectBehavior>
+            <type>RejectRequest</type>
+        </rejectBehavior>
     </approvalStep>
     <enableMobileDeviceAccess>false</enableMobileDeviceAccess>
     <finalApprovalActions>
@@ -129,6 +141,10 @@
     <initialSubmissionActions>
         <action>
             <name>Set_Approval_Submitted</name>
+            <type>FieldUpdate</type>
+        </action>
+        <action>
+            <name>Set_Promotion_Proposed</name>
             <type>FieldUpdate</type>
         </action>
     </initialSubmissionActions>
