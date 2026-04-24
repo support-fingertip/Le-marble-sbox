@@ -117,6 +117,7 @@ showUploadedFiles = false;
 @track missedVisitReason;
 @track missedVisitOtherReason;
 @track showOtherReason = false;
+@track showNewLeadForm = false;
 
 missedVisitOptions = [
     { label: 'Customer Not Available', value: 'Customer Not Available' },
@@ -515,6 +516,58 @@ searchText(){
 }
 get isCustomer() {
 return this.visitData.Visit_for__c === 'Customer';
+}
+get isLeadVisit() {
+    return this.visitData.Visit_for__c === 'Lead';
+}
+get embeddedTrue() {
+    return true;
+}
+get showVisitFormFields() {
+    return !this.showNewLeadForm;
+}
+get showOuterActionButtons() {
+    return !this.showNewLeadForm;
+}
+get showDesktopFooter() {
+    return this.isDesktop && !this.showNewLeadForm;
+}
+handleAddNewLead() {
+    this.isValueSearched = false;
+    this.showNewLeadForm = true;
+    this.headerVisit = 'Create New Lead';
+}
+handleNewLeadCancel() {
+    this.showNewLeadForm = false;
+    if (this.newVisitCreate) {
+        this.headerVisit = 'Create New Visit';
+    }
+}
+handleLeadCreated(event) {
+    const detail = event.detail || {};
+    const newLead = {
+        Id: detail.id,
+        Name: detail.name || '',
+        Phone: detail.phone || '',
+        MobilePhone: detail.mobilePhone || ''
+    };
+    if (!Array.isArray(this.objData.Lead)) {
+        this.objData.Lead = [];
+    }
+    this.objData.Lead = [newLead, ...this.objData.Lead];
+    if (this.visitData.Visit_for__c === 'Lead') {
+        this.objData.searchItems = this.objData.Lead;
+    }
+    this.visitData.Lead__c = newLead.Id;
+    this.visitData.Account__c = '';
+    this.searchValueName = newLead.Name;
+    this.isValueSearched = false;
+    this.isSearchValueSelected = true;
+    this.showNewLeadForm = false;
+    if (this.newVisitCreate) {
+        this.headerVisit = 'Create New Visit';
+    }
+    this.genericDispatchEvent('Success', 'Lead created and selected.', 'success');
 }
 selectObjName(event){
     const apiFieldName = this.visitData.Visit_for__c;
