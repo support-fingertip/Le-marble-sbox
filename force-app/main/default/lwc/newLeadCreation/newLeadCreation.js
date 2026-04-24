@@ -434,7 +434,8 @@ export default class NewLeadCreation extends NavigationMixin(LightningElement) {
                                 id: result,
                                 name: leadName,
                                 phone: saveData.primaryPhone || '',
-                                mobilePhone: saveData.secondaryPhone || ''
+                                mobilePhone: saveData.secondaryPhone || '',
+                                company: saveData.company || ''
                             }
                         }));
                         this.resetForm();
