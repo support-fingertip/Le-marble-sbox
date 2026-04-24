@@ -591,7 +591,7 @@ console.log('product.compositeKey>>'+product.compositeKey);
             const product = this.selectedProducts[productIndex];
             // Natural Stone
             if (product.isNaturalStone) {
-                const unitPrice = parseFloat(product.unitPrice) || 0;
+                const unitPrice = parseFloat(product.msp)? parseFloat(product.msp): parseFloat(product.unitPrice) || 0;
                  const taxPercent = parseFloat(product.Tax) || 0;
                 const requiredSqft = parseFloat(product.requiredSqft) || 0;
                 const discType = product.discType || 'Percentage';
@@ -1398,8 +1398,9 @@ handleAreaDesChange(event) {
             
             // Update only if value has changed
             const product = this.selectedProducts[idx];
-            if (product && product.unitPrice !== unitPrice) {
-                this.updateProduct(productId, 'unitPrice', unitPrice,idx);
+            
+            if (product && product.msp !== unitPrice) {
+                this.updateProduct(productId, 'msp', unitPrice,idx);
                 this.calculateNaturalStonePrice(productId,idx);
             }
         } catch (error) {
