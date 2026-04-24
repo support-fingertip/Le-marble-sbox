@@ -7,6 +7,12 @@
     </allowedSubmitters>
     <approvalStep>
         <allowDelegate>false</allowDelegate>
+        <approvalActions>
+            <action>
+                <name>Set_Manager_Approved</name>
+                <type>FieldUpdate</type>
+            </action>
+        </approvalActions>
         <assignedApprover>
             <approver>
                 <type>userHierarchyField</type>
@@ -14,12 +20,6 @@
             </approver>
             <whenMultipleApprovers>FirstResponse</whenMultipleApprovers>
         </assignedApprover>
-        <approvalActions>
-            <action>
-                <name>Set_Manager_Approved</name>
-                <type>FieldUpdate</type>
-            </action>
-        </approvalActions>
         <label>Manager Approval</label>
         <name>Manager_Approval</name>
         <rejectBehavior>
@@ -28,6 +28,12 @@
     </approvalStep>
     <approvalStep>
         <allowDelegate>false</allowDelegate>
+        <approvalActions>
+            <action>
+                <name>Set_Business_Head_Approved</name>
+                <type>FieldUpdate</type>
+            </action>
+        </approvalActions>
         <assignedApprover>
             <approver>
                 <type>userHierarchyField</type>
@@ -43,12 +49,6 @@
             </criteriaItems>
         </entryCriteria>
         <ifCriteriaNotMet>GoToNextStep</ifCriteriaNotMet>
-        <approvalActions>
-            <action>
-                <name>Set_Business_Head_Approved</name>
-                <type>FieldUpdate</type>
-            </action>
-        </approvalActions>
         <label>Business Head Approval</label>
         <name>Business_Head_Approval</name>
         <rejectBehavior>
@@ -57,6 +57,12 @@
     </approvalStep>
     <approvalStep>
         <allowDelegate>false</allowDelegate>
+        <approvalActions>
+            <action>
+                <name>Set_Finance_Approved</name>
+                <type>FieldUpdate</type>
+            </action>
+        </approvalActions>
         <assignedApprover>
             <approver>
                 <type>userHierarchyField</type>
@@ -78,12 +84,6 @@
             </criteriaItems>
         </entryCriteria>
         <ifCriteriaNotMet>GoToNextStep</ifCriteriaNotMet>
-        <approvalActions>
-            <action>
-                <name>Set_Finance_Approved</name>
-                <type>FieldUpdate</type>
-            </action>
-        </approvalActions>
         <label>Finance Approval</label>
         <name>Finance_Approval</name>
         <rejectBehavior>
@@ -92,6 +92,12 @@
     </approvalStep>
     <approvalStep>
         <allowDelegate>false</allowDelegate>
+        <approvalActions>
+            <action>
+                <name>Set_MD_Approved</name>
+                <type>FieldUpdate</type>
+            </action>
+        </approvalActions>
         <assignedApprover>
             <approver>
                 <type>userHierarchyField</type>
@@ -107,12 +113,6 @@
             </criteriaItems>
         </entryCriteria>
         <ifCriteriaNotMet>ApproveRecord</ifCriteriaNotMet>
-        <approvalActions>
-            <action>
-                <name>Set_MD_Approved</name>
-                <type>FieldUpdate</type>
-            </action>
-        </approvalActions>
         <label>Managing Director Approval</label>
         <name>Managing_Director_Approval</name>
         <rejectBehavior>
@@ -148,9 +148,6 @@
             <type>FieldUpdate</type>
         </action>
     </initialSubmissionActions>
-    <initialSubmitters>
-        <type>owner</type>
-    </initialSubmitters>
     <label>Sales Promotion Approval</label>
     <recordEditability>AdminOnly</recordEditability>
 </ApprovalProcess>
