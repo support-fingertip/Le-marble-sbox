@@ -112,7 +112,6 @@
                 <value>500000</value>
             </criteriaItems>
         </entryCriteria>
-        <ifCriteriaNotMet>ApproveRecord</ifCriteriaNotMet>
         <label>Managing Director Approval</label>
         <name>Managing_Director_Approval</name>
         <rejectBehavior>
