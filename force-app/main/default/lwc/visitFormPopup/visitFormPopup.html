@@ -3,7 +3,7 @@
         <!-- <section role="dialog" tabindex="-1" aria-modal="true" aria-labelledby="modal-heading-01" class="slds-modal slds-fade-in-open slds-modal_small"></section> -->
         <div class="slds-modal__container">
 
-            <template lwc:if={isDesktop}>
+            <template lwc:if={showDesktopCloseButton}>
                 <button class="slds-button slds-button_icon slds-modal__close" disabled={isDisabled}
                     onclick={closeVisit}>
                     <lightning-icon icon-name="utility:close" size="small" alternative-text="Close"
@@ -16,8 +16,10 @@
                     <template if:false={isDesktop}>
                         <div class="slds-col  slds-clearfix">
                             <div class="slds-float_left">
-                                <lightning-button variant="base" label="Save" disabled={isDisabled} onclick={saveVisit}
-                                    class="slds-m-left_x-small"></lightning-button>
+                                <template lwc:if={showOuterActionButtons}>
+                                    <lightning-button variant="base" label="Save" disabled={isDisabled} onclick={saveVisit}
+                                        class="slds-m-left_x-small"></lightning-button>
+                                </template>
                             </div>
                         </div>
                     </template>
@@ -30,8 +32,10 @@
                     <template if:false={isDesktop}>
                         <div class="slds-col  slds-clearfix">
                             <div class="slds-float_right">
-                                <lightning-button variant="base" label="Cancel" disabled={isDisabled}
-                                    onclick={closeVisit} class="slds-m-left_x-small"></lightning-button>
+                                <template lwc:if={showOuterActionButtons}>
+                                    <lightning-button variant="base" label="Cancel" disabled={isDisabled}
+                                        onclick={closeVisit} class="slds-m-left_x-small"></lightning-button>
+                                </template>
                             </div>
                         </div>
                     </template>
@@ -40,6 +44,16 @@
 
             <!-- Creating new visit -->
             <template lwc:if={newVisitCreate}>
+                <template lwc:if={showNewLeadForm}>
+                    <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-new-lead">
+                        <c-new-lead-creation
+                            embedded={embeddedTrue}
+                            onleadcreated={handleLeadCreated}
+                            onleadcancel={handleNewLeadCancel}>
+                        </c-new-lead-creation>
+                    </div>
+                </template>
+                <template lwc:if={showVisitFormFields}>
                 <div class="slds-modal__content slds-p-around_medium  " id="modal-content-id-1">
                     <lightning-combobox name="Visit_for__c" label="Today's visit" value={visitData.Visit_for__c}
                         placeholder="Select Today's visit" options={pickData}
@@ -102,6 +116,17 @@
                         </div>
                     </template>
 
+                    <template lwc:if={isLeadVisit}>
+                        <div class="slds-m-top_x-small slds-m-bottom_x-small">
+                            <lightning-button
+                                variant="brand-outline"
+                                icon-name="utility:new"
+                                label="Add New Lead"
+                                onclick={handleAddNewLead}>
+                            </lightning-button>
+                        </div>
+                    </template>
+
                     <!--      <template lwc:if={isOthereVisit}>
                             <lightning-input type="text" name="Other_Visit__c" label="Other Visit" value={visitData.Other_Visit__c} onchange={handleChange}></lightning-input>"
                         </template>-->
@@ -126,6 +151,7 @@
                     </template>
 
                 </div>
+                </template>
             </template>
 
             <!-- Complete visit -->
@@ -247,7 +273,7 @@
             </template>
 
             <!-- Footer for visit poup -->
-            <template lwc:if={isDesktop}>
+            <template lwc:if={showDesktopFooter}>
                 <div class="slds-modal__footer">
                     <lightning-button variant="neutral" label="Cancel" disabled={isDisabled} onclick={closeVisit}></lightning-button>
                     <lightning-button variant="brand" label="Save" disabled={isDisabled} onclick={saveVisit}></lightning-button>
