@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Unqualified_Reason__c</fullName>
+    <externalId>false</externalId>
+    <label>Unqualified Reason</label>
+    <required>false</required>
+    <trackFeedHistory>false</trackFeedHistory>
+    <trackHistory>false</trackHistory>
+    <type>Picklist</type>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>No Response</fullName>
+                <default>false</default>
+                <label>No Response</label>
+            </value>
+            <value>
+                <fullName>Invalid Contact Information</fullName>
+                <default>false</default>
+                <label>Invalid Contact Information</label>
+            </value>
+            <value>
+                <fullName>Duplicate Lead</fullName>
+                <default>false</default>
+                <label>Duplicate Lead</label>
+            </value>
+            <value>
+                <fullName>High Price / Budget too low</fullName>
+                <default>false</default>
+                <label>High Price / Budget too low</label>
+            </value>
+            <value>
+                <fullName>Requirement not matching</fullName>
+                <default>false</default>
+                <label>Requirement not matching</label>
+            </value>
+            <value>
+                <fullName>Competitor</fullName>
+                <default>false</default>
+                <label>Competitor</label>
+            </value>
+            <value>
+                <fullName>Selected Project Cancelled</fullName>
+                <default>false</default>
+                <label>Selected Project Cancelled</label>
+            </value>
+            <value>
+                <fullName>Out of Stock / Product not available</fullName>
+                <default>false</default>
+                <label>Out of Stock / Product not available</label>
+            </value>
+            <value>
+                <fullName>Others</fullName>
+                <default>false</default>
+                <label>Others</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

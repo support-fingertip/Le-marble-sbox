@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Require_GST_For_B2B_ConversionRequire</fullName>
+    <active>true</active>
+    <errorConditionFormula>AND(
+    IsConverted = TRUE,
+    TEXT(Customer_Type__c) = &quot;B2B&quot;,
+    OR(
+      ISBLANK(TEXT(GST_Type__c)),
+      ISBLANK(GST_Number__c)
+    )
+  )</errorConditionFormula>
+    <errorMessage>GST Type and GST Number are required for B2B customers before converting the Lead.</errorMessage>
+</ValidationRule>
