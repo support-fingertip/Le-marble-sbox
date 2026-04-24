@@ -7,7 +7,8 @@
     align-items: center;   
 }
 .customHeight{
-    height: 19rem;
+    min-height: 19rem;
+    overflow-y: auto;
 }
 .CompleteHeight{
     height: 100% !important; 

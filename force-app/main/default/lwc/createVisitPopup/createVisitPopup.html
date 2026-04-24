@@ -122,16 +122,16 @@
                                         </template>
                                     </div>
                                 </div>
-                                <template lwc:if={isLeadVisit}>
-                                    <div class="slds-m-top_x-small">
-                                        <lightning-button
-                                            variant="base"
-                                            icon-name="utility:new"
-                                            label="Add New Lead"
-                                            onclick={handleAddNewLead}>
-                                        </lightning-button>
-                                    </div>
-                                </template>
+                            </div>
+                        </template>
+                        <template lwc:if={isLeadVisit}>
+                            <div class="slds-m-top_x-small slds-m-bottom_x-small">
+                                <lightning-button
+                                    variant="brand-outline"
+                                    icon-name="utility:new"
+                                    label="Add New Lead"
+                                    onclick={handleAddNewLead}>
+                                </lightning-button>
                             </div>
                         </template>
     
