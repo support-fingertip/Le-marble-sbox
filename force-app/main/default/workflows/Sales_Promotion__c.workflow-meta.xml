@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Workflow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fieldUpdates>
+        <fullName>Set_Approval_Submitted</fullName>
+        <description>Sets Approval Status to Submitted on initial submission.</description>
+        <field>Approval_Status__c</field>
+        <literalValue>Submitted</literalValue>
+        <name>Set Approval Submitted</name>
+        <notifyAssignee>false</notifyAssignee>
+        <operation>Literal</operation>
+        <protected>false</protected>
+        <reevaluateOnChange>false</reevaluateOnChange>
+    </fieldUpdates>
+    <fieldUpdates>
+        <fullName>Set_Promotion_Proposed</fullName>
+        <description>Sets Promotion Status to Proposed on initial submission.</description>
+        <field>Promotion_Status__c</field>
+        <literalValue>Proposed</literalValue>
+        <name>Set Promotion Proposed</name>
+        <notifyAssignee>false</notifyAssignee>
+        <operation>Literal</operation>
+        <protected>false</protected>
+        <reevaluateOnChange>false</reevaluateOnChange>
+    </fieldUpdates>
+    <fieldUpdates>
+        <fullName>Set_Approval_Approved</fullName>
+        <description>Sets Approval Status to Approved on final approval.</description>
+        <field>Approval_Status__c</field>
+        <literalValue>Approved</literalValue>
+        <name>Set Approval Approved</name>
+        <notifyAssignee>false</notifyAssignee>
+        <operation>Literal</operation>
+        <protected>false</protected>
+        <reevaluateOnChange>false</reevaluateOnChange>
+    </fieldUpdates>
+    <fieldUpdates>
+        <fullName>Set_Approval_Rejected</fullName>
+        <description>Sets Approval Status to Rejected on final rejection.</description>
+        <field>Approval_Status__c</field>
+        <literalValue>Rejected</literalValue>
+        <name>Set Approval Rejected</name>
+        <notifyAssignee>false</notifyAssignee>
+        <operation>Literal</operation>
+        <protected>false</protected>
+        <reevaluateOnChange>false</reevaluateOnChange>
+    </fieldUpdates>
+    <fieldUpdates>
+        <fullName>Set_Manager_Approved</fullName>
+        <description>Marks Promotion Status as Manager Approved after step 1.</description>
+        <field>Promotion_Status__c</field>
+        <literalValue>Manager Approved</literalValue>
+        <name>Set Manager Approved</name>
+        <notifyAssignee>false</notifyAssignee>
+        <operation>Literal</operation>
+        <protected>false</protected>
+        <reevaluateOnChange>false</reevaluateOnChange>
+    </fieldUpdates>
+    <fieldUpdates>
+        <fullName>Set_Business_Head_Approved</fullName>
+        <description>Marks Promotion Status as Business Head Approved (Amount &lt; 1L).</description>
+        <field>Promotion_Status__c</field>
+        <literalValue>Business Head Approved</literalValue>
+        <name>Set Business Head Approved</name>
+        <notifyAssignee>false</notifyAssignee>
+        <operation>Literal</operation>
+        <protected>false</protected>
+        <reevaluateOnChange>false</reevaluateOnChange>
+    </fieldUpdates>
+    <fieldUpdates>
+        <fullName>Set_Finance_Approved</fullName>
+        <description>Marks Promotion Status as Finance Approved (1L &lt;= Amount &lt; 5L).</description>
+        <field>Promotion_Status__c</field>
+        <literalValue>Finance Approved</literalValue>
+        <name>Set Finance Approved</name>
+        <notifyAssignee>false</notifyAssignee>
+        <operation>Literal</operation>
+        <protected>false</protected>
+        <reevaluateOnChange>false</reevaluateOnChange>
+    </fieldUpdates>
+    <fieldUpdates>
+        <fullName>Set_MD_Approved</fullName>
+        <description>Marks Promotion Status as MD Approved (Amount &gt;= 5L).</description>
+        <field>Promotion_Status__c</field>
+        <literalValue>MD Approved</literalValue>
+        <name>Set MD Approved</name>
+        <notifyAssignee>false</notifyAssignee>
+        <operation>Literal</operation>
+        <protected>false</protected>
+        <reevaluateOnChange>false</reevaluateOnChange>
+    </fieldUpdates>
+    <fieldUpdates>
+        <fullName>Set_Promotion_Rejected</fullName>
+        <description>Sets Promotion Status to Rejected on final rejection.</description>
+        <field>Promotion_Status__c</field>
+        <literalValue>Rejected</literalValue>
+        <name>Set Promotion Rejected</name>
+        <notifyAssignee>false</notifyAssignee>
+        <operation>Literal</operation>
+        <protected>false</protected>
+        <reevaluateOnChange>false</reevaluateOnChange>
+    </fieldUpdates>
+</Workflow>
