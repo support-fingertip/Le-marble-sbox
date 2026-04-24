@@ -19,7 +19,9 @@
                     <template if:false={isDesktop}>
                         <div class="slds-col  slds-clearfix">
                             <div class="slds-float_left">
-                                <lightning-button variant="base" label="Save" disabled={isDisabled}  onclick={saveVisit} class="slds-m-left_x-small"></lightning-button>
+                                <template lwc:if={showOuterActionButtons}>
+                                    <lightning-button variant="base" label="Save" disabled={isDisabled}  onclick={saveVisit} class="slds-m-left_x-small"></lightning-button>
+                                </template>
                             </div>
                         </div>
                     </template>
@@ -27,11 +29,13 @@
                     <div class="slds-col slds-align_absolute-center">
                         <h1 id="modal-heading-01" class="slds-modal__title slds-hyphenate" tabindex="-1">{headerVisit}</h1>
                     </div>
-                    
+
                     <template if:false={isDesktop}>
                         <div class="slds-col  slds-clearfix">
                             <div class="slds-float_right">
-                                <lightning-button variant="base" label="Cancel" disabled={isDisabled} onclick={closeVisit} class="slds-m-left_x-small"></lightning-button>
+                                <template lwc:if={showOuterActionButtons}>
+                                    <lightning-button variant="base" label="Cancel" disabled={isDisabled} onclick={closeVisit} class="slds-m-left_x-small"></lightning-button>
+                                </template>
                             </div>
                         </div>
                     </template>
@@ -40,6 +44,16 @@
 
             <!-- Creating new visit -->
             <template lwc:if={newVisitCreate}>
+                <template lwc:if={showNewLeadForm}>
+                    <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-new-lead">
+                        <c-new-lead-creation
+                            embedded={embeddedTrue}
+                            onleadcreated={handleLeadCreated}
+                            onleadcancel={handleNewLeadCancel}>
+                        </c-new-lead-creation>
+                    </div>
+                </template>
+                <template lwc:if={showVisitFormFields}>
                 <div class="slds-modal__content slds-p-around_medium customHeight" id="modal-content-id-1">
                     <lightning-combobox
                         name="Visit_for__c"
@@ -48,23 +62,23 @@
                         placeholder="Select Today's visit"
                         options={pickData}
                         onchange={handleChange} ></lightning-combobox>
-    
+
                         <template lwc:if={isSearchValueSelected}>
                             <div class="slds-m-right_xx-small slds-form-element">
                                 <div class="slds-form-element__control">
                                     <div class="slds-combobox slds-dropdown-trigger slds-dropdown-trigger_click slds-is-open">
                                         <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right" role="none">
-                                            <lightning-input 
+                                            <lightning-input
                                                 type="search"
                                                 required
                                                 label={searchLabel}
-                                                class="search-input" 
-                                                autocomplete="off" 
-                                                placeholder={searchPlaceHolder} 
-                                                value={searchValueName} 
+                                                class="search-input"
+                                                autocomplete="off"
+                                                placeholder={searchPlaceHolder}
+                                                value={searchValueName}
                                                 onchange={handleSearch}
                                                 onblur={handleOnBlur}>
-                                            </lightning-input>  
+                                            </lightning-input>
                                         </div>
                                         <template lwc:if={isValueSearched}>
                                             <div id="listbox-id-11" class="slds-dropdown slds-dropdown_length-5 slds-dropdown_fluid" role="listbox" aria-label="Placeholder for Dropdown Items" tabindex="0" aria-busy="false">
@@ -72,12 +86,12 @@
                                                     <ul key={srch.Id} class="slds-listbox slds-listbox_vertical" role="presentation" >
                                                         <li role="presentation" class="slds-listbox__item">
                                                           <div class="slds-media slds-listbox__option slds-listbox__option_plain slds-media_small" role="option" onclick={selectObjName} data-id={srch.Id} data-name={srch.Name}>
-                                                            <lightning-icon 
+                                                            <lightning-icon
                                                                 icon-name="utility:user" size="small">
-    
+
                                                             </lightning-icon>
                                                             <span class="slds-media__figure slds-listbox__option-icon"></span>
-                                                            
+
                                                            <!-- <span class="slds-media__body">
                                                               <span class="slds-truncate" title={srch.Name}>
                                                                 <span>{srch.Name}</span><br/>
@@ -110,6 +124,16 @@
                                 </div>
                             </div>
                         </template>
+                        <template lwc:if={isLeadVisit}>
+                            <div class="slds-m-top_x-small slds-m-bottom_x-small">
+                                <lightning-button
+                                    variant="brand-outline"
+                                    icon-name="utility:new"
+                                    label="Add New Lead"
+                                    onclick={handleAddNewLead}>
+                                </lightning-button>
+                            </div>
+                        </template>
     
                   <!--      <template lwc:if={isOthereVisit}>
                             <lightning-input type="text" name="Other_Visit__c" label="Other Visit" value={visitData.Other_Visit__c} onchange={handleChange}></lightning-input>"
@@ -120,7 +144,8 @@
                         <lightning-combobox name="Visit_Type__c" required="true" label="Visit Type" value={visitData.Visit_Type__c}  placeholder="Select a Visit Type " options={pickData1} onchange={handleVisitType} ></lightning-combobox>
                          <lightning-combobox name="Visit_Purpose__c" required="true" label="Visit Purpose" value={visitData.Visit_Purpose__c}  placeholder="Select Visit Purpose " options={pickDatapurpose} onchange={handleVisitPurpose} ></lightning-combobox>
 
-                </div>    
+                </div>
+                </template>
             </template>
 
             <!-- Complete visit -->
@@ -271,7 +296,7 @@
 
 
             <!-- Footer for visit poup -->
-             <template lwc:if={isDesktop}>
+             <template lwc:if={showDesktopFooter}>
                 <div class="slds-modal__footer">
                     <button class="slds-button slds-button_neutral" aria-label="Cancel and close" onclick={closeVisit} disabled={isDisabled}>Cancel</button>
                     <button class="slds-button slds-button_brand" onclick={saveVisit} disabled={isDisabled} >Save</button>

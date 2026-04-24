@@ -22,6 +22,11 @@
                 <label>Lead</label>
             </value>
             <value>
+                <fullName>Referral</fullName>
+                <default>false</default>
+                <label>Referral</label>
+            </value>
+            <value>
                 <fullName>Office</fullName>
                 <default>false</default>
                 <label>Office</label>

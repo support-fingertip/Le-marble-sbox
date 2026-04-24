@@ -68,6 +68,7 @@ export default class NewLeadCreation extends NavigationMixin(LightningElement) {
     
     @track executives = [];
        @api recordId;
+    @api embedded = false;
     // Toast properties
     @track showToast = false;
     @track toastTitle = '';
@@ -422,10 +423,27 @@ export default class NewLeadCreation extends NavigationMixin(LightningElement) {
                .then(result => {
                     this.isLoading = false;
                     this.displayToast('Success', 'Customer created successfully!', 'success');
-                    
-                    // Navigate to the newly created Customer record
-                    this.navigateToRecord(result);
-                    this.resetForm();
+
+                    if (this.embedded) {
+                        const leadName = [saveData.firstName, saveData.lastName]
+                            .filter(v => v && String(v).trim().length > 0)
+                            .join(' ')
+                            .trim();
+                        this.dispatchEvent(new CustomEvent('leadcreated', {
+                            detail: {
+                                id: result,
+                                name: leadName,
+                                phone: saveData.primaryPhone || '',
+                                mobilePhone: saveData.secondaryPhone || '',
+                                company: saveData.company || ''
+                            }
+                        }));
+                        this.resetForm();
+                    } else {
+                        // Navigate to the newly created Customer record
+                        this.navigateToRecord(result);
+                        this.resetForm();
+                    }
                 })
                 .catch(error => {
                     this.isLoading = false;
@@ -449,6 +467,9 @@ export default class NewLeadCreation extends NavigationMixin(LightningElement) {
     
     handleCancel() {
         this.resetForm();
+        if (this.embedded) {
+            this.dispatchEvent(new CustomEvent('leadcancel'));
+        }
     }
     
     resetForm() {

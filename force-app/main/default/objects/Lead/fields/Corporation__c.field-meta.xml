@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Corporation__c</fullName>
+    <externalId>false</externalId>
+    <label>Corporation</label>
+    <required>false</required>
+    <trackFeedHistory>false</trackFeedHistory>
+    <trackHistory>false</trackHistory>
+    <type>Picklist</type>
+    <valueSet>
+        <controllingField>District__c</controllingField>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Thiruvananthapuram Municipal Corporation</fullName>
+                <default>false</default>
+                <label>Thiruvananthapuram Municipal Corporation</label>
+            </value>
+            <value>
+                <fullName>Kollam Municipal Corporation</fullName>
+                <default>false</default>
+                <label>Kollam Municipal Corporation</label>
+            </value>
+            <value>
+                <fullName>Kochi Municipal Corporation</fullName>
+                <default>false</default>
+                <label>Kochi Municipal Corporation</label>
+            </value>
+            <value>
+                <fullName>Thrissur Municipal Corporation</fullName>
+                <default>false</default>
+                <label>Thrissur Municipal Corporation</label>
+            </value>
+            <value>
+                <fullName>Kozhikode Municipal Corporation</fullName>
+                <default>false</default>
+                <label>Kozhikode Municipal Corporation</label>
+            </value>
+            <value>
+                <fullName>Kannur Municipal Corporation</fullName>
+                <default>false</default>
+                <label>Kannur Municipal Corporation</label>
+            </value>
+        </valueSetDefinition>
+        <valueSettings>
+            <controllingFieldValue>Thiruvananthapuram</controllingFieldValue>
+            <valueName>Thiruvananthapuram Municipal Corporation</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>Thrissur</controllingFieldValue>
+            <valueName>Thrissur Municipal Corporation</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>Kozhikode</controllingFieldValue>
+            <valueName>Kozhikode Municipal Corporation</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>Kannur</controllingFieldValue>
+            <valueName>Kannur Municipal Corporation</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>Ernakulam</controllingFieldValue>
+            <valueName>Kochi Municipal Corporation</valueName>
+        </valueSettings>
+        <valueSettings>
+            <controllingFieldValue>Kollam</controllingFieldValue>
+            <valueName>Kollam Municipal Corporation</valueName>
+        </valueSettings>
+    </valueSet>
+</CustomField>

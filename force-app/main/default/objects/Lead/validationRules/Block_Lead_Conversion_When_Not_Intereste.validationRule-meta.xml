@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Block_Lead_Conversion_When_Not_Intereste</fullName>
+    <active>true</active>
+    <errorConditionFormula>AND(
+    IsConverted = TRUE,
+    NOT(
+        OR(
+            INCLUDES(Check_List_Items__c, &quot;ROOFTILE&quot;),
+            INCLUDES(Check_List_Items__c, &quot;TILE&quot;),
+            INCLUDES(Check_List_Items__c, &quot;SANITARY&quot;),
+            INCLUDES(Check_List_Items__c, &quot;ADHESIVE&quot;),
+            INCLUDES(Check_List_Items__c, &quot;N.STONE&quot;),
+            INCLUDES(Check_List_Items__c, &quot;SURFACE&quot;),
+            INCLUDES(Check_List_Items__c, &quot;WOODTILE&quot;),
+            INCLUDES(Check_List_Items__c, &quot;GLSBRK&quot;),
+            INCLUDES(Check_List_Items__c, &quot;LIGHTS&quot;),
+            INCLUDES(Check_List_Items__c, &quot;OTHERS&quot;),
+            INCLUDES(Check_List_Items__c, &quot;FITTINGS&quot;),
+            INCLUDES(Check_List_Items__c, &quot;PAINT&quot;)
+        )
+    )
+)</errorConditionFormula>
+    <errorMessage>Please select at least one Checklist item before converting the Lead.</errorMessage>
+</ValidationRule>
