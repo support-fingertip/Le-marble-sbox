@@ -2,7 +2,6 @@
 <ListView xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>All</fullName>
     <columns>NAME</columns>
-    <columns>Referral__c</columns>
     <columns>Type_of_Promotion__c</columns>
     <columns>Amount__c</columns>
     <columns>Promotion_Status__c</columns>
