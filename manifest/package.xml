@@ -46,5 +46,10 @@
     <members>*</members>
     <name>PermissionSet</name>
   </types>
+  <types>
+    <members>CaseOrigin</members>
+    <members>CaseType</members>
+    <name>StandardValueSet</name>
+  </types>
   <version>58.0</version>
 </Package>
