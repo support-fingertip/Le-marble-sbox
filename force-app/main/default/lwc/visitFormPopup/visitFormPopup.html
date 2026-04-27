@@ -62,8 +62,10 @@
                             onchange={handleNewReferralInput}></lightning-combobox>
                         <lightning-input type="text" name="name" label="Reference Name" required
                             value={newReferralData.name} onchange={handleNewReferralInput}></lightning-input>
-                        <lightning-input type="text" name="phoneNumber" label="Phone Number" max-length="10"
-                            pattern="[0-9]{10}" message-when-pattern-mismatch="Enter a valid 10 digit phone number"
+                        <lightning-input type="text" name="phoneNumber" label="Phone Number" required
+                            max-length="10" pattern="[0-9]{10}"
+                            message-when-pattern-mismatch="Enter a valid 10 digit phone number"
+                            message-when-value-missing="Phone Number is required"
                             value={newReferralData.phoneNumber} onchange={handleNewReferralPhoneInput}></lightning-input>
                         <lightning-input type="email" name="email" label="Email"
                             value={newReferralData.email} onchange={handleNewReferralInput}></lightning-input>
