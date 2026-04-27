@@ -2,6 +2,7 @@
 <CustomNotificationType xmlns="http://soap.sforce.com/2006/04/metadata">
     <customNotifTypeName>Case_Notification</customNotifTypeName>
     <desktop>true</desktop>
-    <mobile>true</mobile>
     <masterLabel>Case Notification</masterLabel>
+    <mobile>true</mobile>
+    <slack>false</slack>
 </CustomNotificationType>
