@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Requested_By__c</fullName>
+    <defaultValue>$User.Id</defaultValue>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <externalId>false</externalId>
+    <label>Requested By</label>
+    <referenceTo>User</referenceTo>
+    <relationshipLabel>Stock Request Items (Requested By)</relationshipLabel>
+    <relationshipName>Stock_Request_Items_Requested</relationshipName>
+    <required>false</required>
+    <trackHistory>false</trackHistory>
+    <trackTrending>false</trackTrending>
+    <type>Lookup</type>
+</CustomField>
