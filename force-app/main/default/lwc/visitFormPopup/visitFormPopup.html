@@ -56,21 +56,23 @@
 
                 <template lwc:if={showNewReferralForm}>
                     <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-new-referral">
+                        <lightning-combobox name="type" label="Type" required
+                            value={newReferralData.type} options={referralTypeOptions}
+                            placeholder="Select Type"
+                            onchange={handleNewReferralInput}></lightning-combobox>
                         <lightning-input type="text" name="name" label="Reference Name" required
                             value={newReferralData.name} onchange={handleNewReferralInput}></lightning-input>
                         <lightning-input type="text" name="phoneNumber" label="Phone Number" max-length="10"
-                            value={newReferralData.phoneNumber} onchange={handleNewReferralInput}></lightning-input>
-                        <lightning-input type="text" name="areaLocation" label="Area/Location"
-                            value={newReferralData.areaLocation} onchange={handleNewReferralInput}></lightning-input>
-                        <lightning-textarea name="address" label="Address"
-                            value={newReferralData.address} onchange={handleNewReferralInput}></lightning-textarea>
-                        <lightning-combobox name="type" label="Type" required
-                            value={newReferralData.type} options={referralTypeOptions}
-                            onchange={handleNewReferralInput}></lightning-combobox>
+                            pattern="[0-9]{10}" message-when-pattern-mismatch="Enter a valid 10 digit phone number"
+                            value={newReferralData.phoneNumber} onchange={handleNewReferralPhoneInput}></lightning-input>
                         <lightning-input type="email" name="email" label="Email"
                             value={newReferralData.email} onchange={handleNewReferralInput}></lightning-input>
                         <lightning-input type="text" name="designation" label="Designation"
                             value={newReferralData.designation} onchange={handleNewReferralInput}></lightning-input>
+                        <lightning-input type="text" name="areaLocation" label="Area/Location"
+                            value={newReferralData.areaLocation} onchange={handleNewReferralInput}></lightning-input>
+                        <lightning-textarea name="address" label="Address"
+                            value={newReferralData.address} onchange={handleNewReferralInput}></lightning-textarea>
                         <lightning-input type="text" name="district" label="District"
                             value={newReferralData.district} onchange={handleNewReferralInput}></lightning-input>
                         <lightning-input type="text" name="state" label="State"
@@ -80,6 +82,7 @@
                                 onclick={handleNewReferralCancel}
                                 class="slds-m-right_x-small"></lightning-button>
                             <lightning-button variant="brand" label="Save"
+                                disabled={isSavingReferral}
                                 onclick={handleNewReferralSave}></lightning-button>
                         </div>
                     </div>
@@ -194,6 +197,9 @@
                                 </div>
                             </div>
                         </div>
+                    </template>
+
+                    <template lwc:if={isReferralVisit}>
                         <div class="slds-m-top_x-small slds-m-bottom_x-small">
                             <lightning-button
                                 variant="brand-outline"

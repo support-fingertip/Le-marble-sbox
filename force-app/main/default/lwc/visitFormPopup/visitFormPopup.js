@@ -41,6 +41,7 @@ export default class visitformpopup extends NavigationMixin(LightningElement)  {
 showOtherReason=false;
 @track showNewLeadForm = false;
 @track showNewReferralForm = false;
+@track isSavingReferral = false;
 @track referralTypeOptions = [];
 @track selectedReferralType = '';
 @track newReferralData = {
@@ -604,6 +605,12 @@ handleEnable(e) {
         this.newReferralData = { ...this.newReferralData, [field]: value };
     }
 
+    handleNewReferralPhoneInput(event) {
+        const digits = (event.target.value || '').replace(/[^0-9]/g, '').slice(0, 10);
+        this.newReferralData = { ...this.newReferralData, phoneNumber: digits };
+        event.target.value = digits;
+    }
+
     handleNewReferralCancel() {
         this.showNewReferralForm = false;
         if (this.newVisitCreate) {
@@ -612,14 +619,19 @@ handleEnable(e) {
     }
 
     handleNewReferralSave() {
-        if (!this.newReferralData.name || this.newReferralData.name.trim() === '') {
-            this.genericDispatchEvent('Warning', 'Please enter Reference Name', 'warning');
-            return;
-        }
         if (!this.newReferralData.type) {
             this.genericDispatchEvent('Warning', 'Please select Type', 'warning');
             return;
         }
+        if (!this.newReferralData.name || this.newReferralData.name.trim() === '') {
+            this.genericDispatchEvent('Warning', 'Please enter Reference Name', 'warning');
+            return;
+        }
+        if (this.newReferralData.phoneNumber && this.newReferralData.phoneNumber.length !== 10) {
+            this.genericDispatchEvent('Warning', 'Phone Number must be 10 digits', 'warning');
+            return;
+        }
+        this.isSavingReferral = true;
         createReferral({ data: this.newReferralData })
             .then(result => {
                 const newReferral = {
@@ -644,6 +656,9 @@ handleEnable(e) {
                 const msg = (error && error.body && error.body.message) ? error.body.message :
                             (error && error.message) ? error.message : 'Failed to create referral';
                 this.genericDispatchEvent('Error', msg, 'error');
+            })
+            .finally(() => {
+                this.isSavingReferral = false;
             });
     }
     onCommentChange(event) {
