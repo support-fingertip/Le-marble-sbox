@@ -48,16 +48,16 @@
                         </div>
                     </div>
 
-                    <div class="field required">
-                        <label for="firstName">First Name/Project name <span class="required-indicator">*</span></label>
-                        <input type="text" id="firstName" name="firstName" placeholder="First Name" required
+                    <div class="field">
+                        <label for="firstName">First Name/Project name</label>
+                        <input type="text" id="firstName" name="firstName" placeholder="First Name"
                             onchange={handleInputChange} oninput={handleUpperCaseInput}
                             value={customerData.firstName} />
                     </div>
 
-                    <div class="field">
-                        <label for="lastName">Last Name</label>
-                        <input type="text" id="lastName" name="lastName" placeholder="Last Name"
+                    <div class="field required">
+                        <label for="lastName">Last Name <span class="required-indicator">*</span></label>
+                        <input type="text" id="lastName" name="lastName" placeholder="Last Name" required
                             onchange={handleInputChange} oninput={handleUpperCaseInput} value={customerData.lastName} />
                     </div>
                         <!-- Company field inserted (required) -->

@@ -39,7 +39,7 @@ export default class NewLeadCreation extends NavigationMixin(LightningElement) {
         state: '',
         district: '',
         pinCode: '',
-        country: '',
+        country: 'India',
         customerSource: '',
         referenceType: '',
         referenceArchitect: '',
@@ -345,7 +345,7 @@ export default class NewLeadCreation extends NavigationMixin(LightningElement) {
 
         // Validate required fields
         const requiredFields = {
-            'firstName': 'First Name',
+            'lastName': 'Last Name',
             'primaryPhone': 'Phone',
             'state': 'State',
             'customerSource': 'Lead Source',

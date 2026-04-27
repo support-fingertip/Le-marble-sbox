@@ -72,6 +72,10 @@ public with sharing class StandardLeadController {
         if (data.containsKey('state')) newLead.State__c = resolvePicklistApiName('Lead', 'State__c', (String)data.get('state'));
         if (data.containsKey('district')) newLead.District__c = resolvePicklistApiName('Lead', 'District__c', (String)data.get('district'));
         if (data.containsKey('panchayat')) newLead.Panchayath__c = resolvePicklistApiName('Lead', 'Panchayath__c', (String)data.get('panchayat'));
+        // Default Country to India when the form left it blank
+        if (String.isBlank(newLead.Country__c)) {
+            newLead.Country__c = resolvePicklistApiName('Lead', 'Country__c', 'India');
+        }
         if (data.containsKey('pinCode') && data.get('pinCode') != null) {
             String pinCode = String.valueOf(data.get('pinCode')).trim();
             if (!String.isBlank(pinCode)) {
