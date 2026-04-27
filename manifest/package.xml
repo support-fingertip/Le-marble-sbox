@@ -47,6 +47,7 @@
     <name>PermissionSet</name>
   </types>
   <types>
+    <members>CaseOrigin</members>
     <members>CaseType</members>
     <name>StandardValueSet</name>
   </types>
