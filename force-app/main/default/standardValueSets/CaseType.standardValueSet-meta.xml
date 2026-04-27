@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<StandardValueSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <sorted>false</sorted>
+    <standardValue>
+        <fullName>Product Damage</fullName>
+        <default>false</default>
+        <label>Product Damage</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Product Quality Issue</fullName>
+        <default>false</default>
+        <label>Product Quality Issue</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Delivery Delay</fullName>
+        <default>false</default>
+        <label>Delivery Delay</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Installation</fullName>
+        <default>false</default>
+        <label>Installation</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Billing Disputes</fullName>
+        <default>false</default>
+        <label>Billing Disputes</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Consultation Request</fullName>
+        <default>false</default>
+        <label>Consultation Request</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Mechanical</fullName>
+        <default>false</default>
+        <isActive>false</isActive>
+        <label>Mechanical</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Electrical</fullName>
+        <default>false</default>
+        <isActive>false</isActive>
+        <label>Electrical</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Electronic</fullName>
+        <default>false</default>
+        <isActive>false</isActive>
+        <label>Electronic</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Structural</fullName>
+        <default>false</default>
+        <isActive>false</isActive>
+        <label>Structural</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Other</fullName>
+        <default>false</default>
+        <isActive>false</isActive>
+        <label>Other</label>
+    </standardValue>
+</StandardValueSet>
