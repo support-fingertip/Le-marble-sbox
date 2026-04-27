@@ -31,34 +31,4 @@
         <default>false</default>
         <label>Consultation Request</label>
     </standardValue>
-    <standardValue>
-        <fullName>Mechanical</fullName>
-        <default>false</default>
-        <isActive>false</isActive>
-        <label>Mechanical</label>
-    </standardValue>
-    <standardValue>
-        <fullName>Electrical</fullName>
-        <default>false</default>
-        <isActive>false</isActive>
-        <label>Electrical</label>
-    </standardValue>
-    <standardValue>
-        <fullName>Electronic</fullName>
-        <default>false</default>
-        <isActive>false</isActive>
-        <label>Electronic</label>
-    </standardValue>
-    <standardValue>
-        <fullName>Structural</fullName>
-        <default>false</default>
-        <isActive>false</isActive>
-        <label>Structural</label>
-    </standardValue>
-    <standardValue>
-        <fullName>Other</fullName>
-        <default>false</default>
-        <isActive>false</isActive>
-        <label>Other</label>
-    </standardValue>
 </StandardValueSet>
