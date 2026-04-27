@@ -627,7 +627,11 @@ handleEnable(e) {
             this.genericDispatchEvent('Warning', 'Please enter Reference Name', 'warning');
             return;
         }
-        if (this.newReferralData.phoneNumber && this.newReferralData.phoneNumber.length !== 10) {
+        if (!this.newReferralData.phoneNumber || this.newReferralData.phoneNumber.trim() === '') {
+            this.genericDispatchEvent('Warning', 'Please enter Phone Number', 'warning');
+            return;
+        }
+        if (this.newReferralData.phoneNumber.length !== 10) {
             this.genericDispatchEvent('Warning', 'Phone Number must be 10 digits', 'warning');
             return;
         }
