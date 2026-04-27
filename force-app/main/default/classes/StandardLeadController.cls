@@ -23,8 +23,8 @@ public with sharing class StandardLeadController {
     }
 
     @AuraEnabled(cacheable=true)
-    public static List<String> getStates() {
-        return getPicklistValues('Lead', 'State__c');
+    public static List<PicklistOption> getStates() {
+        return getPicklistEntries('Lead', 'State__c');
     }
 
     @AuraEnabled(cacheable=true)
@@ -52,7 +52,7 @@ public with sharing class StandardLeadController {
 
     @AuraEnabled
     public static Id createLead(Map<String, Object> data) {
-
+ system.debug('data> '+data);
         Lead newLead = new Lead();
 
         // Basic fields
@@ -68,8 +68,14 @@ public with sharing class StandardLeadController {
         if (data.containsKey('email')) newLead.Email = (String)data.get('email');
 
         // Address fields
-        if (data.containsKey('country')) newLead.Country__c = (String)data.get('country');
-        if (data.containsKey('state')) newLead.State__c = (String)data.get('state');
+        if (data.containsKey('country')) newLead.Country__c = resolvePicklistApiName('Lead', 'Country__c', (String)data.get('country'));
+        if (data.containsKey('state')) newLead.State__c = resolvePicklistApiName('Lead', 'State__c', (String)data.get('state'));
+        if (data.containsKey('district')) newLead.District__c = resolvePicklistApiName('Lead', 'District__c', (String)data.get('district'));
+        if (data.containsKey('panchayat')) newLead.Panchayath__c = resolvePicklistApiName('Lead', 'Panchayath__c', (String)data.get('panchayat'));
+          // Default Country to India when the form left it blank
+        if (String.isBlank(newLead.Country__c)) {
+            newLead.Country__c = resolvePicklistApiName('Lead', 'Country__c', 'India');
+        }
         if (data.containsKey('pinCode') && data.get('pinCode') != null) {
             String pinCode = String.valueOf(data.get('pinCode')).trim();
             if (!String.isBlank(pinCode)) {
@@ -91,6 +97,7 @@ public with sharing class StandardLeadController {
 
         // INSERT WITH DUPLICATE HANDLING
         try {
+            system.debug('newLead> '+newLead);
             insert newLead;
 
         } catch (DmlException dmlEx) {
@@ -123,5 +130,54 @@ public with sharing class StandardLeadController {
             throw new AuraHandledException('Error fetching picklist values: ' + e.getMessage());
         }
         return picklistValues;
+    }
+
+    private static List<PicklistOption> getPicklistEntries(String objectName, String fieldName) {
+        List<PicklistOption> options = new List<PicklistOption>();
+        try {
+            Schema.SObjectType sObj = Schema.getGlobalDescribe().get(objectName);
+            Schema.DescribeFieldResult fieldResult = sObj.getDescribe().fields.getMap().get(fieldName).getDescribe();
+
+            for (Schema.PicklistEntry entry : fieldResult.getPicklistValues()) {
+                if (entry.isActive()) {
+                    options.add(new PicklistOption(entry.getLabel(), entry.getValue()));
+                }
+            }
+        } catch (Exception e) {
+            throw new AuraHandledException('Error fetching picklist values: ' + e.getMessage());
+        }
+        return options;
+    }
+
+    public class PicklistOption {
+        @AuraEnabled public String label;
+        @AuraEnabled public String value;
+
+        public PicklistOption(String label, String value) {
+            this.label = label;
+            this.value = value;
+        }
+    }
+
+    /*
+     * Translates a picklist input (label or API name) to the field's API name.
+     * The LWC sometimes sends the label (e.g. for District, Panchayath where
+     * label and API name diverge); Salesforce DML rejects label as an invalid
+     * picklist value, so we resolve here before assigning.
+     */
+    private static String resolvePicklistApiName(String objectName, String fieldName, String input) {
+        if (String.isBlank(input)) return null;
+        try {
+            Schema.SObjectType sObj = Schema.getGlobalDescribe().get(objectName);
+            Schema.DescribeFieldResult fieldResult = sObj.getDescribe().fields.getMap().get(fieldName).getDescribe();
+            for (Schema.PicklistEntry entry : fieldResult.getPicklistValues()) {
+                if (!entry.isActive()) continue;
+                if (entry.getValue() == input) return entry.getValue();   // already API
+                if (entry.getLabel() == input) return entry.getValue();   // label -> API
+            }
+        } catch (Exception e) {
+            // fall through and return raw input
+        }
+        return input;
     }
 }

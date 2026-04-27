@@ -455,6 +455,82 @@ public with sharing class visitManager {
     }
     
     
+    // Referral picklist (Architect__c.Reference_Type__c) values for Today's Visit > Referral
+    @AuraEnabled(cacheable=true)
+    public static List<PicklistOption> getReferralTypes() {
+        List<PicklistOption> options = new List<PicklistOption>();
+        Schema.DescribeFieldResult fieldResult =
+            Architect__c.Reference_Type__c.getDescribe();
+        for (Schema.PicklistEntry entry : fieldResult.getPicklistValues()) {
+            if (entry.isActive()) {
+                options.add(new PicklistOption(entry.getLabel(), entry.getValue()));
+            }
+        }
+        return options;
+    }
+
+    // Search Architect__c records by Reference_Type__c with a name/phone search term
+    @AuraEnabled(cacheable=true)
+    public static List<Architect__c> searchReferrals(String referralType, String searchTerm) {
+        String term = String.isBlank(searchTerm) ? '' : searchTerm.trim();
+        String searchKey = '%' + term + '%';
+        if (String.isBlank(referralType)) {
+            return new List<Architect__c>();
+        }
+        return [
+            SELECT Id, Name, Phone_Number__c, Reference_Type__c
+            FROM Architect__c
+            WHERE Reference_Type__c = :referralType
+              AND (Name LIKE :searchKey OR Phone_Number__c LIKE :searchKey)
+            ORDER BY Name
+            LIMIT 20
+        ];
+    }
+
+    // Create a new Architect__c (referral) record from the visit form
+    @AuraEnabled
+    public static Architect__c createReferral(Map<String, Object> data) {
+        if (data == null) {
+            throw new AuraHandledException('Referral data is required.');
+        }
+        String referralName = (String) data.get('name');
+        String referralType = (String) data.get('type');
+        if (String.isBlank(referralName)) {
+            throw new AuraHandledException('Reference Name is required.');
+        }
+        if (String.isBlank(referralType)) {
+            throw new AuraHandledException('Type is required.');
+        }
+
+        Architect__c referral = new Architect__c(
+            Name = referralName,
+            Reference_Type__c = referralType
+        );
+        if (data.containsKey('phoneNumber'))  referral.Phone_Number__c = (String) data.get('phoneNumber');
+        if (data.containsKey('areaLocation')) referral.Area_Location__c = (String) data.get('areaLocation');
+        if (data.containsKey('address'))      referral.Address__c      = (String) data.get('address');
+        if (data.containsKey('email'))        referral.Email__c        = (String) data.get('email');
+        if (data.containsKey('designation'))  referral.Designation__c  = (String) data.get('designation');
+        if (data.containsKey('district'))     referral.District__c     = (String) data.get('district');
+        if (data.containsKey('state'))        referral.State__c        = (String) data.get('state');
+        try {
+            insert referral;
+        } catch (DmlException dmlEx) {
+            throw new AuraHandledException(dmlEx.getMessage());
+        }
+        return referral;
+    }
+
+    public class PicklistOption {
+        @AuraEnabled public String label;
+        @AuraEnabled public String value;
+
+        public PicklistOption(String label, String value) {
+            this.label = label;
+            this.value = value;
+        }
+    }
+
     // Validation: prevent creating a new Planned visit for a customer
     // when there is another visit for the same customer that is not completed.
     @AuraEnabled
