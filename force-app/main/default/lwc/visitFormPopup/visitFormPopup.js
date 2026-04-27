@@ -479,7 +479,11 @@ handleEnable(e) {
             var accId = this.visitData.Account__c;
             var referralId = this.visitData.Referral__c;
             var vDate = new Date(this.visitData.Visit_Date__c).toLocaleDateString('en-GB');
-            const fields = this.visitData;
+
+            const fields = { ...this.visitData };
+            if (!fields.Lead__c) delete fields.Lead__c;
+            if (!fields.Account__c) delete fields.Account__c;
+            if (!fields.Referral__c) delete fields.Referral__c;
 
             const duplicatePlanned = this.visitOutletData.some(v => ((v.acccountId === accId) || (v.acccountId === leadId) || (v.acccountId === referralId))
                 && (v.formattedVisitDate === vDate) && (v.status === 'Planned'));
