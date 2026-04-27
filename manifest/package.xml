@@ -31,6 +31,7 @@
      <members>Order</members>
      <members>OrderItem</members>
       <members>Product2</members>
+      <members>Case</members>
         <name>CustomObject</name>
     </types>
   <types>
