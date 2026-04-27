@@ -55,5 +55,9 @@
     <members>Case_Notification</members>
     <name>CustomNotificationType</name>
   </types>
+  <types>
+    <members>Stock_Request__c</members>
+    <name>CustomTab</name>
+  </types>
   <version>58.0</version>
 </Package>
