@@ -61,5 +61,24 @@
     <members>Stock_Request_Line_Item__c</members>
     <name>CustomTab</name>
   </types>
+  <types>
+    <members>Sales_Executive_Reports</members>
+    <members>Sales_Executive_Reports/Deals_Closing_This_Month</members>
+    <members>Sales_Executive_Reports/Lead_To_Opportunity_Conversion</members>
+    <members>Sales_Executive_Reports/Leads_Assigned_Today</members>
+    <members>Sales_Executive_Reports/My_Leads_By_Status</members>
+    <members>Sales_Executive_Reports/My_Opportunities_By_Stage</members>
+    <members>Sales_Executive_Reports/My_Tasks_Today</members>
+    <members>Sales_Executive_Reports/Overdue_Follow_Ups</members>
+    <name>Report</name>
+  </types>
+  <types>
+    <members>Sales_Executive_Dashboards</members>
+    <members>Sales_Executive_Dashboards/Conversion_Dashboard</members>
+    <members>Sales_Executive_Dashboards/Follow_Up_Dashboard</members>
+    <members>Sales_Executive_Dashboards/My_Leads_Dashboard</members>
+    <members>Sales_Executive_Dashboards/My_Opportunities_Dashboard</members>
+    <name>Dashboard</name>
+  </types>
   <version>58.0</version>
 </Package>

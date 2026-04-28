@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Report xmlns="http://soap.sforce.com/2006/04/metadata">
+    <columns>
+        <field>OPPORTUNITY.NAME</field>
+    </columns>
+    <columns>
+        <field>OPPORTUNITY.STAGE_NAME</field>
+    </columns>
+    <columns>
+        <field>OPPORTUNITY.AMOUNT</field>
+    </columns>
+    <columns>
+        <field>OPPORTUNITY.CLOSE_DATE</field>
+    </columns>
+    <columns>
+        <field>OPPORTUNITY.OWNER_FULL_NAME</field>
+    </columns>
+    <description>Open opportunities with a close date this month.</description>
+    <format>Tabular</format>
+    <name>Deals Closing This Month</name>
+    <reportType>OpportunityList</reportType>
+    <scope>mine</scope>
+    <showDetails>true</showDetails>
+    <timeFrameFilter>
+        <dateColumn>OPPORTUNITY.CLOSE_DATE</dateColumn>
+        <interval>INTERVAL_CURMONTH</interval>
+    </timeFrameFilter>
+</Report>
