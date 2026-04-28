@@ -1,28 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Report xmlns="http://soap.sforce.com/2006/04/metadata">
-    <columns>
-        <field>LEAD.NAME</field>
-    </columns>
-    <columns>
-        <field>LEAD.COMPANY</field>
-    </columns>
-    <columns>
-        <field>LEAD.STATUS</field>
-    </columns>
-    <columns>
-        <field>LEAD.PHONE</field>
-    </columns>
-    <columns>
-        <field>LEAD.OWNER_NAME</field>
-    </columns>
-    <description>Leads assigned to me today.</description>
+    <description>Leads assigned to me today. Open in the UI to add columns and filters.</description>
     <format>Tabular</format>
     <name>Leads Assigned Today</name>
     <reportType>LeadList</reportType>
-    <scope>mine</scope>
     <showDetails>true</showDetails>
-    <timeFrameFilter>
-        <dateColumn>LEAD.CREATED_DATE</dateColumn>
-        <interval>INTERVAL_TODAY</interval>
-    </timeFrameFilter>
 </Report>

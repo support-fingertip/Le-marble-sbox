@@ -10,6 +10,11 @@
             <componentType>Table</componentType>
             <displayUnits>Auto</displayUnits>
             <header>Tasks Today</header>
+            <indicatorBreakpoint1>5</indicatorBreakpoint1>
+            <indicatorBreakpoint2>20</indicatorBreakpoint2>
+            <indicatorHighColor>#54C254</indicatorHighColor>
+            <indicatorLowColor>#C25454</indicatorLowColor>
+            <indicatorMiddleColor>#C2C254</indicatorMiddleColor>
             <report>Sales_Executive_Reports/My_Tasks_Today</report>
             <showValues>true</showValues>
             <useReportChart>false</useReportChart>
@@ -21,6 +26,11 @@
             <componentType>Table</componentType>
             <displayUnits>Auto</displayUnits>
             <header>Overdue Follow-ups</header>
+            <indicatorBreakpoint1>5</indicatorBreakpoint1>
+            <indicatorBreakpoint2>20</indicatorBreakpoint2>
+            <indicatorHighColor>#C25454</indicatorHighColor>
+            <indicatorLowColor>#54C254</indicatorLowColor>
+            <indicatorMiddleColor>#C2C254</indicatorMiddleColor>
             <report>Sales_Executive_Reports/Overdue_Follow_Ups</report>
             <showValues>true</showValues>
             <useReportChart>false</useReportChart>

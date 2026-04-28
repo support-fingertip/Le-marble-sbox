@@ -1,52 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Report xmlns="http://soap.sforce.com/2006/04/metadata">
-    <columns>
-        <field>TASK.SUBJECT</field>
-    </columns>
-    <columns>
-        <field>TASK.DUE_DATE</field>
-    </columns>
-    <columns>
-        <field>TASK.STATUS</field>
-    </columns>
-    <columns>
-        <field>TASK.PRIORITY</field>
-    </columns>
-    <columns>
-        <field>WHO_NAME</field>
-    </columns>
-    <columns>
-        <field>WHAT_NAME</field>
-    </columns>
-    <description>Open tasks whose due date is in the past.</description>
-    <filter>
-        <criteriaItems>
-            <column>TASK.STATUS</column>
-            <columnToColumn>false</columnToColumn>
-            <isUnlocked>false</isUnlocked>
-            <operator>notEqual</operator>
-            <value>Completed</value>
-        </criteriaItems>
-        <criteriaItems>
-            <column>TASK.DUE_DATE</column>
-            <columnToColumn>false</columnToColumn>
-            <isUnlocked>false</isUnlocked>
-            <operator>lessThan</operator>
-            <value>TODAY</value>
-        </criteriaItems>
-    </filter>
-    <format>Summary</format>
-    <groupingsDown>
-        <dateGranularity>Day</dateGranularity>
-        <field>TASK.DUE_DATE</field>
-        <sortOrder>Asc</sortOrder>
-    </groupingsDown>
+    <description>Open tasks with a due date in the past. Open in the UI to refine filters.</description>
+    <format>Tabular</format>
     <name>Overdue Follow-ups</name>
-    <reportType>TaskAndEvent</reportType>
-    <scope>mine</scope>
+    <reportType>Tasks</reportType>
     <showDetails>true</showDetails>
-    <timeFrameFilter>
-        <dateColumn>TASK.DUE_DATE</dateColumn>
-        <interval>INTERVAL_CUSTOM</interval>
-    </timeFrameFilter>
 </Report>

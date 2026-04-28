@@ -13,6 +13,7 @@
             <legendPosition>Right</legendPosition>
             <report>Sales_Executive_Reports/My_Opportunities_By_Stage</report>
             <showValues>true</showValues>
+            <sortBy>RowValueDescending</sortBy>
             <useReportChart>false</useReportChart>
         </components>
     </leftSection>
@@ -22,6 +23,11 @@
             <componentType>Table</componentType>
             <displayUnits>Auto</displayUnits>
             <header>Deals Closing This Month</header>
+            <indicatorBreakpoint1>10000</indicatorBreakpoint1>
+            <indicatorBreakpoint2>50000</indicatorBreakpoint2>
+            <indicatorHighColor>#54C254</indicatorHighColor>
+            <indicatorLowColor>#C25454</indicatorLowColor>
+            <indicatorMiddleColor>#C2C254</indicatorMiddleColor>
             <report>Sales_Executive_Reports/Deals_Closing_This_Month</report>
             <showValues>true</showValues>
             <useReportChart>false</useReportChart>

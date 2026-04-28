@@ -1,33 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Report xmlns="http://soap.sforce.com/2006/04/metadata">
-    <columns>
-        <field>LEAD.NAME</field>
-    </columns>
-    <columns>
-        <field>LEAD.COMPANY</field>
-    </columns>
-    <columns>
-        <field>LEAD.STATUS</field>
-    </columns>
-    <columns>
-        <field>LEAD.CREATED_DATE</field>
-    </columns>
-    <columns>
-        <field>LEAD.OWNER_NAME</field>
-    </columns>
-    <description>My leads grouped by status.</description>
-    <format>Summary</format>
-    <groupingsDown>
-        <dateGranularity>Day</dateGranularity>
-        <field>LEAD.STATUS</field>
-        <sortOrder>Asc</sortOrder>
-    </groupingsDown>
+    <description>My leads grouped by status. Open in the UI to add columns, filters, and groupings.</description>
+    <format>Tabular</format>
     <name>My Leads by Status</name>
     <reportType>LeadList</reportType>
-    <scope>mine</scope>
     <showDetails>true</showDetails>
-    <timeFrameFilter>
-        <dateColumn>LEAD.CREATED_DATE</dateColumn>
-        <interval>INTERVAL_CUSTOM</interval>
-    </timeFrameFilter>
 </Report>
