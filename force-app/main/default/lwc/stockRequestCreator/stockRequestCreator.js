@@ -225,13 +225,13 @@ export default class StockRequestCreator extends NavigationMixin(LightningElemen
 
         const payload = this.items.map(r => ({
             productId: r.productId,
-            quantity: r.quantity
+            quantity: Number(r.quantity)
         }));
 
         this.isLoading = true;
         createStockRequestWithItems({
             category: this.selectedCategory,
-            items: payload
+            itemsJson: JSON.stringify(payload)
         })
             .then(stockRequestId => {
                 this.toast('Success', 'Stock Request created successfully.', 'success');

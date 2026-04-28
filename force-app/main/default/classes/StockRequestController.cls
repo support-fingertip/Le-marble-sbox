@@ -32,27 +32,59 @@ public with sharing class StockRequestController {
     }
 
     @AuraEnabled
-    public static Id createStockRequestWithItems(String category, List<LineItemInput> items) {
+    public static Id createStockRequestWithItems(String category, String itemsJson) {
         if (String.isBlank(category)) {
             throw new AuraHandledException('Product Category is required.');
         }
-        if (items == null || items.isEmpty()) {
+        if (String.isBlank(itemsJson)) {
+            throw new AuraHandledException('At least one product item is required.');
+        }
+
+        List<Object> rawItems;
+        try {
+            rawItems = (List<Object>) JSON.deserializeUntyped(itemsJson);
+        } catch (Exception e) {
+            throw new AuraHandledException('Could not read item list: ' + e.getMessage());
+        }
+        if (rawItems == null || rawItems.isEmpty()) {
             throw new AuraHandledException('At least one product item is required.');
         }
 
         Set<Id> seen = new Set<Id>();
-        for (LineItemInput li : items) {
-            if (String.isBlank(li.productId)) {
-                throw new AuraHandledException('Each row must have a Product selected.');
+        List<Stock_Request_Line_Item__c> lineItems = new List<Stock_Request_Line_Item__c>();
+        for (Integer i = 0; i < rawItems.size(); i++) {
+            Map<String, Object> li = (Map<String, Object>) rawItems[i];
+            String productIdStr = (String) li.get('productId');
+            Object qtyObj = li.get('quantity');
+
+            if (String.isBlank(productIdStr)) {
+                throw new AuraHandledException('Row ' + (i + 1) + ': Product is required.');
             }
-            if (li.quantity == null || li.quantity <= 0) {
-                throw new AuraHandledException('Quantity must be greater than 0 on every row.');
+            if (qtyObj == null) {
+                throw new AuraHandledException('Row ' + (i + 1) + ': Quantity is required.');
             }
-            Id productId = (Id) li.productId;
+            Decimal qty;
+            try {
+                qty = Decimal.valueOf(String.valueOf(qtyObj));
+            } catch (Exception e) {
+                throw new AuraHandledException('Row ' + (i + 1) + ': Quantity must be a number.');
+            }
+            if (qty <= 0) {
+                throw new AuraHandledException('Row ' + (i + 1) + ': Quantity must be greater than 0.');
+            }
+
+            Id productId = (Id) productIdStr;
             if (seen.contains(productId)) {
                 throw new AuraHandledException('A product can only appear once. Please remove duplicates.');
             }
             seen.add(productId);
+
+            lineItems.add(new Stock_Request_Line_Item__c(
+                Product__c      = productId,
+                Quantity__c     = qty,
+                Status__c       = 'Open',
+                Request_Date__c = Date.today()
+            ));
         }
 
         Savepoint sp = Database.setSavepoint();
@@ -61,16 +93,8 @@ public with sharing class StockRequestController {
                 Product_Category__c = category
             );
             insert req;
-
-            List<Stock_Request_Line_Item__c> lineItems = new List<Stock_Request_Line_Item__c>();
-            for (LineItemInput li : items) {
-                lineItems.add(new Stock_Request_Line_Item__c(
-                    Stock_Request__c = req.Id,
-                    Product__c       = li.productId,
-                    Quantity__c      = li.quantity,
-                    Status__c        = 'Open',
-                    Request_Date__c  = Date.today()
-                ));
+            for (Stock_Request_Line_Item__c sri : lineItems) {
+                sri.Stock_Request__c = req.Id;
             }
             insert lineItems;
             return req.Id;
@@ -81,11 +105,6 @@ public with sharing class StockRequestController {
             Database.rollback(sp);
             throw new AuraHandledException(e.getMessage());
         }
-    }
-
-    public class LineItemInput {
-        @AuraEnabled public String productId;
-        @AuraEnabled public Decimal quantity;
     }
 
     public class PicklistOption {
