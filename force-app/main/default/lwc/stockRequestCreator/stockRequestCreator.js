@@ -28,7 +28,9 @@ export default class StockRequestCreator extends NavigationMixin(LightningElemen
     }
 
     connectedCallback() {
-        this.addRow();
+        // Empty state will prompt the user to pick a category first,
+        // then add rows. Auto-adding a row before a category is set
+        // triggers the "Select Category" warning toast.
     }
 
     get hasNoItems() {
@@ -44,6 +46,7 @@ export default class StockRequestCreator extends NavigationMixin(LightningElemen
     }
 
     handleCategoryChange(event) {
+        const wasEmpty = !this.selectedCategory;
         this.selectedCategory = event.detail.value;
         // Clear product selections since category drives the product list
         this.items = this.items.map(row => ({
@@ -55,6 +58,12 @@ export default class StockRequestCreator extends NavigationMixin(LightningElemen
             noResults: false,
             searching: false
         }));
+        // First time picking a category: seed an empty first row so the
+        // user does not have to click Add Row before they can start.
+        if (wasEmpty && this.selectedCategory && this.items.length === 0) {
+            this._rowSeq += 1;
+            this.items = [this.makeRow(`r-${this._rowSeq}`)];
+        }
     }
 
     addRow() {
@@ -280,7 +289,6 @@ export default class StockRequestCreator extends NavigationMixin(LightningElemen
         this.selectedCategory = '';
         this.items = [];
         this._rowSeq = 0;
-        this.addRow();
     }
 
     toast(title, message, variant) {
