@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomNotificationType xmlns="http://soap.sforce.com/2006/04/metadata">
+    <customNotifTypeName>Stock_Request_Notification</customNotifTypeName>
+    <desktop>true</desktop>
+    <mobile>true</mobile>
+    <masterLabel>Stock Request Notification</masterLabel>
+</CustomNotificationType>

@@ -53,6 +53,7 @@
   </types>
   <types>
     <members>Case_Notification</members>
+    <members>Stock_Request_Notification</members>
     <name>CustomNotificationType</name>
   </types>
   <types>
