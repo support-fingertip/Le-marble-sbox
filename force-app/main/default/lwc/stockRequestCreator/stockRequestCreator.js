@@ -40,7 +40,7 @@ export default class StockRequestCreator extends NavigationMixin(LightningElemen
     }
 
     get getDropdownClass() {
-        return 'slds-combobox slds-dropdown-trigger slds-dropdown-trigger_click';
+        return 'slds-combobox slds-dropdown-trigger slds-dropdown-trigger_click slds-is-open';
     }
 
     handleCategoryChange(event) {
