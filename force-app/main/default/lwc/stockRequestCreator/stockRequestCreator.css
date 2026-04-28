@@ -1,0 +1,20 @@
+.item-row {
+    border: 1px solid #dddbda;
+    border-radius: 0.25rem;
+    background: #fff;
+}
+
+.product-col {
+    min-width: 0;
+}
+
+.slds-dropdown_length-5 {
+    max-height: 14rem;
+    overflow-y: auto;
+}
+
+@media (max-width: 600px) {
+    .slds-text-align_right {
+        text-align: left !important;
+    }
+}
