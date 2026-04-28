@@ -83,12 +83,13 @@
                                                     <template for:each={row.results} for:item="r">
                                                         <li key={r.Id} role="presentation" class="slds-listbox__item">
                                                             <div role="option"
-                                                                 class="slds-media slds-listbox__option slds-listbox__option_plain slds-media_small"
+                                                                 class="slds-media slds-listbox__option slds-listbox__option_plain slds-media_small option-row"
                                                                  data-key={row.key}
                                                                  data-id={r.Id}
                                                                  data-name={r.Name}
                                                                  data-code={r.ProductCode}
-                                                                 onmousedown={selectProduct}>
+                                                                 onmousedown={selectProduct}
+                                                                 onclick={selectProduct}>
                                                                 <span class="slds-media__body">
                                                                     <span class="slds-truncate">{r.Name}</span>
                                                                     <template lwc:if={r.ProductCode}>

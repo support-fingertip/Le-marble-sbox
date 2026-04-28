@@ -13,6 +13,15 @@
     overflow-y: auto;
 }
 
+.option-row {
+    cursor: pointer;
+    padding: 0.5rem 0.75rem;
+}
+
+.option-row:hover {
+    background: #f4f6f9;
+}
+
 @media (max-width: 600px) {
     .slds-text-align_right {
         text-align: left !important;

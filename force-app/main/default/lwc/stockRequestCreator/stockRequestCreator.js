@@ -115,18 +115,30 @@ export default class StockRequestCreator extends NavigationMixin(LightningElemen
     handleProductInput(event) {
         const key = event.currentTarget.dataset.key;
         const term = event.target.value;
+        const isCleared = term === '';
 
-        // Update the row immediately so the input stays responsive
+        // Update the row immediately so the input stays responsive.
+        // Only clear productId when the user clears the input entirely;
+        // typing to refine the search must not wipe an existing selection.
         this.items = this.items.map(r =>
             r.key === key
-                ? { ...r, searchTerm: term, productId: null, searching: true, showResults: true, noResults: false }
+                ? {
+                      ...r,
+                      searchTerm: term,
+                      productId: isCleared ? null : r.productId,
+                      searching: !isCleared,
+                      showResults: !isCleared,
+                      noResults: false
+                  }
                 : r
         );
 
-        // Debounce the actual Apex call per row
         if (this._searchTimers[key]) {
             clearTimeout(this._searchTimers[key]);
         }
+        if (isCleared) return;
+
+        // Debounce the actual Apex call per row
         this._searchTimers[key] = setTimeout(() => {
             this.runSearch(key, term);
         }, SEARCH_DEBOUNCE_MS);
@@ -166,10 +178,20 @@ export default class StockRequestCreator extends NavigationMixin(LightningElemen
     }
 
     selectProduct(event) {
-        const key = event.currentTarget.dataset.key;
-        const id = event.currentTarget.dataset.id;
-        const name = event.currentTarget.dataset.name;
-        const code = event.currentTarget.dataset.code;
+        // Prevent the input from blurring before the click commits
+        if (event && event.preventDefault) event.preventDefault();
+
+        // Walk up to the option element if a child span was clicked
+        let el = event.currentTarget;
+        if (!el || !el.dataset || !el.dataset.id) {
+            el = event.target && event.target.closest ? event.target.closest('[data-id]') : null;
+        }
+        if (!el || !el.dataset || !el.dataset.id) return;
+
+        const key = el.dataset.key;
+        const id = el.dataset.id;
+        const name = el.dataset.name;
+        const code = el.dataset.code;
 
         // Prevent duplicate selection across rows
         const alreadyUsed = this.items.some(r => r.key !== key && r.productId === id);
