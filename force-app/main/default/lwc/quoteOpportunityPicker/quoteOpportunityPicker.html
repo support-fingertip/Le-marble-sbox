@@ -15,11 +15,17 @@
                                         onerror={handleOpportunityCreateError}>
                 <lightning-messages></lightning-messages>
 
+                <lightning-input-field field-name="Product_Category__c"
+                                       value={productCategory}
+                                       data-field="productCategory"
+                                       onchange={handleFieldChange}>
+                </lightning-input-field>
+
                 <lightning-input type="checkbox"
                                  label="Same as Account Ship Address"
                                  checked={sameAsAccount}
                                  onchange={handleSameAsAccount}
-                                 class="slds-m-bottom_small">
+                                 class="slds-m-bottom_small slds-m-top_small">
                 </lightning-input>
 
                 <lightning-input type="text"

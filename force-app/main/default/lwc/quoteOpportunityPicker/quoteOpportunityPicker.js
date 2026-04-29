@@ -42,6 +42,7 @@ export default class QuoteOpportunityPicker extends LightningElement {
     @track country = '';
     @track pincode = '';
     @track branchLocation = '';
+    @track productCategory = '';
 
     _wiredAccountResult;
 
@@ -149,6 +150,7 @@ export default class QuoteOpportunityPicker extends LightningElement {
         this.country = '';
         this.pincode = '';
         this.branchLocation = '';
+        this.productCategory = '';
     }
 
     handleOpportunitySubmit(event) {
@@ -170,6 +172,7 @@ export default class QuoteOpportunityPicker extends LightningElement {
         fields.Country__c      = this.country;
         fields.Pin_Code__c     = this.pincode === '' ? null : Number(this.pincode);
         fields.Branch_Location__c = this.branchLocation;
+        fields.Product_Category__c = this.productCategory;
         fields.Same_as_Account_Ship_Address__c = this.sameAsAccount;
 
         this.template.querySelector('lightning-record-edit-form').submit(fields);
