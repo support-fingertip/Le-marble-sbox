@@ -1,0 +1,96 @@
+<template>
+    <div class="slds-box slds-theme_default slds-p-around_medium">
+
+        <template lwc:if={isLoading}>
+            <lightning-spinner alternative-text="Loading opportunities..." size="small"></lightning-spinner>
+        </template>
+
+        <template lwc:if={showNewOpportunityForm}>
+            <div class="slds-text-heading_small slds-m-bottom_small">Create New Opportunity</div>
+            <lightning-record-edit-form object-api-name="Opportunity"
+                                        onsuccess={handleOpportunityCreated}
+                                        onerror={handleOpportunityCreateError}>
+                <lightning-messages></lightning-messages>
+                <lightning-input-field field-name="Name" required></lightning-input-field>
+                <lightning-input-field field-name="AccountId" value={accountId}></lightning-input-field>
+                <lightning-input-field field-name="StageName" required></lightning-input-field>
+                <lightning-input-field field-name="CloseDate" required></lightning-input-field>
+                <lightning-input-field field-name="Amount"></lightning-input-field>
+                <div class="slds-m-top_medium slds-grid slds-grid_align-end">
+                    <lightning-button variant="neutral" label="Cancel"
+                                      onclick={handleCancelNewOpp}
+                                      class="slds-m-right_x-small"></lightning-button>
+                    <lightning-button variant="brand" type="submit" label="Save"></lightning-button>
+                </div>
+            </lightning-record-edit-form>
+        </template>
+
+        <template lwc:else>
+            <div class="slds-text-heading_small slds-m-bottom_x-small">Select an Opportunity</div>
+            <div class="slds-text-body_small slds-text-color_weak slds-m-bottom_small">
+                Open opportunities for this account. Pick one to attach the quote to it, or
+                continue without selecting.
+            </div>
+
+            <template lwc:if={hasOpportunities}>
+                <ul class="slds-has-dividers_bottom-space">
+                    <template for:each={opportunities} for:item="opp">
+                        <li key={opp.Id}
+                            class="opp-row slds-item slds-p-around_small"
+                            data-id={opp.Id}
+                            data-name={opp.Name}
+                            onclick={handleOpportunityClick}>
+                            <div class="slds-grid slds-grid_align-spread">
+                                <div>
+                                    <div class="slds-text-body_regular slds-text-link"><b>{opp.Name}</b></div>
+                                    <div class="slds-text-body_small slds-text-color_weak">
+                                        {opp.StageName}
+                                        <template lwc:if={opp.CloseDate}>
+                                            &nbsp;&middot;&nbsp;Closes
+                                            <lightning-formatted-date-time value={opp.CloseDate}
+                                                year="numeric" month="short" day="2-digit">
+                                            </lightning-formatted-date-time>
+                                        </template>
+                                    </div>
+                                </div>
+                                <template lwc:if={opp.Amount}>
+                                    <div class="slds-text-body_regular">
+                                        <lightning-formatted-number value={opp.Amount}
+                                            format-style="currency">
+                                        </lightning-formatted-number>
+                                    </div>
+                                </template>
+                            </div>
+                        </li>
+                    </template>
+                </ul>
+            </template>
+
+            <template lwc:elseif={loaded}>
+                <div class="slds-text-color_weak slds-p-around_small slds-text-align_center
+                            slds-box slds-theme_shade slds-m-bottom_small">
+                    No open opportunities for this account.
+                </div>
+            </template>
+
+            <div class="slds-m-top_medium slds-grid slds-wrap slds-gutters_x-small">
+                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-p-bottom_x-small">
+                    <lightning-button label="Create New Opportunity"
+                                      icon-name="utility:add"
+                                      variant="brand-outline"
+                                      onclick={handleShowNewOppForm}
+                                      class="full-width-btn">
+                    </lightning-button>
+                </div>
+                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-p-bottom_x-small">
+                    <lightning-button label="Continue without an Opportunity"
+                                      variant="neutral"
+                                      onclick={handleSkip}
+                                      class="full-width-btn">
+                    </lightning-button>
+                </div>
+            </div>
+        </template>
+
+    </div>
+</template>

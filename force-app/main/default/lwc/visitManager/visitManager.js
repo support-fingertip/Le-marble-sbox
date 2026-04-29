@@ -64,6 +64,9 @@ export default class visitManager extends LightningElement {
     isDesktop = false;
     isCometitionScreen = false;
     isQuoteScreen = false;
+    quoteAccountId = null;
+    quoteOpportunityId = null;
+    quoteOpportunityChosen = false;
     currentLogId;
     visitData;
     pickListData;
@@ -321,6 +324,9 @@ export default class visitManager extends LightningElement {
         this.outletPage = false;
         this.isCameraScreen = false;
         this.isQuoteScreen = false;
+        this.quoteAccountId = null;
+        this.quoteOpportunityId = null;
+        this.quoteOpportunityChosen = false;
     }
     handleProductScreen(event) {
         this.isShowBackButton = true;
@@ -383,6 +389,9 @@ export default class visitManager extends LightningElement {
         else if (msg.message == 'quoteScreen') {
             this.header = 'Quote Session';
             this.recordId = msg.recordID;
+            this.quoteAccountId = msg.accId || null;
+            this.quoteOpportunityId = null;
+            this.quoteOpportunityChosen = false;
             this.index = msg.index;
             this.screen = msg.screen;
             this.isQuoteScreen = true;
@@ -401,6 +410,26 @@ this.executeScreenData.isInProgress = false;
         // Triggered by c-quote-session-page when user clicks the back icon
         this.screen = 3.6;
         this.goBackScreen();
+    }
+
+    handleQuoteOppSelected(event) {
+        const detail = event.detail || {};
+        this.quoteOpportunityId = detail.opportunityId || null;
+        this.quoteOpportunityChosen = true;
+    }
+
+    get showQuoteOppPicker() {
+        return this.isQuoteScreen && !this.quoteOpportunityChosen;
+    }
+
+    get showQuoteSession() {
+        return this.isQuoteScreen && this.quoteOpportunityChosen;
+    }
+
+    get quoteSessionRecordId() {
+        // If user picked an opportunity, drive newQuoteFromOpp by it; otherwise
+        // fall back to the original record id (visit/customer context).
+        return this.quoteOpportunityId || this.recordId;
     }
 
     handleOrderScreen(event) {
