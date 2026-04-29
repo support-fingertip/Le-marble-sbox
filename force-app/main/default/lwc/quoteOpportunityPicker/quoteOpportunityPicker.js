@@ -5,13 +5,20 @@ import getOpenOpportunitiesForAccount from '@salesforce/apex/NewQuoteController.
 
 const DEFAULT_STAGE = 'Open';
 const DEFAULT_CLOSE_DAYS = 30;
+
 const ACCOUNT_FIELDS = [
     'Account.Name',
-    'Account.ShippingStreet',
-    'Account.ShippingCity',
-    'Account.ShippingState',
-    'Account.ShippingPostalCode',
-    'Account.ShippingCountry'
+    'Account.Address_Line1__c',
+    'Account.Address_Line2__c',
+    'Account.Address_Line3__c',
+    'Account.Village__c',
+    'Account.Panchayath__c',
+    'Account.Municipality__c',
+    'Account.Corporation__c',
+    'Account.District__c',
+    'Account.State__c',
+    'Account.Country__c',
+    'Account.Pin_Code__c'
 ];
 
 export default class QuoteOpportunityPicker extends LightningElement {
@@ -23,13 +30,17 @@ export default class QuoteOpportunityPicker extends LightningElement {
     @track showNewOpportunityForm = false;
     @track sameAsAccount = false;
 
-    @track addressLine1 = '';
-    @track addressLine2 = '';
-    @track addressLine3 = '';
+    @track addressLine1 = '';   // House Name / No
+    @track addressLine2 = '';   // Place
+    @track addressLine3 = '';   // Address Line 3
+    @track village = '';
+    @track panchayath = '';
+    @track municipality = '';
+    @track corporation = '';
     @track district = '';
-    @track pincode = '';
     @track state = '';
     @track country = '';
+    @track pincode = '';
     @track branchLocation = '';
 
     _wiredAccountResult;
@@ -94,9 +105,10 @@ export default class QuoteOpportunityPicker extends LightningElement {
     handleFieldChange(event) {
         const field = event.target.dataset.field;
         if (!field) return;
-        this[field] = event.detail ? event.detail.value : event.target.value;
-        // If the user edits any address field after using "same as account",
-        // clear the checkbox so the UI matches the data.
+        const value = (event.detail && event.detail.value !== undefined)
+            ? event.detail.value
+            : event.target.value;
+        this[field] = value;
         if (this.sameAsAccount && field !== 'branchLocation') {
             this.sameAsAccount = false;
         }
@@ -109,15 +121,18 @@ export default class QuoteOpportunityPicker extends LightningElement {
             this.sameAsAccount = false;
             return;
         }
-        const street = getFieldValue(data, 'Account.ShippingStreet') || '';
-        const streetLines = street.split('\n');
-        this.addressLine1 = streetLines[0] || '';
-        this.addressLine2 = streetLines[1] || '';
-        this.addressLine3 = streetLines[2] || '';
-        this.district = getFieldValue(data, 'Account.ShippingCity') || '';
-        this.state = getFieldValue(data, 'Account.ShippingState') || '';
-        this.pincode = getFieldValue(data, 'Account.ShippingPostalCode') || '';
-        this.country = getFieldValue(data, 'Account.ShippingCountry') || '';
+        this.addressLine1 = getFieldValue(data, 'Account.Address_Line1__c') || '';
+        this.addressLine2 = getFieldValue(data, 'Account.Address_Line2__c') || '';
+        this.addressLine3 = getFieldValue(data, 'Account.Address_Line3__c') || '';
+        this.village      = getFieldValue(data, 'Account.Village__c') || '';
+        this.panchayath   = getFieldValue(data, 'Account.Panchayath__c') || '';
+        this.municipality = getFieldValue(data, 'Account.Municipality__c') || '';
+        this.corporation  = getFieldValue(data, 'Account.Corporation__c') || '';
+        this.district     = getFieldValue(data, 'Account.District__c') || '';
+        this.state        = getFieldValue(data, 'Account.State__c') || '';
+        this.country      = getFieldValue(data, 'Account.Country__c') || '';
+        const pin         = getFieldValue(data, 'Account.Pin_Code__c');
+        this.pincode      = (pin === null || pin === undefined) ? '' : String(pin);
     }
 
     resetAddress() {
@@ -125,10 +140,14 @@ export default class QuoteOpportunityPicker extends LightningElement {
         this.addressLine1 = '';
         this.addressLine2 = '';
         this.addressLine3 = '';
+        this.village = '';
+        this.panchayath = '';
+        this.municipality = '';
+        this.corporation = '';
         this.district = '';
-        this.pincode = '';
         this.state = '';
         this.country = '';
+        this.pincode = '';
         this.branchLocation = '';
     }
 
@@ -138,15 +157,21 @@ export default class QuoteOpportunityPicker extends LightningElement {
         fields.AccountId = this.accountId;
         fields.StageName = DEFAULT_STAGE;
         fields.CloseDate = this.defaultCloseDate;
+
         fields.AddressLine1__c = this.addressLine1;
         fields.AddressLine2__c = this.addressLine2;
         fields.AddressLine3__c = this.addressLine3;
-        fields.District__c = this.district;
-        fields.Pin_Code__c = this.pincode;
-        fields.State__c = this.state;
-        fields.Country__c = this.country;
+        fields.Village__c      = this.village;
+        fields.Panchayath__c   = this.panchayath;
+        fields.Municipality__c = this.municipality;
+        fields.Corporation__c  = this.corporation;
+        fields.District__c     = this.district;
+        fields.State__c        = this.state;
+        fields.Country__c      = this.country;
+        fields.Pin_Code__c     = this.pincode === '' ? null : Number(this.pincode);
         fields.Branch_Location__c = this.branchLocation;
         fields.Same_as_Account_Ship_Address__c = this.sameAsAccount;
+
         this.template.querySelector('lightning-record-edit-form').submit(fields);
     }
 
