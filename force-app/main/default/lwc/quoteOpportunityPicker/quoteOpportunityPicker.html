@@ -1,21 +1,87 @@
 <template>
     <div class="slds-box slds-theme_default slds-p-around_medium">
 
-        <template lwc:if={isLoading}>
-            <lightning-spinner alternative-text="Loading opportunities..." size="small"></lightning-spinner>
-        </template>
-
         <template lwc:if={showNewOpportunityForm}>
-            <div class="slds-text-heading_small slds-m-bottom_small">Create New Opportunity</div>
+            <div class="slds-text-heading_small slds-m-bottom_x-small">Create New Opportunity</div>
+            <template lwc:if={accountName}>
+                <div class="slds-text-body_small slds-text-color_weak slds-m-bottom_small">
+                    Account: <b>{accountName}</b>
+                </div>
+            </template>
             <lightning-record-edit-form object-api-name="Opportunity"
+                                        onsubmit={handleOpportunitySubmit}
                                         onsuccess={handleOpportunityCreated}
                                         onerror={handleOpportunityCreateError}>
                 <lightning-messages></lightning-messages>
-                <lightning-input-field field-name="Name" required></lightning-input-field>
-                <lightning-input-field field-name="AccountId" value={accountId}></lightning-input-field>
-                <lightning-input-field field-name="StageName" required></lightning-input-field>
-                <lightning-input-field field-name="CloseDate" required></lightning-input-field>
-                <lightning-input-field field-name="Amount"></lightning-input-field>
+
+                <lightning-input type="checkbox"
+                                 label="Same as Account Ship Address"
+                                 checked={sameAsAccount}
+                                 onchange={handleSameAsAccount}
+                                 class="slds-m-bottom_small">
+                </lightning-input>
+
+                <lightning-input type="text"
+                                 label="Address Line 1"
+                                 data-field="addressLine1"
+                                 value={addressLine1}
+                                 onchange={handleFieldChange}>
+                </lightning-input>
+                <lightning-input type="text"
+                                 label="Address Line 2"
+                                 data-field="addressLine2"
+                                 value={addressLine2}
+                                 onchange={handleFieldChange}>
+                </lightning-input>
+                <lightning-input type="text"
+                                 label="Address Line 3"
+                                 data-field="addressLine3"
+                                 value={addressLine3}
+                                 onchange={handleFieldChange}>
+                </lightning-input>
+
+                <div class="slds-grid slds-wrap slds-gutters_x-small">
+                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
+                        <lightning-input type="text"
+                                         label="District"
+                                         data-field="district"
+                                         value={district}
+                                         onchange={handleFieldChange}>
+                        </lightning-input>
+                    </div>
+                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
+                        <lightning-input type="text"
+                                         label="Pin Code"
+                                         data-field="pincode"
+                                         value={pincode}
+                                         onchange={handleFieldChange}>
+                        </lightning-input>
+                    </div>
+                </div>
+
+                <div class="slds-grid slds-wrap slds-gutters_x-small">
+                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
+                        <lightning-input-field field-name="State__c"
+                                               value={state}
+                                               data-field="state"
+                                               onchange={handleFieldChange}>
+                        </lightning-input-field>
+                    </div>
+                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
+                        <lightning-input-field field-name="Country__c"
+                                               value={country}
+                                               data-field="country"
+                                               onchange={handleFieldChange}>
+                        </lightning-input-field>
+                    </div>
+                </div>
+
+                <lightning-input-field field-name="Branch_Location__c"
+                                       value={branchLocation}
+                                       data-field="branchLocation"
+                                       onchange={handleFieldChange}>
+                </lightning-input-field>
+
                 <div class="slds-m-top_medium slds-grid slds-grid_align-end">
                     <lightning-button variant="neutral" label="Cancel"
                                       onclick={handleCancelNewOpp}
@@ -28,8 +94,7 @@
         <template lwc:else>
             <div class="slds-text-heading_small slds-m-bottom_x-small">Select an Opportunity</div>
             <div class="slds-text-body_small slds-text-color_weak slds-m-bottom_small">
-                Open opportunities for this account. Pick one to attach the quote to it, or
-                continue without selecting.
+                Open opportunities for this account.
             </div>
 
             <template lwc:if={hasOpportunities}>
@@ -69,26 +134,17 @@
             <template lwc:elseif={loaded}>
                 <div class="slds-text-color_weak slds-p-around_small slds-text-align_center
                             slds-box slds-theme_shade slds-m-bottom_small">
-                    No open opportunities for this account.
+                    No open opportunities for this account. Create a new one below.
                 </div>
             </template>
 
-            <div class="slds-m-top_medium slds-grid slds-wrap slds-gutters_x-small">
-                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-p-bottom_x-small">
-                    <lightning-button label="Create New Opportunity"
-                                      icon-name="utility:add"
-                                      variant="brand-outline"
-                                      onclick={handleShowNewOppForm}
-                                      class="full-width-btn">
-                    </lightning-button>
-                </div>
-                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-p-bottom_x-small">
-                    <lightning-button label="Continue without an Opportunity"
-                                      variant="neutral"
-                                      onclick={handleSkip}
-                                      class="full-width-btn">
-                    </lightning-button>
-                </div>
+            <div class="slds-m-top_medium">
+                <lightning-button label="Create New Opportunity"
+                                  icon-name="utility:add"
+                                  variant="brand"
+                                  onclick={handleShowNewOppForm}
+                                  class="full-width-btn">
+                </lightning-button>
             </div>
         </template>
 

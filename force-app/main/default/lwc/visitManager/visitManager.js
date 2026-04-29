@@ -414,7 +414,8 @@ this.executeScreenData.isInProgress = false;
 
     handleQuoteOppSelected(event) {
         const detail = event.detail || {};
-        this.quoteOpportunityId = detail.opportunityId || null;
+        if (!detail.opportunityId) return; // skip path is no longer supported
+        this.quoteOpportunityId = detail.opportunityId;
         this.quoteOpportunityChosen = true;
     }
 
@@ -423,13 +424,11 @@ this.executeScreenData.isInProgress = false;
     }
 
     get showQuoteSession() {
-        return this.isQuoteScreen && this.quoteOpportunityChosen;
+        return this.isQuoteScreen && this.quoteOpportunityChosen && !!this.quoteOpportunityId;
     }
 
     get quoteSessionRecordId() {
-        // If user picked an opportunity, drive newQuoteFromOpp by it; otherwise
-        // fall back to the original record id (visit/customer context).
-        return this.quoteOpportunityId || this.recordId;
+        return this.quoteOpportunityId;
     }
 
     handleOrderScreen(event) {
