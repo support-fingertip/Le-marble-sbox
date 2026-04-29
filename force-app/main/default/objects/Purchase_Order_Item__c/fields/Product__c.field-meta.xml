@@ -5,8 +5,8 @@
     <externalId>false</externalId>
     <label>Product</label>
     <referenceTo>Product2</referenceTo>
-    <relationshipLabel>Purchase Orders</relationshipLabel>
-    <relationshipName>Purchase_Orders</relationshipName>
+    <relationshipLabel>Purchase Order Items</relationshipLabel>
+    <relationshipName>Purchase_Order_Items</relationshipName>
     <required>true</required>
     <trackHistory>false</trackHistory>
     <trackTrending>false</trackTrending>

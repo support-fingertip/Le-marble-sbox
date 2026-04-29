@@ -13,14 +13,14 @@
     <enableSharing>true</enableSharing>
     <enableStreamingApi>true</enableStreamingApi>
     <externalSharingModel>Private</externalSharingModel>
-    <label>Purchase Order</label>
+    <label>Purchase Order Item</label>
     <nameField>
-        <displayFormat>PO-{00000}</displayFormat>
-        <label>Purchase Order Name</label>
+        <displayFormat>POI-{00000}</displayFormat>
+        <label>Purchase Order Item Name</label>
         <trackHistory>false</trackHistory>
         <type>AutoNumber</type>
     </nameField>
-    <pluralLabel>Purchase Orders</pluralLabel>
+    <pluralLabel>Purchase Order Items</pluralLabel>
     <searchLayouts></searchLayouts>
     <sharingModel>ReadWrite</sharingModel>
     <visibility>Public</visibility>

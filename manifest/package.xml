@@ -57,7 +57,7 @@
     <name>CustomNotificationType</name>
   </types>
   <types>
-    <members>Purchase_Order__c</members>
+    <members>Purchase_Order_Item__c</members>
     <members>Stock_Request__c</members>
     <members>Stock_Request_Line_Item__c</members>
     <name>CustomTab</name>
