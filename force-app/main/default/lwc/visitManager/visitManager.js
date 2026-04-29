@@ -389,7 +389,10 @@ export default class visitManager extends LightningElement {
         else if (msg.message == 'quoteScreen') {
             this.header = 'Quote Session';
             this.recordId = msg.recordID;
-            this.quoteAccountId = msg.accId || null;
+            // visitOrderExecuteScreen forwards accId, but its own @api accId
+            // is not always wired from this parent. Fall back to the account
+            // id captured earlier in the visit flow (this.acccountId).
+            this.quoteAccountId = msg.accId || this.acccountId || null;
             this.quoteOpportunityId = null;
             this.quoteOpportunityChosen = false;
             this.index = msg.index;

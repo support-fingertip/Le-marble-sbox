@@ -155,6 +155,10 @@ export default class QuoteOpportunityPicker extends LightningElement {
 
     handleOpportunitySubmit(event) {
         event.preventDefault();
+        if (!this.accountId) {
+            this.toast('Missing account', 'Cannot create an opportunity without the visit account.', 'error');
+            return;
+        }
         const fields = event.detail.fields || {};
         fields.AccountId = this.accountId;
         fields.StageName = DEFAULT_STAGE;
