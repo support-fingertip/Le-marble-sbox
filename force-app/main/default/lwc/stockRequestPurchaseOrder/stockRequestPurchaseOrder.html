@@ -62,7 +62,7 @@
                         </div>
 
                         <div class="slds-grid slds-gutters slds-wrap slds-m-bottom_medium">
-                            <div class="slds-col slds-size_1-of-2">
+                            <div class="slds-col slds-size_1-of-2 slds-p-bottom_x-small">
                                 <lightning-combobox
                                     name="branch"
                                     label="Branch"
@@ -73,7 +73,7 @@
                                     onchange={handleBranchChange}>
                                 </lightning-combobox>
                             </div>
-                            <div class="slds-col slds-size_1-of-2">
+                            <div class="slds-col slds-size_1-of-2 slds-p-bottom_x-small">
                                 <label class="slds-form-element__label" for="vendor-input">Vendor</label>
                                 <div class="slds-combobox_container slds-has-inline-listbox">
                                     <div class={vendorDropdownClass}>
@@ -124,6 +124,50 @@
                                         </template>
                                     </div>
                                 </div>
+                            </div>
+
+                            <div class="slds-col slds-size_1-of-2 slds-p-bottom_x-small">
+                                <lightning-combobox
+                                    name="area"
+                                    label="Area"
+                                    value={selectedArea}
+                                    placeholder="Select Area"
+                                    options={areaOptions}
+                                    required
+                                    onchange={handleAreaChange}>
+                                </lightning-combobox>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2 slds-p-bottom_x-small">
+                                <lightning-combobox
+                                    name="priority"
+                                    label="Priority"
+                                    value={selectedPriority}
+                                    placeholder="Select Priority"
+                                    options={priorityOptions}
+                                    required
+                                    onchange={handlePriorityChange}>
+                                </lightning-combobox>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2 slds-p-bottom_x-small">
+                                <lightning-combobox
+                                    name="uom"
+                                    label="UOM"
+                                    value={selectedUom}
+                                    placeholder="Select UOM"
+                                    options={uomOptions}
+                                    required
+                                    onchange={handleUomChange}>
+                                </lightning-combobox>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2 slds-p-bottom_x-small">
+                                <lightning-input
+                                    type="date"
+                                    name="requiredDate"
+                                    label="Required Date"
+                                    value={selectedRequiredDate}
+                                    required
+                                    onchange={handleRequiredDateChange}>
+                                </lightning-input>
                             </div>
                         </div>
 
