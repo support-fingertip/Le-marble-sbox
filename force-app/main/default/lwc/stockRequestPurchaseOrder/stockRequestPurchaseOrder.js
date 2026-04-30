@@ -3,6 +3,7 @@ import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { NavigationMixin } from 'lightning/navigation';
 import getStockRequestDetails from '@salesforce/apex/StockRequestPOController.getStockRequestDetails';
 import getBranchOptions from '@salesforce/apex/StockRequestPOController.getBranchOptions';
+import getPoItemPicklists from '@salesforce/apex/StockRequestPOController.getPoItemPicklists';
 import searchVendorAccounts from '@salesforce/apex/StockRequestPOController.searchVendorAccounts';
 import createPurchaseOrderFromItems from '@salesforce/apex/StockRequestPOController.createPurchaseOrderFromItems';
 
@@ -20,6 +21,14 @@ export default class StockRequestPurchaseOrder extends NavigationMixin(Lightning
 
     @track branchOptions = [];
     @track selectedBranch = '';
+
+    @track areaOptions = [];
+    @track priorityOptions = [];
+    @track uomOptions = [];
+    @track selectedArea = '';
+    @track selectedPriority = '';
+    @track selectedUom = '';
+    @track selectedRequiredDate = '';
 
     @track vendorSearchTerm = '';
     @track vendorResults = [];
@@ -40,6 +49,17 @@ export default class StockRequestPurchaseOrder extends NavigationMixin(Lightning
         }
     }
 
+    @wire(getPoItemPicklists)
+    wiredPoItemPicklists({ data, error }) {
+        if (data) {
+            this.areaOptions     = (data.area     || []).map(d => ({ label: d.label, value: d.value }));
+            this.priorityOptions = (data.priority || []).map(d => ({ label: d.label, value: d.value }));
+            this.uomOptions      = (data.uom      || []).map(d => ({ label: d.label, value: d.value }));
+        } else if (error) {
+            this.toast('Error', this.extractError(error), 'error');
+        }
+    }
+
     handleOpen() {
         this.showModal = true;
         this.loadDetails();
@@ -52,6 +72,10 @@ export default class StockRequestPurchaseOrder extends NavigationMixin(Lightning
 
     resetSelections() {
         this.selectedBranch = '';
+        this.selectedArea = '';
+        this.selectedPriority = '';
+        this.selectedUom = '';
+        this.selectedRequiredDate = '';
         this.selectedVendorId = null;
         this.selectedVendorName = '';
         this.vendorSearchTerm = '';
@@ -108,6 +132,22 @@ export default class StockRequestPurchaseOrder extends NavigationMixin(Lightning
 
     handleBranchChange(event) {
         this.selectedBranch = event.detail.value;
+    }
+
+    handleAreaChange(event) {
+        this.selectedArea = event.detail.value;
+    }
+
+    handlePriorityChange(event) {
+        this.selectedPriority = event.detail.value;
+    }
+
+    handleUomChange(event) {
+        this.selectedUom = event.detail.value;
+    }
+
+    handleRequiredDateChange(event) {
+        this.selectedRequiredDate = event.detail.value;
     }
 
     handleVendorInput(event) {
@@ -200,7 +240,11 @@ export default class StockRequestPurchaseOrder extends NavigationMixin(Lightning
         return (
             this.isSubmitting ||
             this.selectedCount === 0 ||
-            !this.selectedBranch
+            !this.selectedBranch ||
+            !this.selectedArea ||
+            !this.selectedPriority ||
+            !this.selectedUom ||
+            !this.selectedRequiredDate
         );
     }
 
@@ -238,6 +282,10 @@ export default class StockRequestPurchaseOrder extends NavigationMixin(Lightning
             this.toast('Branch required', 'Please select a Branch.', 'warning');
             return;
         }
+        if (!this.selectedArea || !this.selectedPriority || !this.selectedUom || !this.selectedRequiredDate) {
+            this.toast('Missing fields', 'Please fill Area, Priority, Required Date and UOM.', 'warning');
+            return;
+        }
 
         const payload = selected.map(i => ({
             id: i.id,
@@ -250,6 +298,10 @@ export default class StockRequestPurchaseOrder extends NavigationMixin(Lightning
             branch: this.selectedBranch,
             vendorId: this.selectedVendorId,
             totalAmount: this.totalAmount,
+            area: this.selectedArea,
+            priority: this.selectedPriority,
+            requiredDate: this.selectedRequiredDate,
+            uom: this.selectedUom,
             itemsJson: JSON.stringify(payload)
         })
             .then(poId => {

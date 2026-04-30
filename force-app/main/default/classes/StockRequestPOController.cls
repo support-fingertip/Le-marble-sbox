@@ -43,9 +43,20 @@ public with sharing class StockRequestPOController {
 
     @AuraEnabled(cacheable=true)
     public static List<PicklistOption> getBranchOptions() {
+        return describePicklist(Purchase_Order__c.Branch__c.getDescribe());
+    }
+
+    @AuraEnabled(cacheable=true)
+    public static PoItemPicklists getPoItemPicklists() {
+        PoItemPicklists out = new PoItemPicklists();
+        out.area     = describePicklist(Purchase_Order_Item__c.Area__c.getDescribe());
+        out.priority = describePicklist(Purchase_Order_Item__c.Priority__c.getDescribe());
+        out.uom      = describePicklist(Purchase_Order_Item__c.UOM__c.getDescribe());
+        return out;
+    }
+
+    private static List<PicklistOption> describePicklist(Schema.DescribeFieldResult fieldResult) {
         List<PicklistOption> options = new List<PicklistOption>();
-        Schema.DescribeFieldResult fieldResult =
-            Purchase_Order__c.Branch__c.getDescribe();
         for (Schema.PicklistEntry entry : fieldResult.getPicklistValues()) {
             if (entry.isActive()) {
                 options.add(new PicklistOption(entry.getLabel(), entry.getValue()));
@@ -73,6 +84,10 @@ public with sharing class StockRequestPOController {
         String branch,
         Id vendorId,
         Decimal totalAmount,
+        String area,
+        String priority,
+        Date requiredDate,
+        String uom,
         String itemsJson
     ) {
         if (stockRequestId == null) {
@@ -80,6 +95,18 @@ public with sharing class StockRequestPOController {
         }
         if (String.isBlank(branch)) {
             throw new AuraHandledException('Branch is required.');
+        }
+        if (String.isBlank(area)) {
+            throw new AuraHandledException('Area is required.');
+        }
+        if (String.isBlank(priority)) {
+            throw new AuraHandledException('Priority is required.');
+        }
+        if (requiredDate == null) {
+            throw new AuraHandledException('Required Date is required.');
+        }
+        if (String.isBlank(uom)) {
+            throw new AuraHandledException('UOM is required.');
         }
         if (String.isBlank(itemsJson)) {
             throw new AuraHandledException('Please select at least one item.');
@@ -155,7 +182,11 @@ public with sharing class StockRequestPOController {
                     Purchase_Order__c = po.Id,
                     Product__c        = li.Product__c,
                     Quantity__c       = li.Quantity__c,
-                    Price__c          = priceByItemId.get(li.Id)
+                    Price__c          = priceByItemId.get(li.Id),
+                    Area__c           = area,
+                    Priority__c       = priority,
+                    Required_Date__c  = requiredDate,
+                    UOM__c            = uom
                 ));
             }
             insert poItems;
@@ -190,5 +221,11 @@ public with sharing class StockRequestPOController {
             this.label = l;
             this.value = v;
         }
+    }
+
+    public class PoItemPicklists {
+        @AuraEnabled public List<PicklistOption> area;
+        @AuraEnabled public List<PicklistOption> priority;
+        @AuraEnabled public List<PicklistOption> uom;
     }
 }
