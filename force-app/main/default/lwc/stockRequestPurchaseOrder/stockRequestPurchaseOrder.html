@@ -61,6 +61,66 @@
                             </div>
                         </div>
 
+                        <div class="slds-grid slds-gutters slds-wrap slds-m-bottom_medium">
+                            <div class="slds-col slds-size_1-of-2">
+                                <lightning-combobox
+                                    name="branch"
+                                    label="Branch"
+                                    value={selectedBranch}
+                                    placeholder="Select Branch"
+                                    options={branchOptions}
+                                    required
+                                    onchange={handleBranchChange}>
+                                </lightning-combobox>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2">
+                                <label class="slds-form-element__label" for="vendor-input">Vendor</label>
+                                <div class={vendorDropdownClass}>
+                                    <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right" role="none">
+                                        <input
+                                            id="vendor-input"
+                                            type="text"
+                                            class="slds-input slds-combobox__input"
+                                            placeholder="Search Accounts..."
+                                            value={vendorSearchTerm}
+                                            oninput={handleVendorInput}
+                                            onfocus={handleVendorFocus}
+                                            onblur={handleVendorBlur}
+                                            autocomplete="off"/>
+                                        <template if:true={vendorSearching}>
+                                            <lightning-icon icon-name="utility:spinner" size="x-small" class="slds-input__icon slds-input__icon_right"></lightning-icon>
+                                        </template>
+                                    </div>
+                                    <template if:true={showVendorResults}>
+                                        <div class="slds-dropdown slds-dropdown_length-7 slds-dropdown_fluid" role="listbox">
+                                            <ul class="slds-listbox slds-listbox_vertical" role="presentation">
+                                                <template for:each={vendorResults} for:item="acct">
+                                                    <li key={acct.Id} role="presentation" class="slds-listbox__item">
+                                                        <div role="option"
+                                                             class="slds-media slds-listbox__option slds-listbox__option_plain slds-media_small"
+                                                             data-id={acct.Id}
+                                                             data-name={acct.Name}
+                                                             onmousedown={selectVendor}>
+                                                            <span class="slds-media__body">
+                                                                <span class="slds-truncate">{acct.Name}</span>
+                                                            </span>
+                                                        </div>
+                                                    </li>
+                                                </template>
+                                                <template if:true={vendorNoResults}>
+                                                    <li role="presentation" class="slds-listbox__item">
+                                                        <div class="slds-media slds-listbox__option slds-listbox__option_plain slds-text-color_weak">
+                                                            No accounts found
+                                                        </div>
+                                                    </li>
+                                                </template>
+                                            </ul>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+
                         <h3 class="slds-text-heading_small slds-m-bottom_x-small">Stock Request Items</h3>
 
                         <template if:false={hasItems}>
@@ -70,7 +130,7 @@
                         </template>
 
                         <template if:true={hasItems}>
-                            <table class="slds-table slds-table_bordered slds-table_cell-buffer slds-table_fixed-layout">
+                            <table class="slds-table slds-table_bordered slds-table_cell-buffer">
                                 <thead>
                                     <tr class="slds-line-height_reset">
                                         <th scope="col" style="width:3rem;">
@@ -84,6 +144,8 @@
                                         </th>
                                         <th scope="col"><div class="slds-truncate" title="Product">Product</div></th>
                                         <th scope="col"><div class="slds-truncate" title="Quantity">Quantity</div></th>
+                                        <th scope="col"><div class="slds-truncate" title="Price">Price</div></th>
+                                        <th scope="col"><div class="slds-truncate" title="Line Total">Line Total</div></th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -109,10 +171,41 @@
                                                     {item.quantity}
                                                 </div>
                                             </td>
+                                            <td>
+                                                <lightning-input
+                                                    type="number"
+                                                    variant="label-hidden"
+                                                    data-id={item.id}
+                                                    step="0.01"
+                                                    min="0"
+                                                    value={item.price}
+                                                    onchange={handlePriceChange}>
+                                                </lightning-input>
+                                            </td>
+                                            <td>
+                                                <lightning-formatted-number
+                                                    value={item.lineTotal}
+                                                    format-style="decimal"
+                                                    minimum-fraction-digits="2"
+                                                    maximum-fraction-digits="2">
+                                                </lightning-formatted-number>
+                                            </td>
                                         </tr>
                                     </template>
                                 </tbody>
                             </table>
+
+                            <div class="slds-grid slds-grid_align-end slds-p-top_medium slds-text-heading_small">
+                                <span class="slds-p-right_small">Total Amount:</span>
+                                <strong>
+                                    <lightning-formatted-number
+                                        value={totalAmount}
+                                        format-style="decimal"
+                                        minimum-fraction-digits="2"
+                                        maximum-fraction-digits="2">
+                                    </lightning-formatted-number>
+                                </strong>
+                            </div>
                         </template>
                     </template>
                 </div>
