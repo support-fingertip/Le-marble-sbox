@@ -3,7 +3,7 @@
     <fullName>UOM__c</fullName>
     <externalId>false</externalId>
     <label>UOM</label>
-    <required>true</required>
+    <required>false</required>
     <trackHistory>false</trackHistory>
     <trackTrending>false</trackTrending>
     <type>Picklist</type>
