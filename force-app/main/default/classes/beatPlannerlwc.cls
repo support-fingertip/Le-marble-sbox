@@ -361,14 +361,16 @@ global with sharing class beatPlannerlwc {
         List<Visit__c> vs = [SELECT id, Name, createdDate, Visit_End__c, Visit_Start__c,
                              Visit_for__c,Visit_Type__c,Visit_Date__c, Account__c, Account__r.name , Daily_Log__r.Name, Daily_Log__c,Status__c,
                              PostPoned_Start_Time__c, Missed_PostPone_Reason__c,
-                            Lead__c, Lead__r.Name,Check_In_Location__Longitude__s, Check_In_Location__Latitude__s,
+                            Lead__c, Lead__r.Name,
+                            Referral__c, Referral__r.Name,
+                            Check_In_Location__Longitude__s, Check_In_Location__Latitude__s,
                              Comments__c, Planned_Start_Time__c, Account__r.Customer_Code__c,
                              Check_Out_Location__Longitude__s,Check_Out_Location__Latitude__s
-                             FROM Visit__c 
+                             FROM Visit__c
                              WHERE OwnerId = :userinfo.getUserId()
-                             AND   Visit_Date__c >= :startDate 
-                             AND Visit_Date__c <= :endDate 
-                             ORDER BY status__c asc, createddate desc 
+                             AND   Visit_Date__c >= :startDate
+                             AND Visit_Date__c <= :endDate
+                             ORDER BY status__c asc, createddate desc
                             ];//  AND  Approval_StatusFor__c ='Approved'
         
         
@@ -399,12 +401,15 @@ global with sharing class beatPlannerlwc {
                 ad.acccountId=vis.Account__c;
                 ad.accountName = vis.Account__r.Name;
             }
-           
             else if(vis.Lead__c != null){
                 ad.accountName = vis.Lead__r.Name;
                 ad.acccountId=vis.Lead__c;
             }
-            
+            else if(vis.Referral__c != null){
+                ad.accountName = vis.Referral__r.Name;
+                ad.acccountId = vis.Referral__c;
+            }
+
             ad.appAccountId=vis.Account__r.Customer_Code__c;
             ad.dailyLogName =vis.Daily_log__r.Name;
             ad.dailyLogId=vis.Daily_log__c;
@@ -470,12 +475,14 @@ global with sharing class beatPlannerlwc {
                                   Missed_PostPone_Reason__c,  Visit_Date__c,
                                  Visit_for__c, Account__c,Daily_Log__r.Name, Daily_Log__c,
                                    Visit_Type__c,
-                                   Lead__c, Lead__r.Name, Check_In_Location__c,
+                                   Lead__c, Lead__r.Name,
+                                   Referral__c, Referral__r.Name,
+                                   Check_In_Location__c,
                                  Check_Out_Location__c,Comments__c, Planned_Start_Time__c,
                                  Account__r.Customer_Code__c,Account__r.Name,Status__c,Check_In_Location__Latitude__s,Check_In_Location__Longitude__s,Check_Out_Location__Latitude__s,Check_Out_Location__Longitude__s
                                  FROM Visit__c WHERE OwnerId = :userinfo.getUserId()
-                                 AND Visit_Date__c = TODAY 
-                                 ORDER BY status__c asc, createddate desc 
+                                 AND Visit_Date__c = TODAY
+                                 ORDER BY status__c asc, createddate desc
                                 ];//Vehicle_Used__c,Miss_visit__c, PostPoned__c,
             for(Visit__c vis : vs){
                 String formattedVisitDate = vis.Visit_Date__c != null ? DateTime.newInstance(vis.Visit_Date__c.year(), vis.Visit_Date__c.month(), vis.Visit_Date__c.day()).format('dd/MM/yyyy') : 
@@ -498,6 +505,10 @@ global with sharing class beatPlannerlwc {
                 if(vis.Account__c != null){
                     ad.acccountId=vis.Account__c;
                     ad.accountName = vis.Account__r.Name;
+                }
+                if(vis.Referral__c != null){
+                    ad.acccountId = vis.Referral__c;
+                    ad.accountName = vis.Referral__r.Name;
                 }
                 ad.appAccountId=vis.Account__r.Customer_Code__c;
                 ad.dailyLogName =vis.Daily_log__r.Name;

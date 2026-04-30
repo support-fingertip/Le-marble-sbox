@@ -95,7 +95,7 @@ public with sharing class visitManager {
         // Set the startDate and endDate based on dateValue
         List<Visit__c> vs = [SELECT id, Name, createdDate, Visit_End__c, Visit_Start__c,
                      Visit_for__c,Visit_Type__c,Visit_Date__c, Account__c, Account__r.name , Daily_Log__r.Name, Daily_Log__c,Status__c,
-                     PostPoned_Start_Time__c, Missed_PostPone_Reason__c,  Lead__c, Lead__r.Name, Lead__r.Company, Check_In_Location__Longitude__s, Check_In_Location__Latitude__s,
+                     PostPoned_Start_Time__c, Missed_PostPone_Reason__c,  Lead__c, Lead__r.Name, Lead__r.Company, Referral__c, Referral__r.Name, Check_In_Location__Longitude__s, Check_In_Location__Latitude__s,
                      Comments__c, Planned_Start_Time__c, Account__r.Customer_Code__c, Check_Out_Location__Longitude__s,Check_Out_Location__Latitude__s
                      FROM Visit__c  WHERE OwnerId = :userinfo.getUserId() AND   Visit_Date__c =today   ORDER BY status__c asc, createddate desc  ];//  AND  Approval_StatusFor__c ='Approved'
         
@@ -126,6 +126,9 @@ public with sharing class visitManager {
                 ad.accountName = vis.Lead__r.Name;
                 ad.acccountId=vis.Lead__c;
                 ad.company = vis.Lead__r.Company;
+            } else if(vis.Referral__c != null){
+                ad.accountName = vis.Referral__r.Name;
+                ad.acccountId = vis.Referral__c;
             }else{
                  ad.accountName = vis.Visit_for__c;
             }
@@ -253,13 +256,14 @@ public with sharing class visitManager {
                                  Missed_PostPone_Reason__c,  Visit_Date__c,
                                  Visit_for__c, Account__c,Daily_Log__r.Name, Daily_Log__c,
                                  Visit_Type__c,
-                                 Lead__c,Lead__r.company, Lead__r.Name, Check_In_Location__c,
+                                 Lead__c,Lead__r.company, Lead__r.Name,
+                                 Referral__c, Referral__r.Name, Check_In_Location__c,
                                  Check_Out_Location__c,Comments__c, Planned_Start_Time__c,
                                  Account__r.Customer_Code__c, Account__r.Name,Check_In_Location__Latitude__s,Check_In_Location__Longitude__s,
                                  Check_Out_Location__Latitude__s,Check_Out_Location__Longitude__s,Status__c
                                  FROM Visit__c WHERE OwnerId = :userinfo.getUserId()
-                                 AND Visit_Date__c = TODAY 
-                                 ORDER BY status__c asc, createddate desc 
+                                 AND Visit_Date__c = TODAY
+                                 ORDER BY status__c asc, createddate desc
                                 ];//Vehicle_Used__c,Miss_visit__c, PostPoned__c,
             for(Visit__c vis : vs){
                 String formattedVisitDate = vis.Visit_Date__c != null ? DateTime.newInstance(vis.Visit_Date__c.year(), vis.Visit_Date__c.month(), vis.Visit_Date__c.day()).format('dd/MM/yyyy') : 
@@ -283,6 +287,10 @@ public with sharing class visitManager {
                 }
                 if(vis.lead__c != null){
                     ad.company = vis.Lead__r.company;
+                }
+                if(vis.Referral__c != null){
+                    ad.acccountId = vis.Referral__c;
+                    ad.accountName = vis.Referral__r.Name;
                 }
                 ad.appAccountId=vis.Account__r.Customer_Code__c;
                 ad.dailyLogName =vis.Daily_log__r.Name;
@@ -455,6 +463,82 @@ public with sharing class visitManager {
     }
     
     
+    // Referral picklist (Architect__c.Reference_Type__c) values for Today's Visit > Referral
+    @AuraEnabled(cacheable=true)
+    public static List<PicklistOption> getReferralTypes() {
+        List<PicklistOption> options = new List<PicklistOption>();
+        Schema.DescribeFieldResult fieldResult =
+            Architect__c.Reference_Type__c.getDescribe();
+        for (Schema.PicklistEntry entry : fieldResult.getPicklistValues()) {
+            if (entry.isActive()) {
+                options.add(new PicklistOption(entry.getLabel(), entry.getValue()));
+            }
+        }
+        return options;
+    }
+
+    // Search Architect__c records by Reference_Type__c with a name/phone search term
+    @AuraEnabled(cacheable=true)
+    public static List<Architect__c> searchReferrals(String referralType, String searchTerm) {
+        String term = String.isBlank(searchTerm) ? '' : searchTerm.trim();
+        String searchKey = '%' + term + '%';
+        if (String.isBlank(referralType)) {
+            return new List<Architect__c>();
+        }
+        return [
+            SELECT Id, Name, Phone_Number__c, Reference_Type__c
+            FROM Architect__c
+            WHERE Reference_Type__c = :referralType
+              AND (Name LIKE :searchKey OR Phone_Number__c LIKE :searchKey)
+            ORDER BY Name
+            LIMIT 20
+        ];
+    }
+
+    // Create a new Architect__c (referral) record from the visit form
+    @AuraEnabled
+    public static Architect__c createReferral(Map<String, Object> data) {
+        if (data == null) {
+            throw new AuraHandledException('Referral data is required.');
+        }
+        String referralName = (String) data.get('name');
+        String referralType = (String) data.get('type');
+        if (String.isBlank(referralName)) {
+            throw new AuraHandledException('Reference Name is required.');
+        }
+        if (String.isBlank(referralType)) {
+            throw new AuraHandledException('Type is required.');
+        }
+
+        Architect__c referral = new Architect__c(
+            Name = referralName,
+            Reference_Type__c = referralType
+        );
+        if (data.containsKey('phoneNumber'))  referral.Phone_Number__c = (String) data.get('phoneNumber');
+        if (data.containsKey('areaLocation')) referral.Area_Location__c = (String) data.get('areaLocation');
+        if (data.containsKey('address'))      referral.Address__c      = (String) data.get('address');
+        if (data.containsKey('email'))        referral.Email__c        = (String) data.get('email');
+        if (data.containsKey('designation'))  referral.Designation__c  = (String) data.get('designation');
+        if (data.containsKey('district'))     referral.District__c     = (String) data.get('district');
+        if (data.containsKey('state'))        referral.State__c        = (String) data.get('state');
+        try {
+            insert referral;
+        } catch (DmlException dmlEx) {
+            throw new AuraHandledException(dmlEx.getMessage());
+        }
+        return referral;
+    }
+
+    public class PicklistOption {
+        @AuraEnabled public String label;
+        @AuraEnabled public String value;
+
+        public PicklistOption(String label, String value) {
+            this.label = label;
+            this.value = value;
+        }
+    }
+
     // Validation: prevent creating a new Planned visit for a customer
     // when there is another visit for the same customer that is not completed.
     @AuraEnabled

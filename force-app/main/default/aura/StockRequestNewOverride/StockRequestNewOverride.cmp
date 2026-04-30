@@ -1,0 +1,5 @@
+<aura:component
+    implements="lightning:actionOverride,force:appHostable,force:hasSObjectName,lightning:isUrlAddressable,lightning:hasPageReference"
+    access="global">
+    <c:stockRequestCreator/>
+</aura:component>

@@ -159,14 +159,14 @@
     <enableSharing>true</enableSharing>
     <enableStreamingApi>true</enableStreamingApi>
     <externalSharingModel>Private</externalSharingModel>
-    <label>Purchase Order</label>
+    <label>Pending Purchase Order</label>
     <nameField>
         <displayFormat>PP -{0000}</displayFormat>
         <label>Pending Purchase Id</label>
         <trackHistory>false</trackHistory>
         <type>AutoNumber</type>
     </nameField>
-    <pluralLabel>Purchase Orders</pluralLabel>
+    <pluralLabel>Pending Purchase Orders</pluralLabel>
     <searchLayouts></searchLayouts>
     <sharingModel>ReadWrite</sharingModel>
     <visibility>Public</visibility>
