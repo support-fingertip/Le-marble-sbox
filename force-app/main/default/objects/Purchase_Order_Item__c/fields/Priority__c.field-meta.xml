@@ -3,7 +3,7 @@
     <fullName>Priority__c</fullName>
     <externalId>false</externalId>
     <label>Priority</label>
-    <required>true</required>
+    <required>false</required>
     <trackHistory>false</trackHistory>
     <trackTrending>false</trackTrending>
     <type>Picklist</type>

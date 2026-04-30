@@ -1,0 +1,106 @@
+<template>
+    <lightning-button
+        label="Create Purchase Order"
+        variant="brand"
+        icon-name="utility:add"
+        onclick={handleOpen}>
+    </lightning-button>
+
+    <template if:true={showModal}>
+        <section role="dialog" tabindex="-1" aria-modal="true" class="slds-modal slds-fade-in-open slds-modal_large">
+            <div class="slds-modal__container">
+                <header class="slds-modal__header">
+                    <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" onclick={handleClose} title="Close">
+                        <lightning-icon icon-name="utility:close" alternative-text="Close" size="small" variant="inverse"></lightning-icon>
+                    </button>
+                    <h1 class="slds-modal__title slds-hyphenate">Stock Request Details</h1>
+                </header>
+
+                <div class="slds-modal__content slds-p-around_medium">
+                    <div class="slds-box slds-theme_shade slds-m-bottom_medium">
+                        <div class="slds-grid slds-wrap slds-gutters">
+                            <div class="slds-col slds-size_1-of-2 slds-p-vertical_x-small">
+                                <p class="slds-text-title">Stock Request</p>
+                                <p class="slds-text-body_regular slds-text-color_default">{stockRequestName}</p>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2 slds-p-vertical_x-small">
+                                <p class="slds-text-title">Product Category</p>
+                                <p class="slds-text-body_regular slds-text-color_default">{stockRequestCategory}</p>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2 slds-p-vertical_x-small">
+                                <p class="slds-text-title">Status</p>
+                                <p class="slds-text-body_regular slds-text-color_default">{stockRequestStatus}</p>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2 slds-p-vertical_x-small">
+                                <p class="slds-text-title">Owner</p>
+                                <p class="slds-text-body_regular slds-text-color_default">{stockRequestOwner}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h2 class="slds-text-heading_small slds-m-bottom_x-small">Stock Request Items</h2>
+
+                    <template if:true={hasRows}>
+                        <table class="slds-table slds-table_bordered slds-table_cell-buffer slds-table_fixed-layout">
+                            <thead>
+                                <tr class="slds-line-height_reset">
+                                    <th scope="col" style="width: 4rem;">
+                                        <div class="slds-truncate" title="Select">Select</div>
+                                    </th>
+                                    <th scope="col">
+                                        <div class="slds-truncate" title="Product">Product</div>
+                                    </th>
+                                    <th scope="col" style="width: 8rem;">
+                                        <div class="slds-truncate" title="Quantity">Quantity</div>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template for:each={rows} for:item="row">
+                                    <tr key={row.id} class="slds-hint-parent">
+                                        <td>
+                                            <lightning-input
+                                                type="checkbox"
+                                                variant="label-hidden"
+                                                data-id={row.id}
+                                                checked={row.selected}
+                                                onchange={handleCheckboxChange}>
+                                            </lightning-input>
+                                        </td>
+                                        <td>
+                                            <div class="slds-truncate" title={row.productName}>{row.productName}</div>
+                                        </td>
+                                        <td>
+                                            <div class="slds-truncate" title={row.quantity}>{row.quantity}</div>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </template>
+
+                    <template if:false={hasRows}>
+                        <p class="slds-text-body_regular slds-text-color_weak slds-p-vertical_medium">
+                            No stock request items found.
+                        </p>
+                    </template>
+                </div>
+
+                <footer class="slds-modal__footer">
+                    <lightning-button label="Cancel" onclick={handleClose} class="slds-m-right_x-small"></lightning-button>
+                    <lightning-button
+                        variant="brand"
+                        label="Confirm"
+                        disabled={confirmDisabled}
+                        onclick={handleConfirm}>
+                    </lightning-button>
+                </footer>
+
+                <template if:true={isSubmitting}>
+                    <lightning-spinner alternative-text="Creating Purchase Order" size="medium"></lightning-spinner>
+                </template>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+</template>
