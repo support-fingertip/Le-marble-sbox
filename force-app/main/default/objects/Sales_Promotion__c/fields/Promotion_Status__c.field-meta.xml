@@ -2,7 +2,7 @@
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Promotion_Status__c</fullName>
     <externalId>false</externalId>
-    <label>Promotion Status</label>
+    <label>Promotion Lifecycle Status</label>
     <required>true</required>
     <trackHistory>false</trackHistory>
     <trackTrending>false</trackTrending>
@@ -40,6 +40,16 @@
                 <fullName>Rejected</fullName>
                 <default>false</default>
                 <label>Rejected</label>
+            </value>
+            <value>
+                <fullName>Linked to Opportunity</fullName>
+                <default>false</default>
+                <label>Linked to Opportunity</label>
+            </value>
+            <value>
+                <fullName>Completed</fullName>
+                <default>false</default>
+                <label>Completed</label>
             </value>
         </valueSetDefinition>
     </valueSet>

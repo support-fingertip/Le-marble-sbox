@@ -7,7 +7,7 @@
     <referenceTo>Warehouse__c</referenceTo>
     <relationshipLabel>Purchase Orders</relationshipLabel>
     <relationshipName>Purchase_Orders</relationshipName>
-    <required>true</required>
+    <required>false</required>
     <trackHistory>false</trackHistory>
     <trackTrending>false</trackTrending>
     <type>Lookup</type>

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
-    <fullName>Vendor__c</fullName>
+    <fullName>Opportunity__c</fullName>
     <deleteConstraint>SetNull</deleteConstraint>
     <externalId>false</externalId>
-    <label>Vendor</label>
-    <referenceTo>Account</referenceTo>
-    <relationshipLabel>Purchase Orders</relationshipLabel>
-    <relationshipName>Purchase_Orders</relationshipName>
+    <label>Opportunity</label>
+    <referenceTo>Opportunity</referenceTo>
+    <relationshipLabel>Sales Promotions</relationshipLabel>
+    <relationshipName>Sales_Promotions</relationshipName>
     <required>false</required>
     <trackHistory>false</trackHistory>
     <trackTrending>false</trackTrending>

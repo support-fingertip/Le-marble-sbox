@@ -12,19 +12,42 @@
         <valueSetDefinition>
             <sorted>false</sorted>
             <value>
-                <fullName>High Potential</fullName>
+                <fullName>Diamond (Above 1cr)</fullName>
                 <default>false</default>
-                <label>High Potential</label>
+                <label>Diamond (Above 1cr)</label>
             </value>
             <value>
-                <fullName>Moderate Potential</fullName>
+                <fullName>Platinum (Below 1cr)</fullName>
                 <default>false</default>
-                <label>Moderate Potential</label>
+                <label>Platinum (Below 1cr)</label>
+            </value>
+            <value>
+                <fullName>Gold (Below 50L)</fullName>
+                <default>false</default>
+                <label>Gold (Below 50L)</label>
+            </value>
+            <value>
+                <fullName>Silver (Below 10L)</fullName>
+                <default>false</default>
+                <label>Silver (Below 10L)</label>
+            </value>
+            <value>
+                <fullName>High Potential</fullName>
+                <default>false</default>
+                <isActive>false</isActive>
+                <label>High Potential</label>
             </value>
             <value>
                 <fullName>Low Potential</fullName>
                 <default>false</default>
+                <isActive>false</isActive>
                 <label>Low Potential</label>
+            </value>
+            <value>
+                <fullName>Moderate Potential</fullName>
+                <default>false</default>
+                <isActive>false</isActive>
+                <label>Moderate Potential</label>
             </value>
         </valueSetDefinition>
     </valueSet>
