@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Promotion_Status__c</fullName>
+    <externalId>false</externalId>
+    <label>Promotion Lifecycle Status</label>
+    <required>true</required>
+    <trackHistory>false</trackHistory>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Proposed</fullName>
+                <default>true</default>
+                <label>Proposed</label>
+            </value>
+            <value>
+                <fullName>Manager Approved</fullName>
+                <default>false</default>
+                <label>Manager Approved</label>
+            </value>
+            <value>
+                <fullName>Business Head Approved</fullName>
+                <default>false</default>
+                <label>Business Head Approved</label>
+            </value>
+            <value>
+                <fullName>Finance Approved</fullName>
+                <default>false</default>
+                <label>Finance Approved</label>
+            </value>
+            <value>
+                <fullName>MD Approved</fullName>
+                <default>false</default>
+                <label>MD Approved</label>
+            </value>
+            <value>
+                <fullName>Rejected</fullName>
+                <default>false</default>
+                <label>Rejected</label>
+            </value>
+            <value>
+                <fullName>Linked to Opportunity</fullName>
+                <default>false</default>
+                <label>Linked to Opportunity</label>
+            </value>
+            <value>
+                <fullName>Completed</fullName>
+                <default>false</default>
+                <label>Completed</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

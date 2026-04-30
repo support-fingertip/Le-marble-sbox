@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Type_of_Promotion__c</fullName>
+    <externalId>false</externalId>
+    <label>Type of Promotion</label>
+    <required>true</required>
+    <trackHistory>false</trackHistory>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Voucher</fullName>
+                <default>false</default>
+                <label>Voucher</label>
+            </value>
+            <value>
+                <fullName>Cash</fullName>
+                <default>false</default>
+                <label>Cash</label>
+            </value>
+            <value>
+                <fullName>Trip</fullName>
+                <default>false</default>
+                <label>Trip</label>
+            </value>
+            <value>
+                <fullName>Gift</fullName>
+                <default>false</default>
+                <label>Gift</label>
+            </value>
+            <value>
+                <fullName>Lunch</fullName>
+                <default>false</default>
+                <label>Lunch</label>
+            </value>
+            <value>
+                <fullName>Event Tickets</fullName>
+                <default>false</default>
+                <label>Event Tickets</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

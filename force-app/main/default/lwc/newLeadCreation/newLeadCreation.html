@@ -48,16 +48,16 @@
                         </div>
                     </div>
 
-                    <div class="field required">
-                        <label for="firstName">First Name/Project name <span class="required-indicator">*</span></label>
-                        <input type="text" id="firstName" name="firstName" placeholder="First Name" required
+                    <div class="field">
+                        <label for="firstName">First Name/Project name</label>
+                        <input type="text" id="firstName" name="firstName" placeholder="First Name"
                             onchange={handleInputChange} oninput={handleUpperCaseInput}
                             value={customerData.firstName} />
                     </div>
 
-                    <div class="field">
-                        <label for="lastName">Last Name</label>
-                        <input type="text" id="lastName" name="lastName" placeholder="Last Name"
+                    <div class="field required">
+                        <label for="lastName">Last Name <span class="required-indicator">*</span></label>
+                        <input type="text" id="lastName" name="lastName" placeholder="Last Name" required
                             onchange={handleInputChange} oninput={handleUpperCaseInput} value={customerData.lastName} />
                     </div>
                         <!-- Company field inserted (required) -->
@@ -107,7 +107,7 @@
                                 id="primaryPhone"
                                 placeholder="Primary Phone"
                                 value={customerData.primaryPhone}
-                                maxlength="15"
+                                maxlength="10"
                                 oninput={handlePhoneInput}
                                 required
                             />
@@ -124,28 +124,11 @@
                     </div>
                 </div>
 
-                <!-- Row 2: Secondary Country, Secondary Phone Number -->
+                <!-- Row 2: Secondary Phone Number -->
                 <div class="field-group">
-                    <div class="field">
-                        <label for="secondaryCountry">Country</label>
-                        <select id="secondaryCountry" name="secondaryCountry" onchange={handleSecondaryCountryChange}>
-                            <template for:each={countryList} for:item="country">
-                                <option key={country.code} value={country.code}>{country.name}</option>
-                            </template>
-                        </select>
-                    </div>
-
                     <div class="field">
                         <label for="secondaryPhone">Secondary Phone Number</label>
                         <div class="secondary-phone-input-row" style="display: flex; align-items: center; gap: 8px;">
-                            <input
-                                class="secondary-country-code"
-                                type="text"
-                                value={selectedSecondaryCountryCode}
-                                readonly
-                                tabindex="-1"
-                                style="max-width: 60px; min-width: 48px; text-align: center; font-weight: bold; background: #f8f8f8; border: 1px solid #ccc; border-radius: 4px;"
-                            />
                             <input
                                 class="secondary-phone-number"
                                 type="text"
@@ -153,17 +136,12 @@
                                 id="secondaryPhone"
                                 placeholder="Secondary Phone"
                                 value={customerData.secondaryPhone}
-                                maxlength="15"
+                                maxlength="10"
                                 oninput={handleSecondaryPhoneInput}
                                 style="flex: 1; min-width: 120px;"
                             />
                         </div>
-                        <template if:true={secondaryPhoneError}>
-                            <div class="error-message">{secondaryPhoneError}</div>
-                        </template>
                     </div>
-
-                    <div class="field"></div> <!-- Empty for alignment -->
                 </div>
 
                 <!-- Row 3: State, District, Panchayat -->
@@ -173,7 +151,7 @@
                         <select id="state" name="state" required onchange={handleStateChange} value={customerData.state}>
                             <option value="">Select State</option>
                             <template for:each={statesList} for:item="state">
-                                <option key={state} value={state}>{state}</option>
+                                <option key={state.value} value={state.value}>{state.label}</option>
                             </template>
                         </select>
                     </div>
@@ -358,24 +336,6 @@
                         </div>
                     </template>
 
-                    <div class="field required">
-                        <label for="customerEntryDate">Customer Entry Date <span class="required-indicator">*</span></label>
-                        <input type="date" id="customerEntryDate" name="customerEntryDate" required
-                            value={customerData.customerEntryDate} readonly />
-                    </div>
-
-                    <div class="field required">
-                        <label for="assignedExecutive">Assign Executive <span class="required-indicator">*</span></label>
-                        <div class="custom-select">
-                            <select id="assignedExecutive" name="assignedExecutive" required onchange={handleInputChange}>
-                                <option value="">Select Executive</option>
-                                <template for:each={executives} for:item="executive">
-                                    <option key={executive.Id} value={executive.Id}>{executive.Name}</option>
-                                </template>
-                            </select>
-                            <div class="select-arrow"></div>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Customer Reference Fields -->

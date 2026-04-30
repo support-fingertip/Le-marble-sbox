@@ -64,6 +64,9 @@ export default class visitManager extends LightningElement {
     isDesktop = false;
     isCometitionScreen = false;
     isQuoteScreen = false;
+    quoteAccountId = null;
+    quoteOpportunityId = null;
+    quoteOpportunityChosen = false;
     currentLogId;
     visitData;
     pickListData;
@@ -321,6 +324,9 @@ export default class visitManager extends LightningElement {
         this.outletPage = false;
         this.isCameraScreen = false;
         this.isQuoteScreen = false;
+        this.quoteAccountId = null;
+        this.quoteOpportunityId = null;
+        this.quoteOpportunityChosen = false;
     }
     handleProductScreen(event) {
         this.isShowBackButton = true;
@@ -383,6 +389,12 @@ export default class visitManager extends LightningElement {
         else if (msg.message == 'quoteScreen') {
             this.header = 'Quote Session';
             this.recordId = msg.recordID;
+            // visitOrderExecuteScreen forwards accId, but its own @api accId
+            // is not always wired from this parent. Fall back to the account
+            // id captured earlier in the visit flow (this.acccountId).
+            this.quoteAccountId = msg.accId || this.acccountId || null;
+            this.quoteOpportunityId = null;
+            this.quoteOpportunityChosen = false;
             this.index = msg.index;
             this.screen = msg.screen;
             this.isQuoteScreen = true;
@@ -401,6 +413,25 @@ this.executeScreenData.isInProgress = false;
         // Triggered by c-quote-session-page when user clicks the back icon
         this.screen = 3.6;
         this.goBackScreen();
+    }
+
+    handleQuoteOppSelected(event) {
+        const detail = event.detail || {};
+        if (!detail.opportunityId) return; // skip path is no longer supported
+        this.quoteOpportunityId = detail.opportunityId;
+        this.quoteOpportunityChosen = true;
+    }
+
+    get showQuoteOppPicker() {
+        return this.isQuoteScreen && !this.quoteOpportunityChosen;
+    }
+
+    get showQuoteSession() {
+        return this.isQuoteScreen && this.quoteOpportunityChosen && !!this.quoteOpportunityId;
+    }
+
+    get quoteSessionRecordId() {
+        return this.quoteOpportunityId;
     }
 
     handleOrderScreen(event) {

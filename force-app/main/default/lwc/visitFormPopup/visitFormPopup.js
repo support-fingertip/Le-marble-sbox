@@ -6,6 +6,9 @@ import { getPicklistValues, getObjectInfo } from 'lightning/uiObjectInfoApi';
 import getFiles from '@salesforce/apex/visitManager.getFiles';
 import FORM_FACTOR from '@salesforce/client/formFactor';
 import deleteFile from '@salesforce/apex/visitManager.deleteFile';
+import getReferralTypes from '@salesforce/apex/visitManager.getReferralTypes';
+import searchReferrals from '@salesforce/apex/visitManager.searchReferrals';
+import createReferral from '@salesforce/apex/visitManager.createReferral';
 import { NavigationMixin } from 'lightning/navigation';
 import { getLocationService } from 'lightning/mobileCapabilities';
 //fields
@@ -37,6 +40,21 @@ export default class visitformpopup extends NavigationMixin(LightningElement)  {
     @api reshedule;
 showOtherReason=false;
 @track showNewLeadForm = false;
+@track showNewReferralForm = false;
+@track isSavingReferral = false;
+@track referralTypeOptions = [];
+@track selectedReferralType = '';
+@track newReferralData = {
+    name: '',
+    phoneNumber: '',
+    areaLocation: '',
+    address: '',
+    type: '',
+    email: '',
+    designation: '',
+    district: '',
+    state: ''
+};
 
     @api dailyLogId;
     @api isDesktop;
@@ -192,6 +210,7 @@ get searchNameData() {
         Lead__c: '',
         Visit_Type__c: '',
         Account__c: '',
+        Referral__c: '',
         Daily_Log__c: '',
         Comments__c: '',
         Missed_Visit_Reason__c:'',
@@ -219,6 +238,7 @@ get searchNameData() {
         if (this.newVisitCreate) {
             this.headerVisit = 'Create New Visit';
             this.getVisitData();
+            this.loadReferralTypes();
         }
         else if(this.completeVisit){
         this.headerVisit = 'Complete Visit' ;
@@ -362,6 +382,14 @@ handleEnable(e) {
                 const warningMsg = 'Please select Customer';
                 this.genericDispatchEvent('Warning', warningMsg, 'warning');
                 return;
+            } else if (this.visitData.Visit_for__c == 'Referral' && !this.selectedReferralType) {
+                const warningMsg = 'Please select Referral Type';
+                this.genericDispatchEvent('Warning', warningMsg, 'warning');
+                return;
+            } else if (this.visitData.Visit_for__c == 'Referral' && !this.visitData.Referral__c) {
+                const warningMsg = 'Please select Referral';
+                this.genericDispatchEvent('Warning', warningMsg, 'warning');
+                return;
             } else if (this.visitData.With_Companion__c === 'Yes' && (!this.visitData.Companion__c || this.visitData.Companion__c.trim() === '')) {
                 const warningMsg = 'Companion is mandatory ';
                 this.genericDispatchEvent('Warning', warningMsg, 'warning');
@@ -449,10 +477,15 @@ handleEnable(e) {
         try {
             var leadId = this.visitData.Lead__c;
             var accId = this.visitData.Account__c;
+            var referralId = this.visitData.Referral__c;
             var vDate = new Date(this.visitData.Visit_Date__c).toLocaleDateString('en-GB');
-            const fields = this.visitData;
 
-            const duplicatePlanned = this.visitOutletData.some(v => ((v.acccountId === accId) || (v.acccountId === leadId))
+            const fields = { ...this.visitData };
+            if (!fields.Lead__c) delete fields.Lead__c;
+            if (!fields.Account__c) delete fields.Account__c;
+            if (!fields.Referral__c) delete fields.Referral__c;
+
+            const duplicatePlanned = this.visitOutletData.some(v => ((v.acccountId === accId) || (v.acccountId === leadId) || (v.acccountId === referralId))
                 && (v.formattedVisitDate === vDate) && (v.status === 'Planned'));
 
             if (duplicatePlanned) {
@@ -501,8 +534,140 @@ handleEnable(e) {
         this.isValueSearched = false;
         this.visitData.Account__c = '';
         this.visitData.Lead__c = '';
+        this.visitData.Referral__c = '';
+        this.selectedReferralType = '';
         this.isOthereVisit = false;
         this.isSearchValueSelected = false;
+    }
+
+    loadReferralTypes() {
+        getReferralTypes()
+            .then(result => {
+                this.referralTypeOptions = (result || []).map(opt => ({
+                    label: opt.label,
+                    value: opt.value
+                }));
+            })
+            .catch(error => {
+                console.error('Error loading referral types:', error);
+            });
+    }
+
+    handleReferralTypeChange(event) {
+        this.selectedReferralType = event.detail.value;
+        this.visitData.Referral__c = '';
+        this.searchValueName = '';
+        this.isValueSearched = false;
+        this.objData.searchNameData = [];
+        this.objData.searchItems = [];
+    }
+
+    searchReferralRecords() {
+        if (!this.selectedReferralType) {
+            return;
+        }
+        searchReferrals({
+            referralType: this.selectedReferralType,
+            searchTerm: this.searchValueName || ''
+        })
+            .then(results => {
+                const mapped = (results || []).map(r => ({
+                    Id: r.Id,
+                    Name: r.Name,
+                    Phone: r.Phone_Number__c,
+                    Reference_Type__c: r.Reference_Type__c
+                }));
+                this.objData.searchNameData = mapped;
+                this.objData.searchItems = mapped;
+                this.isValueSearched = mapped.length > 0;
+            })
+            .catch(error => {
+                console.error('Error searching referrals:', error);
+            });
+    }
+
+    handleAddNewReferral() {
+        this.isValueSearched = false;
+        this.showNewReferralForm = true;
+        this.newReferralData = {
+            name: this.searchValueName || '',
+            phoneNumber: '',
+            areaLocation: '',
+            address: '',
+            type: this.selectedReferralType,
+            email: '',
+            designation: '',
+            district: '',
+            state: ''
+        };
+        this.headerVisit = 'Create New Referral';
+    }
+
+    handleNewReferralInput(event) {
+        const field = event.target.name;
+        const value = event.detail ? event.detail.value : event.target.value;
+        this.newReferralData = { ...this.newReferralData, [field]: value };
+    }
+
+    handleNewReferralPhoneInput(event) {
+        const digits = (event.target.value || '').replace(/[^0-9]/g, '').slice(0, 10);
+        this.newReferralData = { ...this.newReferralData, phoneNumber: digits };
+        event.target.value = digits;
+    }
+
+    handleNewReferralCancel() {
+        this.showNewReferralForm = false;
+        if (this.newVisitCreate) {
+            this.headerVisit = 'Create New Visit';
+        }
+    }
+
+    handleNewReferralSave() {
+        if (!this.newReferralData.type) {
+            this.genericDispatchEvent('Warning', 'Please select Type', 'warning');
+            return;
+        }
+        if (!this.newReferralData.name || this.newReferralData.name.trim() === '') {
+            this.genericDispatchEvent('Warning', 'Please enter Reference Name', 'warning');
+            return;
+        }
+        if (!this.newReferralData.phoneNumber || this.newReferralData.phoneNumber.trim() === '') {
+            this.genericDispatchEvent('Warning', 'Please enter Phone Number', 'warning');
+            return;
+        }
+        if (this.newReferralData.phoneNumber.length !== 10) {
+            this.genericDispatchEvent('Warning', 'Phone Number must be 10 digits', 'warning');
+            return;
+        }
+        this.isSavingReferral = true;
+        createReferral({ data: this.newReferralData })
+            .then(result => {
+                const newReferral = {
+                    Id: result.Id,
+                    Name: result.Name,
+                    Phone: result.Phone_Number__c,
+                    Reference_Type__c: result.Reference_Type__c
+                };
+                this.selectedReferralType = result.Reference_Type__c;
+                this.visitData.Referral__c = newReferral.Id;
+                this.searchValueName = newReferral.Name;
+                this.objData.searchItems = [newReferral];
+                this.objData.searchNameData = [];
+                this.isValueSearched = false;
+                this.showNewReferralForm = false;
+                if (this.newVisitCreate) {
+                    this.headerVisit = 'Create New Visit';
+                }
+                this.genericDispatchEvent('Success', 'Referral created and selected.', 'success');
+            })
+            .catch(error => {
+                const msg = (error && error.body && error.body.message) ? error.body.message :
+                            (error && error.message) ? error.message : 'Failed to create referral';
+                this.genericDispatchEvent('Error', msg, 'error');
+            })
+            .finally(() => {
+                this.isSavingReferral = false;
+            });
     }
     onCommentChange(event) {
         this.visitData[event.currentTarget.name] = event.detail.value;
@@ -569,6 +734,13 @@ handleEnable(e) {
                 this.searchPlaceHolder = 'Search Customer....';
                 this.searchLabel = 'Customer';
             }
+            else if (event.detail.value == 'Referral') {
+                this.objData.searchItems = [];
+                this.objData.searchNameData = [];
+                this.isSearchValueSelected = false;
+                this.searchPlaceHolder = 'Search Referral....';
+                this.searchLabel = 'Referral';
+            }
             else if (event.detail.value == 'Office' || event.detail.value == 'Warehouse') {
                 this.isSearchValueSelected = false;
             }
@@ -601,6 +773,16 @@ handleEnable(e) {
     handleSearch(event) {
         this.searchValueName = event.target.value;
         // console.log(userName);
+        if (this.isReferralVisit) {
+            if (this.searchValueName) {
+                this.searchReferralRecords();
+            } else {
+                this.isValueSearched = false;
+                this.visitData.Referral__c = '';
+                this.objData.searchNameData = [];
+            }
+            return;
+        }
         if (this.searchValueName) {
             this.searchText();
         } else {
@@ -643,20 +825,26 @@ handleEnable(e) {
     get isLeadVisit() {
         return this.visitData.Visit_for__c === 'Lead';
     }
+    get isReferralVisit() {
+        return this.visitData.Visit_for__c === 'Referral';
+    }
+    get isReferralTypeSelected() {
+        return this.isReferralVisit && !!this.selectedReferralType;
+    }
     get embeddedTrue() {
         return true;
     }
     get showVisitFormFields() {
-        return !this.showNewLeadForm;
+        return !this.showNewLeadForm && !this.showNewReferralForm;
     }
     get showOuterActionButtons() {
-        return !this.showNewLeadForm;
+        return !this.showNewLeadForm && !this.showNewReferralForm;
     }
     get showDesktopFooter() {
-        return this.isDesktop && !this.showNewLeadForm;
+        return this.isDesktop && !this.showNewLeadForm && !this.showNewReferralForm;
     }
     get showDesktopCloseButton() {
-        return this.isDesktop && !this.showNewLeadForm;
+        return this.isDesktop && !this.showNewLeadForm && !this.showNewReferralForm;
     }
     handleAddNewLead() {
         this.isValueSearched = false;
@@ -703,6 +891,9 @@ handleEnable(e) {
         }
         else if (apiFieldName == 'Customer') {
             this.visitData.Account__c = event.currentTarget.dataset.id;
+        }
+        else if (apiFieldName == 'Referral') {
+            this.visitData.Referral__c = event.currentTarget.dataset.id;
         }
         this.searchValueName = event.currentTarget.dataset.name;
         this.isValueSearched = false;

@@ -151,10 +151,19 @@
                         </template>
 
                         <!-- Quote session screen -->
-                        <template lwc:if={isQuoteScreen}>
-                            <template lwc:if={recordId}>
+                        <template lwc:if={showQuoteOppPicker}>
+                            <div>
+                                <c-quote-opportunity-picker
+                                    account-id={quoteAccountId}
+                                    onoppselected={handleQuoteOppSelected}>
+                                </c-quote-opportunity-picker>
+                            </div>
+                        </template>
+
+                        <template lwc:if={showQuoteSession}>
+                            <template lwc:if={quoteSessionRecordId}>
                                 <div>
-                                    <c-new-quote-from-opp record-id={recordId}></c-new-quote-from-opp>
+                                    <c-new-quote-from-opp record-id={quoteSessionRecordId}></c-new-quote-from-opp>
                                 </div>
                             </template>
                         </template>

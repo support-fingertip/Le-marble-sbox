@@ -53,11 +53,59 @@
                         </c-new-lead-creation>
                     </div>
                 </template>
+
+                <template lwc:if={showNewReferralForm}>
+                    <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-new-referral">
+                        <lightning-combobox name="type" label="Type" required
+                            value={newReferralData.type} options={referralTypeOptions}
+                            placeholder="Select Type"
+                            onchange={handleNewReferralInput}></lightning-combobox>
+                        <lightning-input type="text" name="name" label="Reference Name" required
+                            value={newReferralData.name} onchange={handleNewReferralInput}></lightning-input>
+                        <lightning-input type="text" name="phoneNumber" label="Phone Number" required
+                            max-length="10" pattern="[0-9]{10}"
+                            message-when-pattern-mismatch="Enter a valid 10 digit phone number"
+                            message-when-value-missing="Phone Number is required"
+                            value={newReferralData.phoneNumber} onchange={handleNewReferralPhoneInput}></lightning-input>
+                        <lightning-input type="email" name="email" label="Email"
+                            value={newReferralData.email} onchange={handleNewReferralInput}></lightning-input>
+                        <lightning-input type="text" name="designation" label="Designation"
+                            value={newReferralData.designation} onchange={handleNewReferralInput}></lightning-input>
+                        <lightning-input type="text" name="areaLocation" label="Area/Location"
+                            value={newReferralData.areaLocation} onchange={handleNewReferralInput}></lightning-input>
+                        <lightning-textarea name="address" label="Address"
+                            value={newReferralData.address} onchange={handleNewReferralInput}></lightning-textarea>
+                        <lightning-input type="text" name="district" label="District"
+                            value={newReferralData.district} onchange={handleNewReferralInput}></lightning-input>
+                        <lightning-input type="text" name="state" label="State"
+                            value={newReferralData.state} onchange={handleNewReferralInput}></lightning-input>
+                        <div class="slds-m-top_medium slds-grid slds-grid_align-end">
+                            <lightning-button variant="neutral" label="Cancel"
+                                onclick={handleNewReferralCancel}
+                                class="slds-m-right_x-small"></lightning-button>
+                            <lightning-button variant="brand" label="Save"
+                                disabled={isSavingReferral}
+                                onclick={handleNewReferralSave}></lightning-button>
+                        </div>
+                    </div>
+                </template>
                 <template lwc:if={showVisitFormFields}>
                 <div class="slds-modal__content slds-p-around_medium  " id="modal-content-id-1">
                     <lightning-combobox name="Visit_for__c" label="Today's visit" value={visitData.Visit_for__c}
                         placeholder="Select Today's visit" options={pickData}
                         onchange={handleChange}></lightning-combobox>
+
+                    <template lwc:if={isReferralVisit}>
+                        <lightning-combobox
+                            name="referralType"
+                            label="Referral Type"
+                            required="true"
+                            placeholder="Select Referral Type"
+                            value={selectedReferralType}
+                            options={referralTypeOptions}
+                            onchange={handleReferralTypeChange}>
+                        </lightning-combobox>
+                    </template>
 
                     <template lwc:if={isSearchValueSelected}>
                         <div class="slds-m-right_xx-small slds-form-element">
@@ -97,7 +145,7 @@
                                                                     <template if:true={isCustomer}>
                                                                         <span>{srch.Phone}</span>
                                                                     </template>
-                                                                    <template if:false={isCustomer}>
+                                                                    <template lwc:if={isLeadVisit}>
                                                                         <b> com: </b> <span>{srch.Company}</span><br />
                                                                         <b> mob p: </b> <span>{srch.Phone}</span><br />
                                                                         <b> Mob s: </b> <span>{srch.MobilePhone}</span><br />
@@ -113,6 +161,54 @@
 
                                 </div>
                             </div>
+                        </div>
+                    </template>
+
+                    <template lwc:if={isReferralTypeSelected}>
+                        <div class="slds-m-right_xx-small slds-form-element">
+                            <div class="slds-form-element__control">
+                                <div class="slds-combobox slds-dropdown-trigger slds-dropdown-trigger_click slds-is-open">
+                                    <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right" role="none">
+                                        <lightning-input type="search" required label="Referral" class="search-input"
+                                            autocomplete="off" placeholder="Search by name or phone"
+                                            value={searchValueName} onchange={handleSearch} onblur={handleOnBlur}>
+                                        </lightning-input>
+                                    </div>
+                                    <template lwc:if={isValueSearched}>
+                                        <div class="slds-dropdown slds-dropdown_length-5 slds-dropdown_fluid smooth-scroll"
+                                            role="listbox" tabindex="0">
+                                            <template for:each={objData.searchNameData} for:item="srch">
+                                                <ul key={srch.Id} class="slds-listbox slds-listbox_vertical" role="presentation">
+                                                    <li role="presentation" class="slds-listbox__item">
+                                                        <div class="slds-media slds-listbox__option slds-listbox__option_plain slds-media_small"
+                                                            role="option" tabindex="0" onclick={selectObjName}
+                                                            data-id={srch.Id} data-name={srch.Name}>
+                                                            <lightning-icon icon-name="standard:contact" size="x-small"></lightning-icon>
+                                                            <span class="slds-media__body">
+                                                                <span class="slds-truncate" title={srch.Name}>
+                                                                    <span>{srch.Name}</span><br />
+                                                                    <span>{srch.Phone}</span>
+                                                                </span>
+                                                            </span>
+                                                        </div>
+                                                    </li>
+                                                </ul>
+                                            </template>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
+                    <template lwc:if={isReferralVisit}>
+                        <div class="slds-m-top_x-small slds-m-bottom_x-small">
+                            <lightning-button
+                                variant="brand-outline"
+                                icon-name="utility:new"
+                                label="Add New Referral"
+                                onclick={handleAddNewReferral}>
+                            </lightning-button>
                         </div>
                     </template>
 

@@ -1,0 +1,19 @@
+.opp-row {
+    cursor: pointer;
+    border: 1px solid #dddbda;
+    border-radius: 0.25rem;
+    margin-bottom: 0.5rem;
+    background: #fff;
+}
+
+.opp-row:hover {
+    background: #f4f6f9;
+}
+
+.full-width-btn {
+    width: 100%;
+}
+
+.full-width-btn lightning-button {
+    width: 100%;
+}

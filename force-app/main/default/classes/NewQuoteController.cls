@@ -377,11 +377,27 @@ lineItem.Sqft__c = safeDecimalConversion(item.get('sqft'));
     @AuraEnabled
     public static List<Quote> getPendingQuotes(Id oppId){
         return [
-            SELECT Id, Name 
-            FROM Quote 
-            WHERE OpportunityId = :oppId 
+            SELECT Id, Name
+            FROM Quote
+            WHERE OpportunityId = :oppId
             AND Approval_Status__c IN ('Approval Pending', 'Manager Approval Pending')
             LIMIT 1
+        ];
+    }
+
+    // Open Opportunities for an Account, used by the Quote opportunity picker.
+    @AuraEnabled(cacheable=true)
+    public static List<Opportunity> getOpenOpportunitiesForAccount(Id accountId){
+        if (accountId == null) {
+            return new List<Opportunity>();
+        }
+        return [
+            SELECT Id, Name, StageName, CloseDate, Amount
+            FROM Opportunity
+            WHERE AccountId = :accountId
+              AND IsClosed = false
+            ORDER BY CloseDate ASC NULLS LAST, Name ASC
+            LIMIT 100
         ];
     }
     @AuraEnabled(cacheable=true)

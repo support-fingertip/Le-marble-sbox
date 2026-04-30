@@ -1,0 +1,146 @@
+<template>
+    <lightning-card title="Create Stock Request" icon-name="custom:custom53">
+        <div class="slds-p-around_medium">
+
+            <template lwc:if={isLoading}>
+                <lightning-spinner alternative-text="Saving..." size="medium"></lightning-spinner>
+            </template>
+
+            <!-- Header: Product Category -->
+            <div class="slds-grid slds-wrap slds-gutters">
+                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
+                    <lightning-combobox
+                        name="category"
+                        label="Product Category"
+                        value={selectedCategory}
+                        placeholder="Select Product Category"
+                        options={categoryOptions}
+                        required
+                        onchange={handleCategoryChange}>
+                    </lightning-combobox>
+                </div>
+            </div>
+
+            <!-- Items Section -->
+            <div class="slds-m-top_large">
+                <div class="slds-grid slds-grid_align-spread slds-m-bottom_x-small">
+                    <h2 class="slds-text-heading_small">Product Items</h2>
+                    <lightning-button
+                        variant="brand-outline"
+                        icon-name="utility:add"
+                        label="Add Row"
+                        onclick={addRow}
+                        disabled={isAddDisabled}>
+                    </lightning-button>
+                </div>
+
+                <template lwc:if={hasNoItems}>
+                    <div class="slds-text-color_weak slds-p-around_small slds-text-align_center slds-box slds-theme_shade">
+                        Click "Add Row" to add product items.
+                    </div>
+                </template>
+
+                <template for:each={items} for:item="row" for:index="idx">
+                    <div key={row.key} class="slds-box slds-box_xx-small slds-m-bottom_small slds-theme_default item-row">
+                        <div class="slds-grid slds-wrap slds-gutters_x-small slds-grid_vertical-align-end">
+
+                            <!-- Product picker -->
+                            <div class="slds-col slds-size_1-of-1 slds-medium-size_7-of-12 slds-p-bottom_x-small product-col">
+                                <label class="slds-form-element__label">
+                                    <abbr class="slds-required" title="required">*</abbr>Product
+                                </label>
+                                <div class="slds-combobox_container slds-has-inline-listbox">
+                                    <div class={getDropdownClass}
+                                         data-id={row.key}>
+                                        <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right" role="none">
+                                            <input
+                                                type="text"
+                                                class="slds-input"
+                                                data-key={row.key}
+                                                placeholder="Search by name or code"
+                                                value={row.searchTerm}
+                                                onfocus={handleProductFocus}
+                                                onblur={handleProductBlur}
+                                                oninput={handleProductInput}
+                                                autocomplete="off" />
+                                            <span class="slds-icon_container slds-input__icon slds-input__icon_right">
+                                                <lightning-icon icon-name="utility:search" size="x-small"></lightning-icon>
+                                            </span>
+                                        </div>
+                                        <template lwc:if={row.showResults}>
+                                            <div class="slds-dropdown slds-dropdown_length-5 slds-dropdown_fluid" role="listbox">
+                                                <ul class="slds-listbox slds-listbox_vertical" role="presentation">
+                                                    <template lwc:if={row.searching}>
+                                                        <li role="presentation" class="slds-listbox__item slds-text-color_weak slds-p-around_x-small">
+                                                            Searching...
+                                                        </li>
+                                                    </template>
+                                                    <template lwc:elseif={row.noResults}>
+                                                        <li role="presentation" class="slds-listbox__item slds-text-color_weak slds-p-around_x-small">
+                                                            No products found
+                                                        </li>
+                                                    </template>
+                                                    <template for:each={row.results} for:item="r">
+                                                        <li key={r.Id} role="presentation" class="slds-listbox__item">
+                                                            <div role="option"
+                                                                 class="slds-media slds-listbox__option slds-listbox__option_plain slds-media_small option-row"
+                                                                 data-key={row.key}
+                                                                 data-id={r.Id}
+                                                                 data-name={r.Name}
+                                                                 data-code={r.ProductCode}
+                                                                 onmousedown={selectProduct}
+                                                                 onclick={selectProduct}>
+                                                                <span class="slds-media__body">
+                                                                    <span class="slds-truncate">{r.Name}</span>
+                                                                    <template lwc:if={r.ProductCode}>
+                                                                        <br/><span class="slds-text-body_small slds-text-color_weak">{r.ProductCode}</span>
+                                                                    </template>
+                                                                </span>
+                                                            </div>
+                                                        </li>
+                                                    </template>
+                                                </ul>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Quantity -->
+                            <div class="slds-col slds-size_1-of-2 slds-medium-size_3-of-12 slds-p-bottom_x-small">
+                                <lightning-input
+                                    type="number"
+                                    label="Quantity"
+                                    data-key={row.key}
+                                    value={row.quantity}
+                                    min="0"
+                                    step="0.01"
+                                    required
+                                    onchange={handleQuantityChange}>
+                                </lightning-input>
+                            </div>
+
+                            <!-- Remove -->
+                            <div class="slds-col slds-size_1-of-2 slds-medium-size_2-of-12 slds-p-bottom_x-small slds-text-align_right">
+                                <lightning-button-icon
+                                    icon-name="utility:delete"
+                                    variant="border-filled"
+                                    alternative-text="Remove row"
+                                    title="Remove row"
+                                    data-key={row.key}
+                                    onclick={removeRow}>
+                                </lightning-button-icon>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+        </div>
+
+        <div slot="footer" class="slds-grid slds-grid_align-end slds-p-right_medium">
+            <lightning-button label="Cancel" variant="neutral" onclick={handleCancel} class="slds-m-right_x-small"></lightning-button>
+            <lightning-button label="Save" variant="brand" onclick={handleSave} disabled={isLoading}></lightning-button>
+        </div>
+    </lightning-card>
+</template>
